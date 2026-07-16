@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Badminton H2H & Ranking</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #1a1a1a; color: #fff; padding: 20px; margin: 0; }
+        h1, h2 { color: #ff3b30; text-align: center; margin-bottom: 20px; }
+        .card { background: #2c2c2e; padding: 15px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; box-sizing: border-box; font-size: 1rem; }
+        input, select { background: #3a3a3c; color: #fff; }
+        button { background: #ff3b30; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #e03228; }
+        .result-box { text-align: center; font-size: 1.1rem; margin-top: 15px; line-height: 1.6; }
+        .vs-text { font-size: 1.3rem; font-weight: bold; color: #ff3b30; text-align: center; margin: 5px 0; }
+        
+        /* Ranking Table Styles */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; text-align: center; border-bottom: 1px solid #3a3a3c; }
+        th { color: #ff3b30; font-weight: bold; }
+        tr:nth-child(1) td { color: #ffd700; font-weight: bold; } /* Gold */
+        tr:nth-child(2) td { color: #c0c0c0; font-weight: bold; } /* Silver */
+        tr:nth-child(3) td { color: #cd7f32; font-weight: bold; } /* Bronze */
+    </style>
+</head>
+<body>
+
+    <h1>🏸 Badminton Stats</h1>
+
+    <!-- 1. Add Player -->
+    <div class="card">
+        <h2>1. Add New Player</h2>
+        <input type="text" id="playerName" placeholder="Enter player name">
+        <button onclick="addPlayer()">Add Player</button>
+    </div>
+
+    <!-- 2. Record Match -->
+    <div class="card">
+        <h2>2. Record Match Result</h2>
+        <label>Winner:</label>
+        <select id="matchWinner"></select>
+        <div class="vs-text">VS</div>
+        <label>Loser:</label>
+        <select id="matchLoser"></select>
+        <button onclick="recordMatch()">Submit Result</button>
+    </div>
+
+    <!-- 3. H2H Stats -->
+    <div class="card">
+        <h2>3. Head-to-Head (H2H)</h2>
+        <select id="queryP1" onchange="calculateH2H()"></select>
+        <div class="vs-text">VS</div>
+        <select id="queryP2" onchange="calculateH2H()"></select>
+        <div class="result-box" id="h2hResult">Please select two players</div>
+    </div>
+
+    <!-- 4. Ranking -->
+    <div class="card">
+        <h2>🏆 Leaderboard</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Total</th>
+                    <th>W / L</th>
+                    <th>Win %</th>
+                </tr>
+            </thead>
+            <tbody id="rankingTableBody">
+                <!-- Ranking data will be generated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let players = JSON.parse(localStorage.getItem('bm_players_en')) || [];
+        let matches = JSON.parse(localStorage.getItem('bm_matches_en')) || [];
+
+        function saveData() {
+            localStorage.setItem('bm_players_en', JSON.stringify(players));
+            localStorage.setItem('bm_matches_en', JSON.stringify(matches));
+            updateDropdowns();
+            renderRanking();
+        }
+
+        function addPlayer() {
+            const name = document.getElementById('playerName').value.trim();
+            if (!name) return alert('Please enter a name.');
+            if (players.includes(name)) return alert('Player already exists.');
+            players.push(name);
+            document.getElementById('playerName').value = '';
+            saveData();
+        }
+
+        function updateDropdowns() {
+            const dropdowns = ['matchWinner', 'matchLoser', 'queryP1', 'queryP2'];
+            dropdowns.forEach(id => {
+                const el = document.getElementById(id);
+                const currentVal = el.value;
+                el.innerHTML = '';
+                players.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p;
+                    opt.innerText = p;
+                    el.appendChild(opt);
+                });
+                if (players.includes(currentVal)) el.value = currentVal;
+            });
+        }
+
+        function recordMatch() {
+            const w = document.getElementById('matchWinner').value;
+            const l = document.getElementById('matchLoser').value;
+            if (!w || !l) return alert('Please add players first.');
+            if (w === l) return alert('A player cannot play against themselves.');
+            
+            matches.push({ winner: w, loser: l });
+            saveData();
+            calculateH2H();
+        }
+
+        function calculateH2H() {
+            const p1 = document.getElementById('queryP1').value;
+            const p2 = document.getElementById('queryP2').value;
+            const resBox = document.getElementById('h2hResult');
+
+            if (!p1 || !p2 || p1 === p2) {
+                resBox.innerText = "Please select two different players.";
+                return;
+            }
+
+            const h2hMatches = matches.filter(m => (m.winner === p1 && m.loser === p2) || (m.winner === p2 && m.loser === p1));
+            const p1Wins = h2hMatches.filter(m => m.winner === p1).length;
+            const p2Wins = h2hMatches.filter(m => m.winner === p2).length;
+            const total = h2hMatches.length;
+
+            if (total === 0) { resBox.innerHTML = `No match history between these players.`; return; }
+
+            resBox.innerHTML = `
+                <strong>Total Matches: ${total}</strong><br>
+                👤 ${p1}: ${p1Wins} Wins (${((p1Wins/total)*100).toFixed(1)}%)<br>
+                👤 ${p2}: ${p2Wins} Wins (${((p2Wins/total)*100).toFixed(1)}%)
+            `;
+        }
+
+        function renderRanking() {
+            const tbody = document.getElementById('rankingTableBody');
+            tbody.innerHTML = '';
+
+            let stats = players.map(name => ({ name, wins: 0, losses: 0, total: 0, rate: 0 }));
+
+            matches.forEach(m => {
+                let wPlayer = stats.find(s => s.name === m.winner);
+                let lPlayer = stats.find(s => s.name === m.loser);
+                if (wPlayer) { wPlayer.wins++; wPlayer.total++; }
+                if (lPlayer) { lPlayer.losses++; lPlayer.total++; }
+            });
+
+            stats.forEach(s => {
+                s.rate = s.total > 0 ? parseFloat(((s.wins / s.total) * 100).toFixed(1)) : 0;
+            });
+
+            stats.sort((a, b) => b.rate - a.rate || b.wins - a.wins);
+
+            stats.forEach((s, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${s.name}</td>
+                    <td>${s.total}</td>
+                    <td>${s.wins}W / ${s.losses}L</td>
+                    <td>${s.total > 0 ? s.rate + '%' : '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        updateDropdowns();
+        calculateH2H();
+        renderRanking();
+    </script>
+</body>
+</html>
