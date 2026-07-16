@@ -14,7 +14,7 @@
         input, select { background: #3a3a3c; color: #fff; }
         button { background: #ff3b30; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         button:hover { background: #e03228; }
-        .result-box { text-align: center; font-size: 1.1rem; margin-top: 15px; line-height: 1.6; }
+        .result-box { font-size: 1.1rem; margin-top: 15px; line-height: 1.6; }
         .vs-text { font-size: 1.3rem; font-weight: bold; color: #ff3b30; text-align: center; margin: 5px 0; }
         
         /* Score Input Styles */
@@ -25,12 +25,18 @@
         .score-inputs input { width: 40px; text-align: center; font-size: 1rem; font-weight: bold; background: transparent; border-bottom: 2px solid #ff3b30; border-radius: 0; padding: 5px 0; margin: 0; }
         .score-dash { color: #aaa; font-weight: bold; }
 
-        /* Match History Styles */
-        .history-box { background: #1c1c1e; padding: 10px; border-radius: 8px; max-height: 220px; overflow-y: auto; font-size: 0.95rem; margin-top: 15px; text-align: left; border: 1px solid #3a3a3c; }
-        .history-row { padding: 8px 0; border-bottom: 1px dashed #3a3a3c; }
-        .history-row:last-child { border-bottom: none; }
-        .history-date { color: #888; font-size: 0.75rem; margin-bottom: 3px; }
-        .history-score { color: #4caf50; font-size: 0.85rem; margin-left: 5px; font-weight: bold; }
+        /* BWF Style Match Card */
+        .bwf-card { background: #1a1a1c; border-radius: 10px; overflow: hidden; margin-top: 15px; border-left: 4px solid #ff3b30; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        .bwf-header { background: #2c2c2e; padding: 10px 15px; display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .bwf-body { padding: 15px; }
+        .bwf-player { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .bwf-player:last-child { margin-bottom: 0; }
+        .bwf-name { display: flex; align-items: center; gap: 10px; font-size: 1.1rem; }
+        .bwf-scores { display: flex; gap: 12px; font-weight: bold; font-size: 1.1rem; }
+        .bwf-score-item { width: 22px; text-align: center; }
+        .bwf-score-red { color: #ff3b30; }
+        .bwf-score-white { color: #ffffff; }
+        .bwf-footer { border-top: 1px solid #2c2c2e; padding: 10px 15px; font-size: 0.8rem; color: #aaa; display: flex; justify-content: space-between; text-transform: uppercase; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 10px; text-align: center; border-bottom: 1px solid #3a3a3c; }
@@ -116,7 +122,7 @@
         <button onclick="recordMatch()">Submit Result</button>
     </div>
 
-    <!-- 3. H2H Stats (附带历史比分详情) -->
+    <!-- 3. H2H Stats (BWF Style) -->
     <div class="card">
         <h2>3. Head-to-Head (H2H)</h2>
         <select id="queryP1" onchange="calculateH2H()"></select>
@@ -140,14 +146,6 @@
             </thead>
             <tbody id="rankingTableBody"></tbody>
         </table>
-    </div>
-
-    <!-- 5. 数据搬家系统 -->
-    <div class="card" id="migrationCard">
-        <h2>☁️ Data Migration</h2>
-        <p style="text-align:center; font-size:0.8rem; color:#aaa;">Move old local data to Firebase Database.</p>
-        <button onclick="migrateToCloud()" style="background:#4caf50;">☁️ Upload Local Data to Cloud</button>
-        <p style="text-align:center; font-size:0.7rem; color:#ff3b30; margin-top:10px;">⚠️ Please ONLY press this ONCE from the phone that has your old records!</p>
     </div>
 
     <!-- Profile Modal -->
@@ -222,7 +220,7 @@
                 await addDoc(collection(db, "players"), { name: name, flag: flag });
                 document.getElementById('playerName').value = '';
             } catch (e) {
-                alert("Error: Make sure Firestore Database is set to Test Mode!");
+                alert("Error connecting to Firebase!");
             }
         };
 
@@ -266,7 +264,7 @@
             }
         };
 
-        // 🌟 升级版 H2H：加入具体比分列表
+        // 🌟 BWF 风格还原逻辑
         window.calculateH2H = function() {
             const p1 = document.getElementById('queryP1').value;
             const p2 = document.getElementById('queryP2').value;
@@ -278,38 +276,65 @@
             const p2Wins = h2hMatches.filter(m => m.winner === p2).length;
             const total = h2hMatches.length;
 
-            if (total === 0) { resBox.innerHTML = `No match history.`; return; }
+            if (total === 0) { resBox.innerHTML = `No match history between these players.`; return; }
             
-            // 总胜率简报
-            let html = `<strong>Total Matches: ${total}</strong><br>👤 ${p1}: ${p1Wins} Wins (${((p1Wins/total)*100).toFixed(1)}%)<br>👤 ${p2}: ${p2Wins} Wins (${((p2Wins/total)*100).toFixed(1)}%)`;
-
-            // 历史对战分数列表 (黑色小窗口)
-            html += `<div class="history-box"><div style="color:#aaa; font-weight:bold; margin-bottom:8px;">Recent Encounters:</div>`;
+            let html = `<div style="text-align:center; margin-bottom:15px;">
+                            <strong>Total Encounters: ${total}</strong><br>
+                            ${p1}: ${p1Wins} W  |  ${p2}: ${p2Wins} W
+                        </div>`;
             
-            // 将比赛按时间倒序（最新的在最上面）
             let sortedMatches = [...h2hMatches].reverse();
             
             sortedMatches.forEach(m => {
-                let scoreStr = "";
-                // 抓取比分并排版
+                let wPlayer = players.find(p => p.name === m.winner) || { flag: '🏳️' };
+                let lPlayer = players.find(p => p.name === m.loser) || { flag: '🏳️' };
+                
+                let wScoresHTML = '';
+                let lScoresHTML = '';
+                
                 if (m.scores && m.scores.length > 0) {
-                    let validScores = m.scores.filter(s => s.w !== "" && s.l !== "");
-                    if (validScores.length > 0) {
-                        scoreStr = `<span class="history-score">(${validScores.map(s => `${s.w}-${s.l}`).join(', ')})</span>`;
-                    }
+                    m.scores.forEach(s => {
+                        if (s.w !== "" && s.l !== "") {
+                            let wVal = parseInt(s.w);
+                            let lVal = parseInt(s.l);
+                            // 动态判断单局谁分数高，高分标红，低分标白
+                            let wClass = wVal > lVal ? 'bwf-score-red' : 'bwf-score-white';
+                            let lClass = lVal > wVal ? 'bwf-score-red' : 'bwf-score-white';
+                            
+                            wScoresHTML += `<div class="bwf-score-item ${wClass}">${s.w}</div>`;
+                            lScoresHTML += `<div class="bwf-score-item ${lClass}">${s.l}</div>`;
+                        }
+                    });
                 }
                 
-                // 格式化日期
                 let dateObj = m.date ? new Date(m.date) : new Date();
                 let dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
                 
-                html += `<div class="history-row">
-                            <div class="history-date">${dateStr}</div>
-                            <div>🏆 <strong>${m.winner}</strong> def. ${m.loser} ${scoreStr}</div>
-                         </div>`;
+                html += `
+                <div class="bwf-card">
+                    <div class="bwf-header">
+                        <span>FRIENDLY MATCH ${dateObj.getFullYear()}</span>
+                        <span>Result</span>
+                    </div>
+                    <div class="bwf-body">
+                        <!-- Winner Row (Top) -->
+                        <div class="bwf-player">
+                            <div class="bwf-name"><span>${wPlayer.flag}</span> <strong>${m.winner}</strong></div>
+                            <div class="bwf-scores">${wScoresHTML}</div>
+                        </div>
+                        <!-- Loser Row (Bottom) -->
+                        <div class="bwf-player">
+                            <div class="bwf-name"><span>${lPlayer.flag}</span> <span style="color:#aaa;">${m.loser}</span></div>
+                            <div class="bwf-scores">${lScoresHTML}</div>
+                        </div>
+                    </div>
+                    <div class="bwf-footer">
+                        <span>MS • DATE: ${dateStr}</span>
+                        <span>-</span>
+                    </div>
+                </div>`;
             });
             
-            html += `</div>`;
             resBox.innerHTML = html;
         };
 
@@ -421,28 +446,6 @@
         };
 
         window.closeProfile = function() { document.getElementById('profileModal').style.display = 'none'; };
-
-        window.migrateToCloud = async function() {
-            let localPlayers = JSON.parse(localStorage.getItem('bm_players_en_v2')) || [];
-            let localMatches = JSON.parse(localStorage.getItem('bm_matches_en_v2')) || [];
-            
-            if (localPlayers.length === 0 && localMatches.length === 0) {
-                return alert("No local data found on this device.");
-            }
-
-            const confirmUpload = confirm(`Found ${localPlayers.length} players and ${localMatches.length} matches.\nAre you sure you want to upload them to Firebase?`);
-            if (!confirmUpload) return;
-
-            try {
-                for (let p of localPlayers) { await addDoc(collection(db, "players"), p); }
-                for (let m of localMatches) { await addDoc(collection(db, "matches"), m); }
-                
-                alert("Upload Successful! Data is now in the cloud. 🎉");
-                document.getElementById('migrationCard').style.display = 'none';
-            } catch (e) {
-                alert("Error: Check if Firestore Database is set up correctly.");
-            }
-        };
 
     </script>
 </body>
