@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Badminton Pro Stats</title>
-    <!-- 引入强大的免费图表绘制工具 Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #1a1a1a; color: #fff; padding: 20px; margin: 0; }
@@ -14,24 +13,22 @@
         input, select { background: #3a3a3c; color: #fff; }
         button { background: #ff3b30; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         button:hover { background: #e03228; }
+        .result-box { text-align: center; font-size: 1.1rem; margin-top: 15px; line-height: 1.6; }
         .vs-text { font-size: 1.3rem; font-weight: bold; color: #ff3b30; text-align: center; margin: 5px 0; }
         
-        /* Table Styles */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 10px; text-align: center; border-bottom: 1px solid #3a3a3c; }
         th { color: #ff3b30; font-weight: bold; font-size: 0.9rem; }
-        tr:nth-child(1) td { color: #ffd700; font-weight: bold; } /* Gold */
-        tr:nth-child(2) td { color: #c0c0c0; font-weight: bold; } /* Silver */
-        tr:nth-child(3) td { color: #cd7f32; font-weight: bold; } /* Bronze */
+        tr:nth-child(1) td { color: #ffd700; font-weight: bold; } 
+        tr:nth-child(2) td { color: #c0c0c0; font-weight: bold; } 
+        tr:nth-child(3) td { color: #cd7f32; font-weight: bold; } 
         .clickable-name { color: #0a84ff; text-decoration: underline; cursor: pointer; }
         
-        /* Modal Styles */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #1c1c1e; padding: 25px; border-radius: 15px; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto; position: relative; }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.8rem; color: #aaa; cursor: pointer; }
         .profile-header { text-align: center; font-size: 1.5rem; margin-bottom: 15px; font-weight: bold; color: #fff; }
         
-        /* 仿 BWF 风格的红色数据展板 */
         .stats-hero { background: linear-gradient(135deg, #ff3b30, #c02b22); color: white; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4); }
         .stats-hero .current-rank { font-size: 3.5rem; font-weight: bold; margin: 5px 0; line-height: 1; }
         .stats-hero .rank-title { font-size: 0.9rem; margin-bottom: 15px; opacity: 0.9; }
@@ -40,12 +37,10 @@
         .stat-col .num { font-size: 1.4rem; font-weight: bold; }
         .stat-col .label { font-size: 0.75rem; opacity: 0.9; margin-top: 3px; }
         
-        /* Chart Container */
         .chart-container { background: #2c2c2e; border-radius: 12px; padding: 10px; margin-bottom: 20px; }
         .chart-title { font-size: 0.9rem; color: #aaa; margin-bottom: 10px; text-align: left; padding-left: 5px; font-weight: bold; }
         
         .stat-list-row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #3a3a3c; }
-        .stat-list-row:last-child { border-bottom: none; }
         .stat-label { color: #aaa; font-size: 0.9rem; }
         .stat-value { font-weight: bold; font-size: 0.9rem; }
     </style>
@@ -81,7 +76,16 @@
         <button onclick="recordMatch()">Submit Result</button>
     </div>
 
-    <!-- 3. Ranking -->
+    <!-- 3. H2H Stats (修复找回) -->
+    <div class="card">
+        <h2>3. Head-to-Head (H2H)</h2>
+        <select id="queryP1" onchange="calculateH2H()"></select>
+        <div class="vs-text">VS</div>
+        <select id="queryP2" onchange="calculateH2H()"></select>
+        <div class="result-box" id="h2hResult">Please select two players</div>
+    </div>
+
+    <!-- 4. Ranking -->
     <div class="card">
         <h2>🏆 Leaderboard</h2>
         <p style="text-align:center; font-size:0.8rem; color:#aaa;">* Click a player's name for deep analysis</p>
@@ -98,13 +102,20 @@
         </table>
     </div>
 
+    <!-- 5. 数据同步功能 (跨设备解决) -->
+    <div class="card">
+        <h2>☁️ Device Sync (Export / Import)</h2>
+        <p style="text-align:center; font-size:0.8rem; color:#aaa;">Transfer your data to iPad or PC</p>
+        <button onclick="exportData()" style="background:#0a84ff;">📤 Export Data (Copy)</button>
+        <button onclick="importData()" style="background:#32ade6; margin-top:10px;">📥 Import Data (Paste)</button>
+    </div>
+
     <!-- 个人高级分析主页 (Modal) -->
     <div id="profileModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeProfile()">×</span>
             <div class="profile-header" id="profileTitle">🇨🇳 Player Name</div>
             
-            <!-- 红色高级数据看板 -->
             <div class="stats-hero">
                 <div class="current-rank" id="profCurrentRank">1</div>
                 <div class="rank-title">Current Ranking</div>
@@ -125,13 +136,11 @@
                 </div>
             </div>
 
-            <!-- 历史走势图表 -->
             <div class="chart-container">
                 <div class="chart-title">RANKING HISTORY</div>
                 <canvas id="rankingChart"></canvas>
             </div>
             
-            <!-- 对手数据 -->
             <div class="stat-list-row">
                 <span class="stat-label">Total Matches Played:</span>
                 <span class="stat-value" id="profTotal">0</span>
@@ -148,16 +157,30 @@
     </div>
 
     <script>
-        // 继续使用 v2，不会丢失你上次录入的数据
         let players = JSON.parse(localStorage.getItem('bm_players_en_v2')) || [];
         let matches = JSON.parse(localStorage.getItem('bm_matches_en_v2')) || [];
-        let rankingChartInstance = null; // 用于保存图表对象
+        let rankingChartInstance = null; 
+
+        // 【新功能】自动找回旧数据
+        if (players.length === 0) {
+            let oldPlayers = JSON.parse(localStorage.getItem('bm_players_en')) || JSON.parse(localStorage.getItem('bm_players'));
+            let oldMatches = JSON.parse(localStorage.getItem('bm_matches_en')) || JSON.parse(localStorage.getItem('bm_matches'));
+            
+            if (oldPlayers && oldPlayers.length > 0) {
+                // 把旧版纯名字转换为新版带国旗的格式 (默认显示白旗)
+                players = oldPlayers.map(p => typeof p === 'string' ? { name: p, flag: '🏳️' } : p);
+                matches = oldMatches || [];
+                saveData();
+                alert('Success! Old data recovered automatically.');
+            }
+        }
 
         function saveData() {
             localStorage.setItem('bm_players_en_v2', JSON.stringify(players));
             localStorage.setItem('bm_matches_en_v2', JSON.stringify(matches));
             updateDropdowns();
             renderRanking();
+            calculateH2H();
         }
 
         function addPlayer() {
@@ -172,9 +195,11 @@
         }
 
         function updateDropdowns() {
-            const dropdowns = ['matchWinner', 'matchLoser'];
+            // 修复：确保 H2H 的下拉菜单也被更新
+            const dropdowns = ['matchWinner', 'matchLoser', 'queryP1', 'queryP2'];
             dropdowns.forEach(id => {
                 const el = document.getElementById(id);
+                if (!el) return;
                 const currentVal = el.value;
                 el.innerHTML = '';
                 players.forEach(p => {
@@ -195,6 +220,31 @@
             
             matches.push({ winner: w, loser: l });
             saveData();
+        }
+
+        // 【修复】把删漏的 H2H 逻辑加回来
+        function calculateH2H() {
+            const p1 = document.getElementById('queryP1').value;
+            const p2 = document.getElementById('queryP2').value;
+            const resBox = document.getElementById('h2hResult');
+
+            if (!p1 || !p2 || p1 === p2) {
+                resBox.innerText = "Please select two different players.";
+                return;
+            }
+
+            const h2hMatches = matches.filter(m => (m.winner === p1 && m.loser === p2) || (m.winner === p2 && m.loser === p1));
+            const p1Wins = h2hMatches.filter(m => m.winner === p1).length;
+            const p2Wins = h2hMatches.filter(m => m.winner === p2).length;
+            const total = h2hMatches.length;
+
+            if (total === 0) { resBox.innerHTML = `No match history between these players.`; return; }
+
+            resBox.innerHTML = `
+                <strong>Total Matches: ${total}</strong><br>
+                👤 ${p1}: ${p1Wins} Wins (${((p1Wins/total)*100).toFixed(1)}%)<br>
+                👤 ${p2}: ${p2Wins} Wins (${((p2Wins/total)*100).toFixed(1)}%)
+            `;
         }
 
         function renderRanking() {
@@ -225,25 +275,19 @@
             });
         }
 
-        // 核心技术：动态推演历史排名
         function generateHistoricalRanks() {
             let history = [];
-            // 初始所有人0胜0负
             let tempStats = players.map(p => ({ name: p.name, wins: 0, total: 0, rate: 0 }));
 
-            // 重新按顺序回放每一场比赛
             matches.forEach((m, matchIndex) => {
                 let w = tempStats.find(s => s.name === m.winner);
                 let l = tempStats.find(s => s.name === m.loser);
                 if (w) { w.wins++; w.total++; w.rate = (w.wins / w.total) * 100; }
                 if (l) { l.total++; l.rate = (l.wins / l.total) * 100; }
 
-                // 计算这一场打完后的实时排名
                 let currentRankings = [...tempStats].sort((a, b) => b.rate - a.rate || b.wins - a.wins);
-                
                 let rankMap = {};
                 currentRankings.forEach((s, i) => { rankMap[s.name] = i + 1; });
-                
                 history.push({ matchNum: matchIndex + 1, ranks: rankMap });
             });
             return history;
@@ -255,7 +299,6 @@
 
             document.getElementById('profileTitle').innerText = `${player.flag} ${player.name}`;
             
-            // 计算对手胜负数据
             let pWins = 0, pLosses = 0, opponents = {};
             matches.forEach(m => {
                 if (m.winner === playerName) {
@@ -281,13 +324,9 @@
             document.getElementById('profNemesis').innerText = maxLosses > 0 ? `${nemesis} (${maxLosses}L)` : '-';
             document.getElementById('profFavorite').innerText = maxWins > 0 ? `${favorite} (${maxWins}W)` : '-';
 
-            // 获取历史排名数据
             const rankHistory = generateHistoricalRanks();
-            
-            // 提取这个人的个人排名走势
             let playerRanks = rankHistory.map(h => h.ranks[playerName] || players.length);
             
-            // 计算当前排名、最高排名、当世界第一的次数
             let currentRank = playerRanks.length > 0 ? playerRanks[playerRanks.length - 1] : "-";
             let highestRank = playerRanks.length > 0 ? Math.min(...playerRanks) : "-";
             let timesNo1 = playerRanks.filter(r => r === 1).length;
@@ -296,59 +335,43 @@
             document.getElementById('profHighestRank').innerText = highestRank;
             document.getElementById('profMatchesNo1').innerText = timesNo1;
 
-            // 绘制图表
             drawChart(playerRanks, rankHistory.map(h => 'M' + h.matchNum));
-
             document.getElementById('profileModal').style.display = 'flex';
         }
 
         function drawChart(dataRanks, labels) {
             const ctx = document.getElementById('rankingChart').getContext('2d');
-            
-            // 如果之前画过图，先销毁旧图，避免重叠重影
-            if (rankingChartInstance) {
-                rankingChartInstance.destroy();
-            }
-
-            // 如果这个人还没打过比赛，提供空数据占位
-            if (dataRanks.length === 0) {
-                dataRanks = [players.length];
-                labels = ['No Matches'];
-            }
+            if (rankingChartInstance) rankingChartInstance.destroy();
+            if (dataRanks.length === 0) { dataRanks = [players.length]; labels = ['No Matches']; }
 
             rankingChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels, // X轴标签：M1, M2...
+                    labels: labels, 
                     datasets: [{
                         label: 'Ranking',
                         data: dataRanks,
-                        borderColor: '#0a84ff', // 经典数据蓝
+                        borderColor: '#0a84ff', 
                         borderWidth: 3,
                         pointBackgroundColor: '#0a84ff',
                         pointRadius: 4,
                         fill: false,
-                        tension: 0.1 // 线条稍微平滑
+                        tension: 0.1
                     }]
                 },
                 options: {
                     responsive: true,
                     scales: {
                         y: {
-                            reverse: true, // 重点！第一名要在最上面
+                            reverse: true,
                             min: 1,
-                            max: players.length > 5 ? players.length : 5, // 动态调整Y轴底部
+                            max: players.length > 5 ? players.length : 5, 
                             ticks: { stepSize: 1, color: '#aaa' },
                             grid: { color: '#3a3a3c' }
                         },
-                        x: {
-                            ticks: { color: '#aaa' },
-                            grid: { display: false }
-                        }
+                        x: { ticks: { color: '#aaa' }, grid: { display: false } }
                     },
-                    plugins: {
-                        legend: { display: false } // 隐藏多余的图例
-                    }
+                    plugins: { legend: { display: false } }
                 }
             });
         }
@@ -357,8 +380,36 @@
             document.getElementById('profileModal').style.display = 'none';
         }
 
+        // 【新功能】导出和导入数据（用于跨设备同步）
+        function exportData() {
+            const dataToExport = { p: players, m: matches };
+            const jsonString = JSON.stringify(dataToExport);
+            // 弹出窗口让用户复制
+            prompt("Please COPY ALL the text below and send it to your other device (e.g. via WhatsApp/WeChat):", jsonString);
+        }
+
+        function importData() {
+            const jsonString = prompt("Please PASTE the exported data code here:");
+            if (!jsonString) return;
+            
+            try {
+                const importedData = JSON.parse(jsonString);
+                if (importedData.p && importedData.m) {
+                    players = importedData.p;
+                    matches = importedData.m;
+                    saveData();
+                    alert("Sync Successful! Data has been updated.");
+                } else {
+                    alert("Invalid data format!");
+                }
+            } catch (e) {
+                alert("Error reading data. Make sure you copied the entire code.");
+            }
+        }
+
         updateDropdowns();
         renderRanking();
+        calculateH2H(); // 初始化加载时计算一次
     </script>
 </body>
 </html>
