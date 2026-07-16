@@ -25,6 +25,13 @@
         .score-inputs input { width: 40px; text-align: center; font-size: 1rem; font-weight: bold; background: transparent; border-bottom: 2px solid #ff3b30; border-radius: 0; padding: 5px 0; margin: 0; }
         .score-dash { color: #aaa; font-weight: bold; }
 
+        /* Match History Styles */
+        .history-box { background: #1c1c1e; padding: 10px; border-radius: 8px; max-height: 220px; overflow-y: auto; font-size: 0.95rem; margin-top: 15px; text-align: left; border: 1px solid #3a3a3c; }
+        .history-row { padding: 8px 0; border-bottom: 1px dashed #3a3a3c; }
+        .history-row:last-child { border-bottom: none; }
+        .history-date { color: #888; font-size: 0.75rem; margin-bottom: 3px; }
+        .history-score { color: #4caf50; font-size: 0.85rem; margin-left: 5px; font-weight: bold; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 10px; text-align: center; border-bottom: 1px solid #3a3a3c; }
         th { color: #ff3b30; font-weight: bold; font-size: 0.9rem; }
@@ -109,7 +116,7 @@
         <button onclick="recordMatch()">Submit Result</button>
     </div>
 
-    <!-- 3. H2H Stats -->
+    <!-- 3. H2H Stats (附带历史比分详情) -->
     <div class="card">
         <h2>3. Head-to-Head (H2H)</h2>
         <select id="queryP1" onchange="calculateH2H()"></select>
@@ -259,6 +266,7 @@
             }
         };
 
+        // 🌟 升级版 H2H：加入具体比分列表
         window.calculateH2H = function() {
             const p1 = document.getElementById('queryP1').value;
             const p2 = document.getElementById('queryP2').value;
@@ -271,7 +279,38 @@
             const total = h2hMatches.length;
 
             if (total === 0) { resBox.innerHTML = `No match history.`; return; }
-            resBox.innerHTML = `<strong>Total Matches: ${total}</strong><br>👤 ${p1}: ${p1Wins} Wins (${((p1Wins/total)*100).toFixed(1)}%)<br>👤 ${p2}: ${p2Wins} Wins (${((p2Wins/total)*100).toFixed(1)}%)`;
+            
+            // 总胜率简报
+            let html = `<strong>Total Matches: ${total}</strong><br>👤 ${p1}: ${p1Wins} Wins (${((p1Wins/total)*100).toFixed(1)}%)<br>👤 ${p2}: ${p2Wins} Wins (${((p2Wins/total)*100).toFixed(1)}%)`;
+
+            // 历史对战分数列表 (黑色小窗口)
+            html += `<div class="history-box"><div style="color:#aaa; font-weight:bold; margin-bottom:8px;">Recent Encounters:</div>`;
+            
+            // 将比赛按时间倒序（最新的在最上面）
+            let sortedMatches = [...h2hMatches].reverse();
+            
+            sortedMatches.forEach(m => {
+                let scoreStr = "";
+                // 抓取比分并排版
+                if (m.scores && m.scores.length > 0) {
+                    let validScores = m.scores.filter(s => s.w !== "" && s.l !== "");
+                    if (validScores.length > 0) {
+                        scoreStr = `<span class="history-score">(${validScores.map(s => `${s.w}-${s.l}`).join(', ')})</span>`;
+                    }
+                }
+                
+                // 格式化日期
+                let dateObj = m.date ? new Date(m.date) : new Date();
+                let dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+                
+                html += `<div class="history-row">
+                            <div class="history-date">${dateStr}</div>
+                            <div>🏆 <strong>${m.winner}</strong> def. ${m.loser} ${scoreStr}</div>
+                         </div>`;
+            });
+            
+            html += `</div>`;
+            resBox.innerHTML = html;
         };
 
         window.renderRanking = function() {
@@ -383,7 +422,6 @@
 
         window.closeProfile = function() { document.getElementById('profileModal').style.display = 'none'; };
 
-        // 🌟 将旧数据搬运至云端的按钮逻辑
         window.migrateToCloud = async function() {
             let localPlayers = JSON.parse(localStorage.getItem('bm_players_en_v2')) || [];
             let localMatches = JSON.parse(localStorage.getItem('bm_matches_en_v2')) || [];
