@@ -10,12 +10,21 @@
         h1, h2 { color: #ff3b30; text-align: center; margin-bottom: 20px; }
         .card { background: #2c2c2e; padding: 15px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; box-sizing: border-box; font-size: 1rem; }
+        input[type="number"] { padding: 8px; }
         input, select { background: #3a3a3c; color: #fff; }
         button { background: #ff3b30; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         button:hover { background: #e03228; }
         .result-box { text-align: center; font-size: 1.1rem; margin-top: 15px; line-height: 1.6; }
         .vs-text { font-size: 1.3rem; font-weight: bold; color: #ff3b30; text-align: center; margin: 5px 0; }
         
+        /* Score Input Styles */
+        .score-row { display: flex; justify-content: space-between; gap: 5px; margin: 15px 0; }
+        .score-box { background: #1c1c1e; border-radius: 8px; padding: 10px 5px; flex: 1; text-align: center; border: 1px solid #3a3a3c; }
+        .score-box label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 5px; font-weight: bold; }
+        .score-inputs { display: flex; justify-content: center; align-items: center; gap: 2px; }
+        .score-inputs input { width: 40px; text-align: center; font-size: 1rem; font-weight: bold; background: transparent; border-bottom: 2px solid #ff3b30; border-radius: 0; padding: 5px 0; margin: 0; }
+        .score-dash { color: #aaa; font-weight: bold; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 10px; text-align: center; border-bottom: 1px solid #3a3a3c; }
         th { color: #ff3b30; font-weight: bold; font-size: 0.9rem; }
@@ -67,16 +76,41 @@
         <button onclick="addPlayer()">Add Player</button>
     </div>
 
-    <!-- 2. Record Match -->
+    <!-- 2. Record Match (新增计分系统) -->
     <div class="card">
         <h2>2. Record Match Result</h2>
+        <label style="color:#aaa; font-size:0.8rem;">Winner:</label>
         <select id="matchWinner"></select>
+        
+        <!-- Score Input Area -->
+        <div class="score-row">
+            <div class="score-box">
+                <label>GAME 1</label>
+                <div class="score-inputs">
+                    <input type="number" id="g1w" placeholder="W" min="0"> <span class="score-dash">-</span> <input type="number" id="g1l" placeholder="L" min="0">
+                </div>
+            </div>
+            <div class="score-box">
+                <label>GAME 2</label>
+                <div class="score-inputs">
+                    <input type="number" id="g2w" placeholder="W" min="0"> <span class="score-dash">-</span> <input type="number" id="g2l" placeholder="L" min="0">
+                </div>
+            </div>
+            <div class="score-box">
+                <label>GAME 3</label>
+                <div class="score-inputs">
+                    <input type="number" id="g3w" placeholder="W" min="0"> <span class="score-dash">-</span> <input type="number" id="g3l" placeholder="L" min="0">
+                </div>
+            </div>
+        </div>
+        
         <div class="vs-text">VS</div>
+        <label style="color:#aaa; font-size:0.8rem;">Loser:</label>
         <select id="matchLoser"></select>
         <button onclick="recordMatch()">Submit Result</button>
     </div>
 
-    <!-- 3. H2H Stats (修复找回) -->
+    <!-- 3. H2H Stats -->
     <div class="card">
         <h2>3. Head-to-Head (H2H)</h2>
         <select id="queryP1" onchange="calculateH2H()"></select>
@@ -102,7 +136,7 @@
         </table>
     </div>
 
-    <!-- 5. 数据同步功能 (跨设备解决) -->
+    <!-- 5. Sync -->
     <div class="card">
         <h2>☁️ Device Sync (Export / Import)</h2>
         <p style="text-align:center; font-size:0.8rem; color:#aaa;">Transfer your data to iPad or PC</p>
@@ -110,7 +144,7 @@
         <button onclick="importData()" style="background:#32ade6; margin-top:10px;">📥 Import Data (Paste)</button>
     </div>
 
-    <!-- 个人高级分析主页 (Modal) -->
+    <!-- Profile Modal -->
     <div id="profileModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeProfile()">×</span>
@@ -161,13 +195,10 @@
         let matches = JSON.parse(localStorage.getItem('bm_matches_en_v2')) || [];
         let rankingChartInstance = null; 
 
-        // 【新功能】自动找回旧数据
         if (players.length === 0) {
             let oldPlayers = JSON.parse(localStorage.getItem('bm_players_en')) || JSON.parse(localStorage.getItem('bm_players'));
             let oldMatches = JSON.parse(localStorage.getItem('bm_matches_en')) || JSON.parse(localStorage.getItem('bm_matches'));
-            
             if (oldPlayers && oldPlayers.length > 0) {
-                // 把旧版纯名字转换为新版带国旗的格式 (默认显示白旗)
                 players = oldPlayers.map(p => typeof p === 'string' ? { name: p, flag: '🏳️' } : p);
                 matches = oldMatches || [];
                 saveData();
@@ -195,7 +226,6 @@
         }
 
         function updateDropdowns() {
-            // 修复：确保 H2H 的下拉菜单也被更新
             const dropdowns = ['matchWinner', 'matchLoser', 'queryP1', 'queryP2'];
             dropdowns.forEach(id => {
                 const el = document.getElementById(id);
@@ -212,26 +242,34 @@
             });
         }
 
+        // 修改过的记录比赛功能，加入比分抓取
         function recordMatch() {
             const w = document.getElementById('matchWinner').value;
             const l = document.getElementById('matchLoser').value;
             if (!w || !l) return alert('Please add players first.');
             if (w === l) return alert('Cannot play against self.');
             
-            matches.push({ winner: w, loser: l });
+            // 抓取比分 (如果是空的，会存为 null)
+            const scores = [
+                { w: document.getElementById('g1w').value, l: document.getElementById('g1l').value },
+                { w: document.getElementById('g2w').value, l: document.getElementById('g2l').value },
+                { w: document.getElementById('g3w').value, l: document.getElementById('g3l').value }
+            ];
+            
+            matches.push({ winner: w, loser: l, scores: scores, date: new Date().toISOString() });
             saveData();
+            
+            // 清空比分输入框，方便下次录入
+            ['g1w','g1l','g2w','g2l','g3w','g3l'].forEach(id => document.getElementById(id).value = '');
+            alert('Match & Scores Saved!');
         }
 
-        // 【修复】把删漏的 H2H 逻辑加回来
         function calculateH2H() {
             const p1 = document.getElementById('queryP1').value;
             const p2 = document.getElementById('queryP2').value;
             const resBox = document.getElementById('h2hResult');
 
-            if (!p1 || !p2 || p1 === p2) {
-                resBox.innerText = "Please select two different players.";
-                return;
-            }
+            if (!p1 || !p2 || p1 === p2) { resBox.innerText = "Please select two different players."; return; }
 
             const h2hMatches = matches.filter(m => (m.winner === p1 && m.loser === p2) || (m.winner === p2 && m.loser === p1));
             const p1Wins = h2hMatches.filter(m => m.winner === p1).length;
@@ -250,7 +288,6 @@
         function renderRanking() {
             const tbody = document.getElementById('rankingTableBody');
             tbody.innerHTML = '';
-
             let stats = players.map(p => ({ name: p.name, flag: p.flag, wins: 0, losses: 0, total: 0, rate: 0 }));
 
             matches.forEach(m => {
@@ -278,7 +315,6 @@
         function generateHistoricalRanks() {
             let history = [];
             let tempStats = players.map(p => ({ name: p.name, wins: 0, total: 0, rate: 0 }));
-
             matches.forEach((m, matchIndex) => {
                 let w = tempStats.find(s => s.name === m.winner);
                 let l = tempStats.find(s => s.name === m.loser);
@@ -339,6 +375,7 @@
             document.getElementById('profileModal').style.display = 'flex';
         }
 
+        // 修改图表配置：控制 X 轴不要太密
         function drawChart(dataRanks, labels) {
             const ctx = document.getElementById('rankingChart').getContext('2d');
             if (rankingChartInstance) rankingChartInstance.destroy();
@@ -354,7 +391,7 @@
                         borderColor: '#0a84ff', 
                         borderWidth: 3,
                         pointBackgroundColor: '#0a84ff',
-                        pointRadius: 4,
+                        pointRadius: 3,
                         fill: false,
                         tension: 0.1
                     }]
@@ -369,29 +406,29 @@
                             ticks: { stepSize: 1, color: '#aaa' },
                             grid: { color: '#3a3a3c' }
                         },
-                        x: { ticks: { color: '#aaa' }, grid: { display: false } }
+                        x: { 
+                            ticks: { 
+                                color: '#aaa',
+                                maxTicksLimit: 8 // 核心修复：X轴最多只显示 8 个标签，自动稀释分布，不显得拥挤！
+                            }, 
+                            grid: { display: false } 
+                        }
                     },
                     plugins: { legend: { display: false } }
                 }
             });
         }
 
-        function closeProfile() {
-            document.getElementById('profileModal').style.display = 'none';
-        }
+        function closeProfile() { document.getElementById('profileModal').style.display = 'none'; }
 
-        // 【新功能】导出和导入数据（用于跨设备同步）
         function exportData() {
             const dataToExport = { p: players, m: matches };
-            const jsonString = JSON.stringify(dataToExport);
-            // 弹出窗口让用户复制
-            prompt("Please COPY ALL the text below and send it to your other device (e.g. via WhatsApp/WeChat):", jsonString);
+            prompt("Please COPY ALL the text below and send it to your other device:", JSON.stringify(dataToExport));
         }
 
         function importData() {
             const jsonString = prompt("Please PASTE the exported data code here:");
             if (!jsonString) return;
-            
             try {
                 const importedData = JSON.parse(jsonString);
                 if (importedData.p && importedData.m) {
@@ -399,17 +436,13 @@
                     matches = importedData.m;
                     saveData();
                     alert("Sync Successful! Data has been updated.");
-                } else {
-                    alert("Invalid data format!");
-                }
-            } catch (e) {
-                alert("Error reading data. Make sure you copied the entire code.");
-            }
+                } else { alert("Invalid data format!"); }
+            } catch (e) { alert("Error reading data."); }
         }
 
         updateDropdowns();
         renderRanking();
-        calculateH2H(); // 初始化加载时计算一次
+        calculateH2H(); 
     </script>
 </body>
 </html>
