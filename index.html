@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Badminton H2H & Ranking</title>
+    <title>Badminton Pro Stats</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #1a1a1a; color: #fff; padding: 20px; margin: 0; }
         h1, h2 { color: #ff3b30; text-align: center; margin-bottom: 20px; }
         .card { background: #2c2c2e; padding: 15px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; box-sizing: border-box; font-size: 1rem; }
         input, select { background: #3a3a3c; color: #fff; }
-        button { background: #ff3b30; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button { background: #ff3b30; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         button:hover { background: #e03228; }
         .result-box { text-align: center; font-size: 1.1rem; margin-top: 15px; line-height: 1.6; }
         .vs-text { font-size: 1.3rem; font-weight: bold; color: #ff3b30; text-align: center; margin: 5px 0; }
@@ -18,20 +18,41 @@
         /* Ranking Table Styles */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 10px; text-align: center; border-bottom: 1px solid #3a3a3c; }
-        th { color: #ff3b30; font-weight: bold; }
+        th { color: #ff3b30; font-weight: bold; font-size: 0.9rem; }
         tr:nth-child(1) td { color: #ffd700; font-weight: bold; } /* Gold */
         tr:nth-child(2) td { color: #c0c0c0; font-weight: bold; } /* Silver */
         tr:nth-child(3) td { color: #cd7f32; font-weight: bold; } /* Bronze */
+        .clickable-name { color: #0a84ff; text-decoration: underline; cursor: pointer; }
+        
+        /* Profile Modal Styles */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: #2c2c2e; padding: 25px; border-radius: 15px; width: 85%; max-width: 400px; position: relative; }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; color: #aaa; cursor: pointer; }
+        .profile-header { text-align: center; font-size: 1.8rem; margin-bottom: 20px; font-weight: bold; }
+        .stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #3a3a3c; }
+        .stat-label { color: #aaa; }
+        .stat-value { font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h1>🏸 Badminton Stats</h1>
+    <h1>🏸 Pro Stats</h1>
 
-    <!-- 1. Add Player -->
+    <!-- 1. Add Player (With Flag) -->
     <div class="card">
         <h2>1. Add New Player</h2>
         <input type="text" id="playerName" placeholder="Enter player name">
+        <select id="playerCountry">
+            <option value="🇨🇳">🇨🇳 China</option>
+            <option value="🇲🇾">🇲🇾 Malaysia</option>
+            <option value="🇸🇬">🇸🇬 Singapore</option>
+            <option value="🇮🇩">🇮🇩 Indonesia</option>
+            <option value="🇯🇵">🇯🇵 Japan</option>
+            <option value="🇰🇷">🇰🇷 South Korea</option>
+            <option value="🇬🇧">🇬🇧 UK</option>
+            <option value="🇺🇸">🇺🇸 USA</option>
+            <option value="🏳️">🏳️ Other</option>
+        </select>
         <button onclick="addPlayer()">Add Player</button>
     </div>
 
@@ -58,38 +79,64 @@
     <!-- 4. Ranking -->
     <div class="card">
         <h2>🏆 Leaderboard</h2>
+        <p style="text-align:center; font-size:0.8rem; color:#aaa;">* Click a player's name for deep analysis</p>
         <table>
             <thead>
                 <tr>
                     <th>Rank</th>
-                    <th>Name</th>
-                    <th>Total</th>
+                    <th>Player</th>
                     <th>W / L</th>
                     <th>Win %</th>
                 </tr>
             </thead>
-            <tbody id="rankingTableBody">
-                <!-- Ranking data will be generated here -->
-            </tbody>
+            <tbody id="rankingTableBody"></tbody>
         </table>
     </div>
 
+    <!-- Hidden Profile Modal -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeProfile()">×</span>
+            <div class="profile-header" id="profileTitle">🇨🇳 Player Name</div>
+            
+            <div class="stat-row">
+                <span class="stat-label">Total Matches:</span>
+                <span class="stat-value" id="profTotal">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Win Rate:</span>
+                <span class="stat-value" id="profRate">0%</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Toughest Opponent:</span>
+                <span class="stat-value" id="profNemesis">-</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Favorite Opponent:</span>
+                <span class="stat-value" id="profFavorite">-</span>
+            </div>
+        </div>
+    </div>
+
     <script>
-        let players = JSON.parse(localStorage.getItem('bm_players_en')) || [];
-        let matches = JSON.parse(localStorage.getItem('bm_matches_en')) || [];
+        // Using v2 to separate from old data structure
+        let players = JSON.parse(localStorage.getItem('bm_players_en_v2')) || [];
+        let matches = JSON.parse(localStorage.getItem('bm_matches_en_v2')) || [];
 
         function saveData() {
-            localStorage.setItem('bm_players_en', JSON.stringify(players));
-            localStorage.setItem('bm_matches_en', JSON.stringify(matches));
+            localStorage.setItem('bm_players_en_v2', JSON.stringify(players));
+            localStorage.setItem('bm_matches_en_v2', JSON.stringify(matches));
             updateDropdowns();
             renderRanking();
         }
 
         function addPlayer() {
             const name = document.getElementById('playerName').value.trim();
+            const flag = document.getElementById('playerCountry').value;
             if (!name) return alert('Please enter a name.');
-            if (players.includes(name)) return alert('Player already exists.');
-            players.push(name);
+            if (players.some(p => p.name === name)) return alert('Player already exists.');
+            
+            players.push({ name: name, flag: flag });
             document.getElementById('playerName').value = '';
             saveData();
         }
@@ -102,11 +149,11 @@
                 el.innerHTML = '';
                 players.forEach(p => {
                     const opt = document.createElement('option');
-                    opt.value = p;
-                    opt.innerText = p;
+                    opt.value = p.name;
+                    opt.innerText = `${p.flag} ${p.name}`;
                     el.appendChild(opt);
                 });
-                if (players.includes(currentVal)) el.value = currentVal;
+                if (players.some(p => p.name === currentVal)) el.value = currentVal;
             });
         }
 
@@ -114,7 +161,7 @@
             const w = document.getElementById('matchWinner').value;
             const l = document.getElementById('matchLoser').value;
             if (!w || !l) return alert('Please add players first.');
-            if (w === l) return alert('A player cannot play against themselves.');
+            if (w === l) return alert('Cannot play against self.');
             
             matches.push({ winner: w, loser: l });
             saveData();
@@ -149,7 +196,9 @@
             const tbody = document.getElementById('rankingTableBody');
             tbody.innerHTML = '';
 
-            let stats = players.map(name => ({ name, wins: 0, losses: 0, total: 0, rate: 0 }));
+            let stats = players.map(p => ({ 
+                name: p.name, flag: p.flag, wins: 0, losses: 0, total: 0, rate: 0 
+            }));
 
             matches.forEach(m => {
                 let wPlayer = stats.find(s => s.name === m.winner);
@@ -168,13 +217,56 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${s.name}</td>
-                    <td>${s.total}</td>
+                    <td class="clickable-name" onclick="openProfile('${s.name}')">${s.flag} ${s.name}</td>
                     <td>${s.wins}W / ${s.losses}L</td>
                     <td>${s.total > 0 ? s.rate + '%' : '-'}</td>
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function openProfile(playerName) {
+            const player = players.find(p => p.name === playerName);
+            if (!player) return;
+
+            document.getElementById('profileTitle').innerText = `${player.flag} ${player.name}`;
+            
+            let pWins = 0, pLosses = 0;
+            let opponents = {};
+
+            matches.forEach(m => {
+                if (m.winner === playerName) {
+                    pWins++;
+                    opponents[m.loser] = opponents[m.loser] || { w: 0, l: 0 };
+                    opponents[m.loser].w++;
+                }
+                if (m.loser === playerName) {
+                    pLosses++;
+                    opponents[m.winner] = opponents[m.winner] || { w: 0, l: 0 };
+                    opponents[m.winner].l++;
+                }
+            });
+
+            let total = pWins + pLosses;
+            document.getElementById('profTotal').innerText = total;
+            document.getElementById('profRate').innerText = total > 0 ? ((pWins/total)*100).toFixed(1) + '%' : '0%';
+
+            let nemesis = "-", favorite = "-";
+            let maxLosses = 0, maxWins = 0;
+
+            for (let opp in opponents) {
+                if (opponents[opp].l > maxLosses) { maxLosses = opponents[opp].l; nemesis = opp; }
+                if (opponents[opp].w > maxWins) { maxWins = opponents[opp].w; favorite = opp; }
+            }
+
+            document.getElementById('profNemesis').innerText = maxLosses > 0 ? `${nemesis} (${maxLosses} losses)` : '-';
+            document.getElementById('profFavorite').innerText = maxWins > 0 ? `${favorite} (${maxWins} wins)` : '-';
+
+            document.getElementById('profileModal').style.display = 'flex';
+        }
+
+        function closeProfile() {
+            document.getElementById('profileModal').style.display = 'none';
         }
 
         updateDropdowns();
