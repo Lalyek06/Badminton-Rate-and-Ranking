@@ -56,7 +56,7 @@
 </head>
 <body>
 
-    <h1>🏸 Pro Stats</h1>
+    <h1>🏸 Pro Stats <span style="font-size:0.8rem; color:#4caf50;">(Cloud Sync 🟢)</span></h1>
 
     <!-- 1. Add Player -->
     <div class="card">
@@ -76,13 +76,12 @@
         <button onclick="addPlayer()">Add Player</button>
     </div>
 
-    <!-- 2. Record Match (新增计分系统) -->
+    <!-- 2. Record Match -->
     <div class="card">
         <h2>2. Record Match Result</h2>
         <label style="color:#aaa; font-size:0.8rem;">Winner:</label>
         <select id="matchWinner"></select>
         
-        <!-- Score Input Area -->
         <div class="score-row">
             <div class="score-box">
                 <label>GAME 1</label>
@@ -136,12 +135,12 @@
         </table>
     </div>
 
-    <!-- 5. Sync -->
-    <div class="card">
-        <h2>☁️ Device Sync (Export / Import)</h2>
-        <p style="text-align:center; font-size:0.8rem; color:#aaa;">Transfer your data to iPad or PC</p>
-        <button onclick="exportData()" style="background:#0a84ff;">📤 Export Data (Copy)</button>
-        <button onclick="importData()" style="background:#32ade6; margin-top:10px;">📥 Import Data (Paste)</button>
+    <!-- 5. 数据搬家系统 -->
+    <div class="card" id="migrationCard">
+        <h2>☁️ Data Migration</h2>
+        <p style="text-align:center; font-size:0.8rem; color:#aaa;">Move old local data to Firebase Database.</p>
+        <button onclick="migrateToCloud()" style="background:#4caf50;">☁️ Upload Local Data to Cloud</button>
+        <p style="text-align:center; font-size:0.7rem; color:#ff3b30; margin-top:10px;">⚠️ Please ONLY press this ONCE from the phone that has your old records!</p>
     </div>
 
     <!-- Profile Modal -->
@@ -153,20 +152,10 @@
             <div class="stats-hero">
                 <div class="current-rank" id="profCurrentRank">1</div>
                 <div class="rank-title">Current Ranking</div>
-                
                 <div class="stats-row">
-                    <div class="stat-col">
-                        <span class="num" id="profHighestRank">1</span>
-                        <span class="label">Highest Rank</span>
-                    </div>
-                    <div class="stat-col">
-                        <span class="num" id="profMatchesNo1">0</span>
-                        <span class="label">Matches as #1</span>
-                    </div>
-                    <div class="stat-col">
-                        <span class="num" id="profWinRate">0%</span>
-                        <span class="label">Win Rate</span>
-                    </div>
+                    <div class="stat-col"><span class="num" id="profHighestRank">1</span><span class="label">Highest Rank</span></div>
+                    <div class="stat-col"><span class="num" id="profMatchesNo1">0</span><span class="label">Matches as #1</span></div>
+                    <div class="stat-col"><span class="num" id="profWinRate">0%</span><span class="label">Win Rate</span></div>
                 </div>
             </div>
 
@@ -175,57 +164,62 @@
                 <canvas id="rankingChart"></canvas>
             </div>
             
-            <div class="stat-list-row">
-                <span class="stat-label">Total Matches Played:</span>
-                <span class="stat-value" id="profTotal">0</span>
-            </div>
-            <div class="stat-list-row">
-                <span class="stat-label">Toughest Opponent:</span>
-                <span class="stat-value" id="profNemesis">-</span>
-            </div>
-            <div class="stat-list-row">
-                <span class="stat-label">Favorite Opponent:</span>
-                <span class="stat-value" id="profFavorite">-</span>
-            </div>
+            <div class="stat-list-row"><span class="stat-label">Total Matches Played:</span><span class="stat-value" id="profTotal">0</span></div>
+            <div class="stat-list-row"><span class="stat-label">Toughest Opponent:</span><span class="stat-value" id="profNemesis">-</span></div>
+            <div class="stat-list-row"><span class="stat-label">Favorite Opponent:</span><span class="stat-value" id="profFavorite">-</span></div>
         </div>
     </div>
 
-    <script>
-        let players = JSON.parse(localStorage.getItem('bm_players_en_v2')) || [];
-        let matches = JSON.parse(localStorage.getItem('bm_matches_en_v2')) || [];
-        let rankingChartInstance = null; 
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        if (players.length === 0) {
-            let oldPlayers = JSON.parse(localStorage.getItem('bm_players_en')) || JSON.parse(localStorage.getItem('bm_players'));
-            let oldMatches = JSON.parse(localStorage.getItem('bm_matches_en')) || JSON.parse(localStorage.getItem('bm_matches'));
-            if (oldPlayers && oldPlayers.length > 0) {
-                players = oldPlayers.map(p => typeof p === 'string' ? { name: p, flag: '🏳️' } : p);
-                matches = oldMatches || [];
-                saveData();
-                alert('Success! Old data recovered automatically.');
-            }
-        }
+        // 你的专属云端钥匙
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLNmEoXM7yOvm7PnccfwgkR55i8KEphP8",
+            authDomain: "badminton-system-c6d93.firebaseapp.com",
+            projectId: "badminton-system-c6d93",
+            storageBucket: "badminton-system-c6d93.firebasestorage.app",
+            messagingSenderId: "1048350552087",
+            appId: "1:1048350552087:web:8c7fd591864663cf34ac52"
+        };
 
-        function saveData() {
-            localStorage.setItem('bm_players_en_v2', JSON.stringify(players));
-            localStorage.setItem('bm_matches_en_v2', JSON.stringify(matches));
-            updateDropdowns();
-            renderRanking();
-            calculateH2H();
-        }
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        function addPlayer() {
+        let players = [];
+        let matches = [];
+        let rankingChartInstance = null;
+
+        onSnapshot(collection(db, "players"), (snapshot) => {
+            players = snapshot.docs.map(doc => doc.data());
+            window.updateDropdowns();
+            window.renderRanking();
+        });
+
+        onSnapshot(collection(db, "matches"), (snapshot) => {
+            matches = snapshot.docs.map(doc => doc.data());
+            matches.sort((a, b) => new Date(a.date) - new Date(b.date));
+            window.renderRanking();
+            window.calculateH2H();
+        });
+
+        window.addPlayer = async function() {
             const name = document.getElementById('playerName').value.trim();
             const flag = document.getElementById('playerCountry').value;
             if (!name) return alert('Please enter a name.');
             if (players.some(p => p.name === name)) return alert('Player already exists.');
             
-            players.push({ name: name, flag: flag });
-            document.getElementById('playerName').value = '';
-            saveData();
-        }
+            try {
+                await addDoc(collection(db, "players"), { name: name, flag: flag });
+                document.getElementById('playerName').value = '';
+            } catch (e) {
+                alert("Error: Make sure Firestore Database is set to Test Mode!");
+            }
+        };
 
-        function updateDropdowns() {
+        window.updateDropdowns = function() {
             const dropdowns = ['matchWinner', 'matchLoser', 'queryP1', 'queryP2'];
             dropdowns.forEach(id => {
                 const el = document.getElementById(id);
@@ -240,35 +234,35 @@
                 });
                 if (players.some(p => p.name === currentVal)) el.value = currentVal;
             });
-        }
+        };
 
-        // 修改过的记录比赛功能，加入比分抓取
-        function recordMatch() {
+        window.recordMatch = async function() {
             const w = document.getElementById('matchWinner').value;
             const l = document.getElementById('matchLoser').value;
             if (!w || !l) return alert('Please add players first.');
             if (w === l) return alert('Cannot play against self.');
             
-            // 抓取比分 (如果是空的，会存为 null)
             const scores = [
                 { w: document.getElementById('g1w').value, l: document.getElementById('g1l').value },
                 { w: document.getElementById('g2w').value, l: document.getElementById('g2l').value },
                 { w: document.getElementById('g3w').value, l: document.getElementById('g3l').value }
             ];
             
-            matches.push({ winner: w, loser: l, scores: scores, date: new Date().toISOString() });
-            saveData();
-            
-            // 清空比分输入框，方便下次录入
-            ['g1w','g1l','g2w','g2l','g3w','g3l'].forEach(id => document.getElementById(id).value = '');
-            alert('Match & Scores Saved!');
-        }
+            try {
+                await addDoc(collection(db, "matches"), { 
+                    winner: w, loser: l, scores: scores, date: new Date().toISOString() 
+                });
+                ['g1w','g1l','g2w','g2l','g3w','g3l'].forEach(id => document.getElementById(id).value = '');
+                alert('Match Saved to Cloud! ☁️');
+            } catch (e) {
+                alert("Error: Database permission denied.");
+            }
+        };
 
-        function calculateH2H() {
+        window.calculateH2H = function() {
             const p1 = document.getElementById('queryP1').value;
             const p2 = document.getElementById('queryP2').value;
             const resBox = document.getElementById('h2hResult');
-
             if (!p1 || !p2 || p1 === p2) { resBox.innerText = "Please select two different players."; return; }
 
             const h2hMatches = matches.filter(m => (m.winner === p1 && m.loser === p2) || (m.winner === p2 && m.loser === p1));
@@ -276,16 +270,11 @@
             const p2Wins = h2hMatches.filter(m => m.winner === p2).length;
             const total = h2hMatches.length;
 
-            if (total === 0) { resBox.innerHTML = `No match history between these players.`; return; }
+            if (total === 0) { resBox.innerHTML = `No match history.`; return; }
+            resBox.innerHTML = `<strong>Total Matches: ${total}</strong><br>👤 ${p1}: ${p1Wins} Wins (${((p1Wins/total)*100).toFixed(1)}%)<br>👤 ${p2}: ${p2Wins} Wins (${((p2Wins/total)*100).toFixed(1)}%)`;
+        };
 
-            resBox.innerHTML = `
-                <strong>Total Matches: ${total}</strong><br>
-                👤 ${p1}: ${p1Wins} Wins (${((p1Wins/total)*100).toFixed(1)}%)<br>
-                👤 ${p2}: ${p2Wins} Wins (${((p2Wins/total)*100).toFixed(1)}%)
-            `;
-        }
-
-        function renderRanking() {
+        window.renderRanking = function() {
             const tbody = document.getElementById('rankingTableBody');
             tbody.innerHTML = '';
             let stats = players.map(p => ({ name: p.name, flag: p.flag, wins: 0, losses: 0, total: 0, rate: 0 }));
@@ -310,9 +299,9 @@
                 `;
                 tbody.appendChild(tr);
             });
-        }
+        };
 
-        function generateHistoricalRanks() {
+        window.generateHistoricalRanks = function() {
             let history = [];
             let tempStats = players.map(p => ({ name: p.name, wins: 0, total: 0, rate: 0 }));
             matches.forEach((m, matchIndex) => {
@@ -320,31 +309,23 @@
                 let l = tempStats.find(s => s.name === m.loser);
                 if (w) { w.wins++; w.total++; w.rate = (w.wins / w.total) * 100; }
                 if (l) { l.total++; l.rate = (l.wins / l.total) * 100; }
-
                 let currentRankings = [...tempStats].sort((a, b) => b.rate - a.rate || b.wins - a.wins);
                 let rankMap = {};
                 currentRankings.forEach((s, i) => { rankMap[s.name] = i + 1; });
                 history.push({ matchNum: matchIndex + 1, ranks: rankMap });
             });
             return history;
-        }
+        };
 
-        function openProfile(playerName) {
+        window.openProfile = function(playerName) {
             const player = players.find(p => p.name === playerName);
             if (!player) return;
-
             document.getElementById('profileTitle').innerText = `${player.flag} ${player.name}`;
             
             let pWins = 0, pLosses = 0, opponents = {};
             matches.forEach(m => {
-                if (m.winner === playerName) {
-                    pWins++;
-                    opponents[m.loser] = opponents[m.loser] || { w: 0, l: 0 }; opponents[m.loser].w++;
-                }
-                if (m.loser === playerName) {
-                    pLosses++;
-                    opponents[m.winner] = opponents[m.winner] || { w: 0, l: 0 }; opponents[m.winner].l++;
-                }
+                if (m.winner === playerName) { pWins++; opponents[m.loser] = opponents[m.loser] || { w: 0, l: 0 }; opponents[m.loser].w++; }
+                if (m.loser === playerName) { pLosses++; opponents[m.winner] = opponents[m.winner] || { w: 0, l: 0 }; opponents[m.winner].l++; }
             });
 
             let total = pWins + pLosses;
@@ -360,7 +341,7 @@
             document.getElementById('profNemesis').innerText = maxLosses > 0 ? `${nemesis} (${maxLosses}L)` : '-';
             document.getElementById('profFavorite').innerText = maxWins > 0 ? `${favorite} (${maxWins}W)` : '-';
 
-            const rankHistory = generateHistoricalRanks();
+            const rankHistory = window.generateHistoricalRanks();
             let playerRanks = rankHistory.map(h => h.ranks[playerName] || players.length);
             
             let currentRank = playerRanks.length > 0 ? playerRanks[playerRanks.length - 1] : "-";
@@ -371,12 +352,11 @@
             document.getElementById('profHighestRank').innerText = highestRank;
             document.getElementById('profMatchesNo1').innerText = timesNo1;
 
-            drawChart(playerRanks, rankHistory.map(h => 'M' + h.matchNum));
+            window.drawChart(playerRanks, rankHistory.map(h => 'M' + h.matchNum));
             document.getElementById('profileModal').style.display = 'flex';
-        }
+        };
 
-        // 修改图表配置：控制 X 轴不要太密
-        function drawChart(dataRanks, labels) {
+        window.drawChart = function(dataRanks, labels) {
             const ctx = document.getElementById('rankingChart').getContext('2d');
             if (rankingChartInstance) rankingChartInstance.destroy();
             if (dataRanks.length === 0) { dataRanks = [players.length]; labels = ['No Matches']; }
@@ -386,63 +366,46 @@
                 data: {
                     labels: labels, 
                     datasets: [{
-                        label: 'Ranking',
-                        data: dataRanks,
-                        borderColor: '#0a84ff', 
-                        borderWidth: 3,
-                        pointBackgroundColor: '#0a84ff',
-                        pointRadius: 3,
-                        fill: false,
-                        tension: 0.1
+                        label: 'Ranking', data: dataRanks, borderColor: '#0a84ff', 
+                        borderWidth: 3, pointBackgroundColor: '#0a84ff', pointRadius: 3, fill: false, tension: 0.1
                     }]
                 },
                 options: {
                     responsive: true,
                     scales: {
-                        y: {
-                            reverse: true,
-                            min: 1,
-                            max: players.length > 5 ? players.length : 5, 
-                            ticks: { stepSize: 1, color: '#aaa' },
-                            grid: { color: '#3a3a3c' }
-                        },
-                        x: { 
-                            ticks: { 
-                                color: '#aaa',
-                                maxTicksLimit: 8 // 核心修复：X轴最多只显示 8 个标签，自动稀释分布，不显得拥挤！
-                            }, 
-                            grid: { display: false } 
-                        }
+                        y: { reverse: true, min: 1, max: players.length > 5 ? players.length : 5, ticks: { stepSize: 1, color: '#aaa' }, grid: { color: '#3a3a3c' } },
+                        x: { ticks: { color: '#aaa', maxTicksLimit: 8 }, grid: { display: false } }
                     },
                     plugins: { legend: { display: false } }
                 }
             });
-        }
+        };
 
-        function closeProfile() { document.getElementById('profileModal').style.display = 'none'; }
+        window.closeProfile = function() { document.getElementById('profileModal').style.display = 'none'; };
 
-        function exportData() {
-            const dataToExport = { p: players, m: matches };
-            prompt("Please COPY ALL the text below and send it to your other device:", JSON.stringify(dataToExport));
-        }
+        // 🌟 将旧数据搬运至云端的按钮逻辑
+        window.migrateToCloud = async function() {
+            let localPlayers = JSON.parse(localStorage.getItem('bm_players_en_v2')) || [];
+            let localMatches = JSON.parse(localStorage.getItem('bm_matches_en_v2')) || [];
+            
+            if (localPlayers.length === 0 && localMatches.length === 0) {
+                return alert("No local data found on this device.");
+            }
 
-        function importData() {
-            const jsonString = prompt("Please PASTE the exported data code here:");
-            if (!jsonString) return;
+            const confirmUpload = confirm(`Found ${localPlayers.length} players and ${localMatches.length} matches.\nAre you sure you want to upload them to Firebase?`);
+            if (!confirmUpload) return;
+
             try {
-                const importedData = JSON.parse(jsonString);
-                if (importedData.p && importedData.m) {
-                    players = importedData.p;
-                    matches = importedData.m;
-                    saveData();
-                    alert("Sync Successful! Data has been updated.");
-                } else { alert("Invalid data format!"); }
-            } catch (e) { alert("Error reading data."); }
-        }
+                for (let p of localPlayers) { await addDoc(collection(db, "players"), p); }
+                for (let m of localMatches) { await addDoc(collection(db, "matches"), m); }
+                
+                alert("Upload Successful! Data is now in the cloud. 🎉");
+                document.getElementById('migrationCard').style.display = 'none';
+            } catch (e) {
+                alert("Error: Check if Firestore Database is set up correctly.");
+            }
+        };
 
-        updateDropdowns();
-        renderRanking();
-        calculateH2H(); 
     </script>
 </body>
 </html>
