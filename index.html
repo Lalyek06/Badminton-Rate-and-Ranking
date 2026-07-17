@@ -90,7 +90,6 @@
         .stat-label { color: #aaa; font-size: 0.9rem; }
         .stat-value { font-weight: bold; font-size: 0.9rem; }
 
-        /* 🌟 核心：BWF 风格电竞排行榜专属 CSS */
         .ranking-card-bwf { background: #0a0a0c; border: 1px solid #1c1c1e; padding: 20px 15px; border-radius: 12px; margin-bottom: 20px; }
         .ranking-header-title { text-align: center; color: #fff; font-weight: bold; font-size: 1.1rem; letter-spacing: 1px; margin-bottom: 3px; display: flex; justify-content: center; align-items: center; gap: 5px; }
         .ranking-header-sub { text-align: center; color: #888; font-size: 0.7rem; margin-bottom: 20px; text-transform: uppercase; }
@@ -104,13 +103,11 @@
         .rank-item { display: flex; align-items: center; padding: 12px 5px; border-bottom: 1px solid #1c1c1e; position: relative; }
         .rank-item:last-child { border-bottom: none; }
         
-        /* Rank 1 专属红色霸主渐变卡片 */
         .rank-item.rank-1 { background: linear-gradient(135deg, #ff1a1a, #990000); border-radius: 12px; border-bottom: none; margin-bottom: 15px; padding: 15px 10px; box-shadow: 0 4px 15px rgba(255,26,26,0.3); }
         
         .rank-num { width: 32px; height: 32px; border-radius: 50%; background: #1c1c1e; color: #fff; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.95rem; margin-right: 15px; flex-shrink: 0; }
         .rank-1 .rank-num { background: #fff; color: #d30000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
         
-        /* 姓名首字母头像 + 国旗徽章 */
         .rank-avatar { width: 48px; height: 48px; border-radius: 50%; background: #2c2c2e; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; font-weight: bold; color: #fff; margin-right: 15px; position: relative; flex-shrink: 0; border: 2px solid #3a3a3c; }
         .rank-1 .rank-avatar { border-color: rgba(255,255,255,0.3); background: rgba(0,0,0,0.2); }
         .rank-flag { position: absolute; bottom: -4px; right: -4px; font-size: 1rem; background: #000; border-radius: 50%; padding: 2px; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
@@ -196,6 +193,7 @@
     <!-- 3. H2H Statistics -->
     <div class="card">
         <h2 style="text-align:left; color:#fff; font-size:1.2rem; margin-bottom:5px;">H2H STATISTICS</h2>
+        
         <div class="mode-toggle" style="margin-top: 10px;">
             <button id="btnH2HSingles" class="active" onclick="setH2HMode('singles')">👤 Singles</button>
             <button id="btnH2HDoubles" onclick="setH2HMode('doubles')">👥 Doubles</button>
@@ -218,7 +216,7 @@
         <div id="h2hResult"><div style="text-align:center; color:#888; margin-top:20px;">Please select players to analyze</div></div>
     </div>
 
-    <!-- 🌟 4. 全新 BWF 电竞风 排行榜 (UI 6.0) -->
+    <!-- 4. 全新 BWF 电竞风 排行榜 (UI 6.0) -->
     <div class="ranking-card-bwf">
         <div class="ranking-header-title">RANKINGS <span>🏆</span></div>
         <div class="ranking-header-sub" id="rankingUpdateTime">BWF Style • Updated Live</div>
@@ -288,6 +286,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // 🌟 引入 Firebase Auth
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCLNmEoXM7yOvm7PnccfwgkR55i8KEphP8",
@@ -300,6 +300,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app); // 初始化 Auth
 
         let players = []; let rawMatches = [], rawDoublesMatches = [];
         let allSingles = [], allDoubles = [];
@@ -344,7 +345,7 @@
         function mergeMatches() {
             allSingles = rawMatches.filter(m => m.matchType !== 'doubles').sort((a, b) => new Date(a.date) - new Date(b.date));
             allDoubles = [...rawMatches.filter(m => m.matchType === 'doubles'), ...rawDoublesMatches].sort((a, b) => new Date(a.date) - new Date(b.date));
-            let d = new Date(); document.getElementById('rankingUpdateTime').innerText = `Pro Stats • Updated Live`;
+            let d = new Date(); document.getElementById('rankingUpdateTime').innerText = `BWF Style • Updated Live`;
             window.renderRanking(); window.calculateH2H();
         }
 
@@ -354,13 +355,40 @@
         onSnapshot(collection(db, "pending_doubles_matches"), (snapshot) => { pendingDoubles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), _col: 'pending_doubles_matches' })); window.renderAdminPanel(); });
         onSnapshot(collection(db, "pending_players"), (snapshot) => { pendingPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); window.renderAdminPanel(); });
 
+        // 🌟 监听登录状态，自动切换管理员面板
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                isAdmin = true;
+                document.getElementById('adminPanel').style.display = 'block';
+                window.renderAdminPanel();
+            } else {
+                isAdmin = false;
+                document.getElementById('adminPanel').style.display = 'none';
+            }
+        });
+
+        // 🌟 全新安全的 Firebase Auth 登录入口
         let clickCount = 0, clickTimer = null;
-        window.adminLogin = function() {
+        window.adminLogin = async function() {
             clickCount++; clearTimeout(clickTimer); clickTimer = setTimeout(() => { clickCount = 0; }, 2000); 
             if(clickCount >= 5) {
-                clickCount = 0; if(isAdmin) return alert("You are already logged in as Admin.");
-                if(prompt("Admin Access Required.\nEnter PIN:") === "8888") { isAdmin = true; document.getElementById('adminPanel').style.display = 'block'; window.renderAdminPanel(); alert("Admin Mode Unlocked"); } 
-                else { alert("Incorrect PIN!"); }
+                clickCount = 0;
+                if(isAdmin) {
+                    if(confirm("Logout from Admin Mode?")) await signOut(auth);
+                    return;
+                }
+                
+                let email = prompt("Admin Access Required.\nEnter Admin Email:");
+                if(!email) return;
+                let pwd = prompt("Enter Admin Password:");
+                if(!pwd) return;
+                
+                try {
+                    await signInWithEmailAndPassword(auth, email, pwd);
+                    alert("Admin Mode Unlocked 🔓");
+                } catch(error) {
+                    alert("Access Denied: " + error.message);
+                }
             }
         };
 
@@ -523,7 +551,7 @@
             }
         };
 
-        // 🌟 核心：全新 BWF 风格排行榜渲染引擎
+        // 🌟 BWF 电竞风 排行榜渲染
         window.renderRanking = function() {
             const container = document.getElementById('rankingListContainer');
             container.innerHTML = '';
@@ -540,7 +568,8 @@
                 stats.sort((a, b) => { if (!a.hasPlayed && b.hasPlayed) return 1; if (!b.hasPlayed && a.hasPlayed) return -1; return b.rate - a.rate || b.wins - a.wins || a.losses - b.losses; });
                 
                 stats.forEach((s, index) => {
-                    let rank = s.total > 0 ? index + 1 : "-";
+                    if(!s.hasPlayed) return; // 没打过比赛的不上榜
+                    let rank = index + 1;
                     let isRank1 = rank === 1;
                     let cls = isRank1 ? "rank-item rank-1" : "rank-item";
                     let initial = s.name.charAt(0).toUpperCase();
