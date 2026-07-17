@@ -156,12 +156,18 @@
         <div class="card" style="margin-top: 5px;">
             <input type="text" id="playerName" placeholder="Enter player name">
             <select id="playerCountry">
-                <option value="🇲🇾">🇲🇾 Malaysia</option><option value="🇨🇳">🇨🇳 China</option>
-                <option value="🇮🇩">🇮🇩 Indonesia</option><option value="🇯🇵">🇯🇵 Japan</option>
-                <option value="🇰🇷">🇰🇷 South Korea</option><option value="🇹🇭">🇹🇭 Thailand</option>
-                <option value="🇹🇼">🇹🇼 Chinese Taipei</option><option value="🇩🇰">🇩🇰 Denmark</option>
-                <option value="🇸🇬">🇸🇬 Singapore</option><option value="🇬🇧">🇬🇧 UK</option>
-                <option value="🇺🇸">🇺🇸 USA</option><option value="🏳️">🏳️ Other</option>
+                <option value="🇲🇾">🇲🇾 Malaysia</option>
+                <option value="🇨🇳">🇨🇳 China</option>
+                <option value="🇮🇩">🇮🇩 Indonesia</option>
+                <option value="🇯🇵">🇯🇵 Japan</option>
+                <option value="🇰🇷">🇰🇷 South Korea</option>
+                <option value="🇹🇭">🇹🇭 Thailand</option>
+                <option value="🇹🇼">🇹🇼 Chinese Taipei</option>
+                <option value="🇩🇰">🇩🇰 Denmark</option>
+                <option value="🇸🇬">🇸🇬 Singapore</option>
+                <option value="🇬🇧">🇬🇧 UK</option>
+                <option value="🇺🇸">🇺🇸 USA</option>
+                <option value="🏳️">🏳️ Other</option>
             </select>
             <button class="action-btn" onclick="addPlayer()">Submit Player</button>
         </div>
@@ -171,21 +177,20 @@
     <div class="card">
         <h2 style="text-align:left; color:#fff; font-size:1.2rem; margin-bottom:5px;">H2H STATISTICS</h2>
         
-        <!-- 🌟 H2H 3大模式切换器 -->
+        <!-- 🌟 H2H 简化为单/双二选一 -->
         <div class="mode-toggle" style="margin-top: 10px;">
             <button id="btnH2HSingles" class="active" onclick="setH2HMode('singles')">👤 Singles</button>
-            <button id="btnH2HChemistry" onclick="setH2HMode('chemistry')">🤝 Chemistry</button>
-            <button id="btnH2HDoubles" onclick="setH2HMode('doubles')">👥 Team</button>
+            <button id="btnH2HDoubles" onclick="setH2HMode('doubles')">👥 Doubles</button>
         </div>
 
-        <!-- 针对 Singles 和 Chemistry (选2人) -->
+        <!-- H2H 单打选择框 -->
         <div id="h2hSinglesGroup">
             <select id="queryP1" onchange="calculateH2H()" style="margin-bottom: 5px;"></select>
-            <div class="vs-text" style="font-size: 1rem; color: #888;">&</div>
+            <div class="vs-text" style="font-size: 1rem; color: #888;">VS</div>
             <select id="queryP2" onchange="calculateH2H()"></select>
         </div>
 
-        <!-- 针对 Team Doubles (选4人) -->
+        <!-- H2H 双打选择框 -->
         <div id="h2hDoublesGroup" style="display:none;">
             <div style="font-size:0.8rem; color:#ffcc00; font-weight:bold; margin-bottom:5px;">TEAM A</div>
             <div class="doubles-select-group">
@@ -272,12 +277,13 @@
         let pendingSingles = [], pendingDoubles = []; 
         let pendingPlayers = []; 
         let rankingChartInstance = null;
+        window.teamAChartInst = null;
+        window.teamBChartInst = null;
         let isAdmin = false; 
         
         window.currentMatchMode = 'singles';
         window.currentH2HMode = 'singles';
 
-        // 控制面板切换
         window.setMatchMode = function(mode) {
             window.currentMatchMode = mode;
             document.getElementById('btnSingles').classList.toggle('active', mode === 'singles');
@@ -291,52 +297,28 @@
         window.setH2HMode = function(mode) {
             window.currentH2HMode = mode;
             document.getElementById('btnH2HSingles').classList.toggle('active', mode === 'singles');
-            document.getElementById('btnH2HChemistry').classList.toggle('active', mode === 'chemistry');
             document.getElementById('btnH2HDoubles').classList.toggle('active', mode === 'doubles');
-            
-            document.getElementById('h2hSinglesGroup').style.display = (mode === 'singles' || mode === 'chemistry') ? 'block' : 'none';
+            document.getElementById('h2hSinglesGroup').style.display = mode === 'singles' ? 'block' : 'none';
             document.getElementById('h2hDoublesGroup').style.display = mode === 'doubles' ? 'block' : 'none';
             window.calculateH2H(); 
         };
 
-        // Firebase 监听器
         onSnapshot(collection(db, "players"), (snapshot) => {
             players = snapshot.docs.map(doc => doc.data());
             window.updateDropdowns(); window.renderRanking();
         });
 
-        // 🌟 核心：监听分别的单打和双打集合，并进行兼容合并
         function mergeMatches() {
             allSingles = rawMatches.filter(m => m.matchType !== 'doubles').sort((a, b) => new Date(a.date) - new Date(b.date));
             allDoubles = [...rawMatches.filter(m => m.matchType === 'doubles'), ...rawDoublesMatches].sort((a, b) => new Date(a.date) - new Date(b.date));
-            window.renderRanking();
-            window.calculateH2H();
+            window.renderRanking(); window.calculateH2H();
         }
 
-        onSnapshot(collection(db, "matches"), (snapshot) => {
-            rawMatches = snapshot.docs.map(doc => doc.data());
-            mergeMatches();
-        });
-
-        onSnapshot(collection(db, "matches_doubles"), (snapshot) => {
-            rawDoublesMatches = snapshot.docs.map(doc => doc.data());
-            mergeMatches();
-        });
-
-        onSnapshot(collection(db, "pending_matches"), (snapshot) => {
-            pendingSingles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), _col: 'pending_matches', _dest: 'matches' }));
-            window.renderAdminPanel();
-        });
-
-        onSnapshot(collection(db, "pending_doubles_matches"), (snapshot) => {
-            pendingDoubles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), _col: 'pending_doubles_matches', _dest: 'matches_doubles' }));
-            window.renderAdminPanel();
-        });
-
-        onSnapshot(collection(db, "pending_players"), (snapshot) => {
-            pendingPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            window.renderAdminPanel();
-        });
+        onSnapshot(collection(db, "matches"), (snapshot) => { rawMatches = snapshot.docs.map(doc => doc.data()); mergeMatches(); });
+        onSnapshot(collection(db, "matches_doubles"), (snapshot) => { rawDoublesMatches = snapshot.docs.map(doc => doc.data()); mergeMatches(); });
+        onSnapshot(collection(db, "pending_matches"), (snapshot) => { pendingSingles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), _col: 'pending_matches', _dest: 'matches' })); window.renderAdminPanel(); });
+        onSnapshot(collection(db, "pending_doubles_matches"), (snapshot) => { pendingDoubles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), _col: 'pending_doubles_matches', _dest: 'matches_doubles' })); window.renderAdminPanel(); });
+        onSnapshot(collection(db, "pending_players"), (snapshot) => { pendingPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); window.renderAdminPanel(); });
 
         let clickCount = 0, clickTimer = null;
         window.adminLogin = function() {
@@ -344,9 +326,8 @@
             if(clickCount >= 5) {
                 clickCount = 0;
                 if(isAdmin) return alert("You are already logged in as Admin.");
-                if(prompt("Admin Access Required.\nEnter PIN:") === "8888") { 
-                    isAdmin = true; document.getElementById('adminPanel').style.display = 'block'; window.renderAdminPanel(); alert("Admin Mode Unlocked"); 
-                } else { alert("Incorrect PIN!"); }
+                if(prompt("Admin Access Required.\nEnter PIN:") === "8888") { isAdmin = true; document.getElementById('adminPanel').style.display = 'block'; window.renderAdminPanel(); alert("Admin Mode Unlocked"); } 
+                else { alert("Incorrect PIN!"); }
             }
         };
 
@@ -357,9 +338,8 @@
             let allPendingMatches = [...pendingSingles, ...pendingDoubles];
             
             html += `<div class="admin-section-title">PENDING MATCHES (${allPendingMatches.length})</div>`;
-            if (allPendingMatches.length === 0) {
-                html += "<p style='text-align:center; color:#555; font-size:0.85rem; margin-bottom:20px;'>No pending matches.</p>";
-            } else {
+            if (allPendingMatches.length === 0) { html += "<p style='text-align:center; color:#555; font-size:0.85rem; margin-bottom:20px;'>No pending matches.</p>"; } 
+            else {
                 allPendingMatches.forEach(m => {
                     let dateStr = new Date(m.date).toLocaleDateString();
                     let scoreStr = "";
@@ -367,7 +347,6 @@
                         let validScores = m.scores.filter(s => s.w !== "" && s.l !== "");
                         if (validScores.length > 0) scoreStr = ` <span style="color:#4caf50; font-weight:bold; font-size:0.9rem;">(${validScores.map(s => `${s.w}-${s.l}`).join(', ')})</span>`;
                     }
-                    
                     let wText = m.matchType === 'doubles' ? `${m.winners[0]} & ${m.winners[1]}` : m.winner;
                     let lText = m.matchType === 'doubles' ? `${m.losers[0]} & ${m.losers[1]}` : m.loser;
                     let typeTag = m.matchType === 'doubles' ? `<span style="font-size:0.7rem; background:#4caf50; padding:2px 4px; border-radius:4px; margin-left:5px;">MD</span>` : '<span style="font-size:0.7rem; background:#ffcc00; color:#000; padding:2px 4px; border-radius:4px; margin-left:5px;">MS</span>';
@@ -377,45 +356,26 @@
             }
 
             html += `<div class="admin-section-title" style="margin-top:20px;">PENDING PLAYERS (${pendingPlayers.length})</div>`;
-            if (pendingPlayers.length === 0) {
-                html += "<p style='text-align:center; color:#555; font-size:0.85rem;'>No pending players.</p>";
-            } else {
-                pendingPlayers.forEach(p => {
-                    html += `<div style="background:#2c2c2e; padding:12px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;"><div style="font-size:1rem;"><strong>${p.flag} ${p.name}</strong></div><div style="display:flex; gap:8px;"><button onclick="approvePlayer('${p.id}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">✅</button><button onclick="rejectPlayer('${p.id}')" style="background:#3a3a3c; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">❌</button></div></div>`;
-                });
+            if (pendingPlayers.length === 0) { html += "<p style='text-align:center; color:#555; font-size:0.85rem;'>No pending players.</p>"; } 
+            else {
+                pendingPlayers.forEach(p => { html += `<div style="background:#2c2c2e; padding:12px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;"><div style="font-size:1rem;"><strong>${p.flag} ${p.name}</strong></div><div style="display:flex; gap:8px;"><button onclick="approvePlayer('${p.id}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">✅</button><button onclick="rejectPlayer('${p.id}')" style="background:#3a3a3c; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">❌</button></div></div>`; });
             }
             panel.innerHTML = html;
         };
 
-        window.approvePlayer = async function(id) {
-            const p = pendingPlayers.find(x => x.id === id); if(!p) return;
-            try { await addDoc(collection(db, "players"), { name: p.name, flag: p.flag }); await deleteDoc(doc(db, "pending_players", id)); } catch(e) { alert("Error: " + e); }
-        };
-
-        window.rejectPlayer = async function(id) {
-            if(!confirm("Are you sure you want to REJECT this player?")) return;
-            try { await deleteDoc(doc(db, "pending_players", id)); } catch(e) { alert("Error: " + e); }
-        };
-
+        window.approvePlayer = async function(id) { const p = pendingPlayers.find(x => x.id === id); if(!p) return; try { await addDoc(collection(db, "players"), { name: p.name, flag: p.flag }); await deleteDoc(doc(db, "pending_players", id)); } catch(e) { alert("Error: " + e); } };
+        window.rejectPlayer = async function(id) { if(!confirm("Are you sure you want to REJECT this player?")) return; try { await deleteDoc(doc(db, "pending_players", id)); } catch(e) { alert("Error: " + e); } };
         window.approveMatch = async function(id, sourceCol, destCol) {
             let list = sourceCol === 'pending_matches' ? pendingSingles : pendingDoubles;
             const m = list.find(x => x.id === id); if(!m) return;
             try {
                 let dataToSave = { scores: m.scores, date: m.date, matchType: m.matchType || 'singles' };
-                if (m.matchType === 'doubles' || destCol === 'matches_doubles') {
-                    dataToSave.winners = m.winners; dataToSave.losers = m.losers; dataToSave.matchType = 'doubles';
-                } else {
-                    dataToSave.winner = m.winner; dataToSave.loser = m.loser;
-                }
-                await addDoc(collection(db, destCol), dataToSave);
-                await deleteDoc(doc(db, sourceCol, id));
+                if (m.matchType === 'doubles' || destCol === 'matches_doubles') { dataToSave.winners = m.winners; dataToSave.losers = m.losers; dataToSave.matchType = 'doubles'; } 
+                else { dataToSave.winner = m.winner; dataToSave.loser = m.loser; }
+                await addDoc(collection(db, destCol), dataToSave); await deleteDoc(doc(db, sourceCol, id));
             } catch(e) { alert("Error: " + e); }
         };
-
-        window.rejectMatch = async function(id, sourceCol) {
-            if(!confirm("Are you sure you want to REJECT this match?")) return;
-            try { await deleteDoc(doc(db, sourceCol, id)); } catch(e) { alert("Error: " + e); }
-        };
+        window.rejectMatch = async function(id, sourceCol) { if(!confirm("Are you sure you want to REJECT this match?")) return; try { await deleteDoc(doc(db, sourceCol, id)); } catch(e) { alert("Error: " + e); } };
 
         window.addPlayer = async function() {
             const name = document.getElementById('playerName').value.trim(); const flag = document.getElementById('playerCountry').value;
@@ -444,11 +404,7 @@
         window.recordMatch = async function() {
             let isDoubles = window.currentMatchMode === 'doubles';
             let matchData = {
-                scores: [
-                    { w: document.getElementById('g1w').value, l: document.getElementById('g1l').value },
-                    { w: document.getElementById('g2w').value, l: document.getElementById('g2l').value },
-                    { w: document.getElementById('g3w').value, l: document.getElementById('g3l').value }
-                ],
+                scores: [ { w: document.getElementById('g1w').value, l: document.getElementById('g1l').value }, { w: document.getElementById('g2w').value, l: document.getElementById('g2l').value }, { w: document.getElementById('g3w').value, l: document.getElementById('g3l').value } ],
                 date: new Date().toISOString(), matchType: isDoubles ? 'doubles' : 'singles'
             };
 
@@ -479,23 +435,46 @@
             if (invalidScore) return alert('Error: Score must be between 0 and 30!');
             
             try {
-                if(isAdmin) {
-                    await addDoc(collection(db, isDoubles ? "matches_doubles" : "matches"), matchData);
-                    alert('Match Saved directly!');
-                } else {
-                    await addDoc(collection(db, isDoubles ? "pending_doubles_matches" : "pending_matches"), matchData);
-                    alert('Match submitted for approval.');
-                }
-                ['g1w','g1l','g2w','g2l','g3w','g3l'].forEach(id => document.getElementById(id).value = '');
-                document.getElementById('recordAccordion').click();
+                if(isAdmin) { await addDoc(collection(db, isDoubles ? "matches_doubles" : "matches"), matchData); alert('Match Saved directly!'); } 
+                else { await addDoc(collection(db, isDoubles ? "pending_doubles_matches" : "pending_matches"), matchData); alert('Match submitted for approval.'); }
+                ['g1w','g1l','g2w','g2l','g3w','g3l'].forEach(id => document.getElementById(id).value = ''); document.getElementById('recordAccordion').click();
             } catch (e) { alert("Error: " + e); }
         };
 
-        // 🌟 终极纯净 H2H 引擎
+        // 🌟 绘制化学反应饼图
+        window.drawChemistryCharts = function(aW, aL, bW, bL) {
+            if (window.teamAChartInst) window.teamAChartInst.destroy();
+            if (window.teamBChartInst) window.teamBChartInst.destroy();
+
+            const ctxA = document.getElementById('teamAChart');
+            const ctxB = document.getElementById('teamBChart');
+
+            let dataA = (aW === 0 && aL === 0) ? [1] : [aW, aL];
+            let colorA = (aW === 0 && aL === 0) ? ['#3a3a3c'] : ['#ffcc00', '#0a84ff'];
+            if (ctxA) {
+                window.teamAChartInst = new Chart(ctxA, {
+                    type: 'pie',
+                    data: { datasets: [{ data: dataA, backgroundColor: colorA, borderWidth: 0 }] },
+                    options: { plugins: { legend: { display: false }, tooltip: { enabled: (aW !== 0 || aL !== 0) } } }
+                });
+            }
+
+            let dataB = (bW === 0 && bL === 0) ? [1] : [bW, bL];
+            let colorB = (bW === 0 && bL === 0) ? ['#3a3a3c'] : ['#ffcc00', '#0a84ff'];
+            if (ctxB) {
+                window.teamBChartInst = new Chart(ctxB, {
+                    type: 'pie',
+                    data: { datasets: [{ data: dataB, backgroundColor: colorB, borderWidth: 0 }] },
+                    options: { plugins: { legend: { display: false }, tooltip: { enabled: (bW !== 0 || bL !== 0) } } }
+                });
+            }
+        };
+
+        // 🌟 终极纯净 H2H 引擎 (单双打隔离，自动生成饼图)
         window.calculateH2H = function() {
             const resBox = document.getElementById('h2hResult');
             
-            // ============== 👤 单打 H2H 纯净版 ==============
+            // ============== 👤 单打 H2H ==============
             if (window.currentH2HMode === 'singles') {
                 const p1Name = document.getElementById('queryP1').value; const p2Name = document.getElementById('queryP2').value;
                 if (!p1Name || !p2Name || p1Name === p2Name) { resBox.innerHTML = `<div style="text-align:center; color:#888; margin-top:20px;">Please select two different players</div>`; return; }
@@ -515,7 +494,7 @@
                 let p1H2HWidth = totalH2H > 0 ? (p1H2HWins / totalH2H) * 100 : 50; let p2H2HWidth = totalH2H > 0 ? (p2H2HWins / totalH2H) * 100 : 50;
 
                 let html = `
-                    <div class="career-title" style="color:#aaa; font-size:0.85rem;">👤 SINGLES H2H (WINS)</div>
+                    <div class="career-title" style="color:#aaa; font-size:0.85rem; text-align:center;">👤 SINGLES H2H (WINS)</div>
                     <div class="h2h-top-bar" style="margin-bottom:15px; margin-top:5px;"><div class="p1-bar" style="width: ${p1H2HWidth}%;"></div><div class="p2-bar" style="width: ${p2H2HWidth}%;"></div></div>
                     <div style="display:flex; justify-content:space-between; font-size:0.95rem; font-weight:bold; margin-bottom:20px;"><span style="color:#ffcc00">${p1Name}: ${p1H2HWins}</span><span style="color:#0a84ff">${p2H2HWins} :${p2Name}</span></div>
 
@@ -550,71 +529,7 @@
                 resBox.innerHTML = html;
             }
             
-            // ============== 🤝 个人化学反应纯净版 ==============
-            else if (window.currentH2HMode === 'chemistry') {
-                const p1Name = document.getElementById('queryP1').value; const p2Name = document.getElementById('queryP2').value;
-                if (!p1Name || !p2Name || p1Name === p2Name) { resBox.innerHTML = `<div style="text-align:center; color:#888; margin-top:20px;">Please select two different players</div>`; return; }
-
-                let partnersMatches = allDoubles.filter(m => (m.winners && m.winners.includes(p1Name) && m.winners.includes(p2Name)) || (m.losers && m.losers.includes(p1Name) && m.losers.includes(p2Name)));
-                let partnersWins = partnersMatches.filter(m => m.winners.includes(p1Name)).length;
-                let partnersLosses = partnersMatches.filter(m => m.losers.includes(p1Name)).length;
-                let partnersTotal = partnersMatches.length;
-                let partnersRate = partnersTotal > 0 ? ((partnersWins / partnersTotal) * 100).toFixed(0) : 0;
-
-                let opponentsMatches = allDoubles.filter(m => (m.winners && m.winners.includes(p1Name) && m.losers && m.losers.includes(p2Name)) || (m.winners && m.winners.includes(p2Name) && m.losers && m.losers.includes(p1Name)));
-                let oppP1Wins = opponentsMatches.filter(m => m.winners.includes(p1Name)).length;
-                let oppP2Wins = opponentsMatches.filter(m => m.winners.includes(p2Name)).length;
-                let oppTotal = opponentsMatches.length;
-                let oppP1Rate = oppTotal > 0 ? ((oppP1Wins / oppTotal) * 100).toFixed(0) : 0;
-                let oppP2Rate = oppTotal > 0 ? ((oppP2Wins / oppTotal) * 100).toFixed(0) : 0;
-
-                let html = `
-                    <div class="career-title" style="color:#ff3b30; margin-top:5px;">🔥 DOUBLES CHEMISTRY</div>
-                    <div class="career-stats-box" style="border: 1px solid #3a3a3c; margin-bottom: 25px;">
-                        <div style="text-align:center; font-size: 0.85rem; color:#aaa; margin-bottom: 15px; font-weight:bold;">🤝 AS PARTNERS</div>
-                        <div class="stat-flex">
-                            <span style="color:#ffcc00;">${partnersWins} W</span>
-                            <span class="stat-center" style="font-size:0.85rem;">Win Rate: <span style="color:#fff;">${partnersRate}%</span></span>
-                            <span style="color:#0a84ff;">${partnersLosses} L</span>
-                        </div>
-                        <hr style="border: 0; border-top: 1px dashed #3a3a3c; margin: 20px 0;">
-                        <div style="text-align:center; font-size: 0.85rem; color:#aaa; margin-bottom: 15px; font-weight:bold;">⚔️ AS OPPONENTS</div>
-                        <div class="stat-flex"><span style="color:#ffcc00">${oppP1Wins} W</span><span class="stat-center" style="font-size:0.8rem; color:#888;">${oppTotal} MATCHES</span><span style="color:#0a84ff">${oppP2Wins} W</span></div>
-                        <div class="career-bar-container" style="margin-top:8px; margin-bottom:0; height:4px;"><div class="p1-bar" style="width: ${oppTotal>0 ? oppP1Rate : 50}%;"></div><div class="p2-bar" style="width: ${oppTotal>0 ? oppP2Rate : 50}%;"></div></div>
-                    </div>
-                `;
-
-                let allEncounters = allDoubles.filter(m => {
-                    return (m.winners.includes(p1Name) || m.losers.includes(p1Name)) && (m.winners.includes(p2Name) || m.losers.includes(p2Name));
-                }).sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                if (allEncounters.length > 0) {
-                    html += `<div class="section-header"><span class="career-title" style="margin-bottom:0;">LAST ENCOUNTER</span></div>`;
-                    let lastMatch = allEncounters[0]; 
-                    let wp1 = players.find(p => p.name === lastMatch.winners[0]) || { flag: '🏳️' }; let wp2 = players.find(p => p.name === lastMatch.winners[1]) || { flag: '🏳️' };
-                    let lp1 = players.find(p => p.name === lastMatch.losers[0]) || { flag: '🏳️' }; let lp2 = players.find(p => p.name === lastMatch.losers[1]) || { flag: '🏳️' };
-                    let wNameDisplay = `<span>${wp1.flag}${wp2.flag}</span> <strong>${lastMatch.winners[0]} / ${lastMatch.winners[1]}</strong>`;
-                    let lNameDisplay = `<span>${lp1.flag}${lp2.flag}</span> <span style="color:#aaa;">${lastMatch.losers[0]} / ${lastMatch.losers[1]}</span>`;
-                    
-                    let wScoresHTML = ''; let lScoresHTML = '';
-                    if (lastMatch.scores && lastMatch.scores.length > 0) {
-                        lastMatch.scores.forEach(s => {
-                            if (s.w !== "" && s.l !== "") {
-                                let wVal = parseInt(s.w), lVal = parseInt(s.l);
-                                let wClass = wVal > lVal ? 'bwf-score-red' : 'bwf-score-white', lClass = lVal > wVal ? 'bwf-score-red' : 'bwf-score-white';
-                                wScoresHTML += `<div class="bwf-score-item ${wClass}">${s.w}</div>`; lScoresHTML += `<div class="bwf-score-item ${lClass}">${s.l}</div>`;
-                            }
-                        });
-                    }
-                    let dateObj = lastMatch.date ? new Date(lastMatch.date) : new Date();
-                    let dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
-                    
-                    html += `<div class="bwf-card" style="margin-top: 0;"><div class="bwf-header"><span>FRIENDLY MATCH ${dateObj.getFullYear()}</span><span>Result</span></div><div class="bwf-body"><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${wNameDisplay}</div><div class="bwf-scores">${wScoresHTML}</div></div><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${lNameDisplay}</div><div class="bwf-scores">${lScoresHTML}</div></div></div><div class="bwf-footer"><span>MD • DATE: ${dateStr}</span><span>-</span></div></div>`;
-                } else { html += `<div style="text-align:center; color:#888; padding: 20px 0;">No doubles history between these players yet.</div>`; }
-                resBox.innerHTML = html;
-            }
-            
-            // ============== 👥 团队双打对决纯净版 ==============
+            // ============== 👥 双打 (内嵌饼图化学反应) ==============
             else if (window.currentH2HMode === 'doubles') {
                 const t1p1 = document.getElementById('queryT1P1').value; const t1p2 = document.getElementById('queryT1P2').value;
                 const t2p1 = document.getElementById('queryT2P1').value; const t2p2 = document.getElementById('queryT2P2').value;
@@ -623,6 +538,7 @@
                 let uniqueCheck = new Set([t1p1, t1p2, t2p1, t2p2]);
                 if (uniqueCheck.size !== 4) { resBox.innerHTML = `<div style="text-align:center; color:#ff3b30; margin-top:20px; font-weight:bold;">Error: Please select 4 different players!</div>`; return; }
 
+                // 1. 两支队伍的正面对决 H2H (作为对手)
                 let doublesH2HMatches = allDoubles.filter(m => 
                     ((m.winners.includes(t1p1) && m.winners.includes(t1p2) && m.losers.includes(t2p1) && m.losers.includes(t2p2)) ||
                      (m.losers.includes(t1p1) && m.losers.includes(t1p2) && m.winners.includes(t2p1) && m.winners.includes(t2p2)))
@@ -631,9 +547,22 @@
                 let t1Wins = doublesH2HMatches.filter(m => m.winners.includes(t1p1)).length;
                 let t2Wins = doublesH2HMatches.filter(m => m.winners.includes(t2p1)).length;
                 let total = doublesH2HMatches.length;
-
                 let t1Width = total > 0 ? (t1Wins / total) * 100 : 50;
                 let t2Width = total > 0 ? (t2Wins / total) * 100 : 50;
+
+                // 2. 队伍 A 的化学反应 (作为搭档)
+                let t1PartnerMatches = allDoubles.filter(m => (m.winners && m.winners.includes(t1p1) && m.winners.includes(t1p2)) || (m.losers && m.losers.includes(t1p1) && m.losers.includes(t1p2)));
+                let t1ChemWins = t1PartnerMatches.filter(m => m.winners.includes(t1p1)).length;
+                let t1ChemLosses = t1PartnerMatches.filter(m => m.losers.includes(t1p1)).length;
+                let t1ChemTotal = t1PartnerMatches.length;
+                let t1ChemRate = t1ChemTotal > 0 ? ((t1ChemWins / t1ChemTotal) * 100).toFixed(0) : 0;
+
+                // 3. 队伍 B 的化学反应 (作为搭档)
+                let t2PartnerMatches = allDoubles.filter(m => (m.winners && m.winners.includes(t2p1) && m.winners.includes(t2p2)) || (m.losers && m.losers.includes(t2p1) && m.losers.includes(t2p2)));
+                let t2ChemWins = t2PartnerMatches.filter(m => m.winners.includes(t2p1)).length;
+                let t2ChemLosses = t2PartnerMatches.filter(m => m.losers.includes(t2p1)).length;
+                let t2ChemTotal = t2PartnerMatches.length;
+                let t2ChemRate = t2ChemTotal > 0 ? ((t2ChemWins / t2ChemTotal) * 100).toFixed(0) : 0;
 
                 let html = `
                     <div class="career-title" style="color:#aaa; font-size:0.85rem; text-align:center;">👥 TEAM H2H (WINS)</div>
@@ -661,9 +590,47 @@
                     }
                     let dateObj = lastMatch.date ? new Date(lastMatch.date) : new Date();
                     let dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
-                    html += `<div class="bwf-card" style="margin-top: 0;"><div class="bwf-header"><span>FRIENDLY MATCH ${dateObj.getFullYear()}</span><span>Result</span></div><div class="bwf-body"><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${wNameDisplay}</div><div class="bwf-scores">${wScoresHTML}</div></div><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${lNameDisplay}</div><div class="bwf-scores">${lScoresHTML}</div></div></div><div class="bwf-footer"><span>MD • DATE: ${dateStr}</span><span>-</span></div></div>`;
-                } else { html += `<div class="career-stats-box" style="text-align:center; padding: 30px 10px;"><div style="color:#888; font-size:0.95rem;">These two teams have never played against each other.</div></div>`; }
+                    html += `<div class="bwf-card" style="margin-bottom: 25px;"><div class="bwf-header"><span>FRIENDLY MATCH ${dateObj.getFullYear()}</span><span>Result</span></div><div class="bwf-body"><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${wNameDisplay}</div><div class="bwf-scores">${wScoresHTML}</div></div><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${lNameDisplay}</div><div class="bwf-scores">${lScoresHTML}</div></div></div><div class="bwf-footer"><span>MD • DATE: ${dateStr}</span><span>-</span></div></div>`;
+                } else { 
+                    html += `<div class="career-stats-box" style="text-align:center; padding: 20px 10px; margin-bottom: 25px;"><div style="color:#888; font-size:0.95rem;">These two teams have never played against each other.</div></div>`; 
+                }
+
+                // 🌟 新增：动态并排显示的队伍默契度饼图
+                html += `
+                    <div class="career-title" style="color:#ff3b30; margin-top:10px;">🔥 PARTNER CHEMISTRY</div>
+                    <div style="display:flex; gap: 15px; margin-bottom: 20px;">
+                        <!-- Team A Chemistry -->
+                        <div class="career-stats-box" style="flex:1; padding: 15px 10px; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                            <div style="font-size:0.8rem; color:#ffcc00; font-weight:bold; margin-bottom:15px;">TEAM A</div>
+                            <div style="width: 100%; max-width: 120px; position:relative;">
+                                <canvas id="teamAChart"></canvas>
+                            </div>
+                            <div style="font-size:0.85rem; font-weight:bold; margin-top:15px; letter-spacing:1px;">
+                                <span style="color:#ffcc00">${t1ChemWins}W</span> - <span style="color:#0a84ff">${t1ChemLosses}L</span>
+                            </div>
+                            <div style="font-size:0.75rem; color:#aaa; margin-top:5px; font-weight:bold;">Rate: <span style="color:#fff">${t1ChemRate}%</span></div>
+                        </div>
+                        
+                        <!-- Team B Chemistry -->
+                        <div class="career-stats-box" style="flex:1; padding: 15px 10px; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                            <div style="font-size:0.8rem; color:#0a84ff; font-weight:bold; margin-bottom:15px;">TEAM B</div>
+                            <div style="width: 100%; max-width: 120px; position:relative;">
+                                <canvas id="teamBChart"></canvas>
+                            </div>
+                            <div style="font-size:0.85rem; font-weight:bold; margin-top:15px; letter-spacing:1px;">
+                                <span style="color:#ffcc00">${t2ChemWins}W</span> - <span style="color:#0a84ff">${t2ChemLosses}L</span>
+                            </div>
+                            <div style="font-size:0.75rem; color:#aaa; margin-top:5px; font-weight:bold;">Rate: <span style="color:#fff">${t2ChemRate}%</span></div>
+                        </div>
+                    </div>
+                `;
+                
                 resBox.innerHTML = html;
+
+                // 延迟 50ms 渲染饼图，确保 DOM 已经完全加载完毕
+                setTimeout(() => {
+                    window.drawChemistryCharts(t1ChemWins, t1ChemLosses, t2ChemWins, t2ChemLosses);
+                }, 50);
             }
         };
 
@@ -706,7 +673,6 @@
                 
                 let activePlayers = tempStats.filter(s => s.hasPlayed);
                 activePlayers.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
-                
                 let rankMap = {}; 
                 activePlayers.forEach((s, i) => { rankMap[s.name] = i + 1; });
                 history.push({ matchNum: matchIndex + 1, ranks: rankMap });
