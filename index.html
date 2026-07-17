@@ -18,6 +18,10 @@
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; box-sizing: border-box; font-size: 1rem; }
         input[type="number"] { padding: 8px; }
         input, select { background: #2c2c2e; color: #fff; }
+        
+        /* 🌟 暗黑模式下日历控件变白 */
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+
         button.action-btn { background: #ff3b30; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 15px; }
         button.action-btn:hover { background: #e03228; }
         
@@ -35,13 +39,14 @@
 
         .score-row { display: flex; justify-content: space-between; gap: 5px; margin: 15px 0; }
         .score-box { background: #2c2c2e; border-radius: 8px; padding: 10px 5px; flex: 1; text-align: center; border: 1px solid #3a3a3c; }
+        .score-box label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 5px; font-weight: bold; }
         .score-inputs { display: flex; justify-content: center; align-items: center; gap: 2px; }
         .score-inputs input { width: 40px; text-align: center; font-size: 1rem; font-weight: bold; background: transparent; border-bottom: 2px solid #ff3b30; border-radius: 0; padding: 5px 0; margin: 0; }
         .vs-text { font-size: 1.3rem; font-weight: bold; color: #ff3b30; text-align: center; margin: 5px 0; }
 
         .h2h-top-bar { display: flex; height: 8px; background: #3a3a3c; border-radius: 4px; overflow: hidden; margin-bottom: 25px; margin-top: 10px; }
-        .h2h-top-bar .p1-bar { background: #ffcc00; height: 100%; }
-        .h2h-top-bar .p2-bar { background: #0a84ff; height: 100%; }
+        .h2h-top-bar .p1-bar { background: #ffcc00; height: 100%; transition: width 0.5s ease; }
+        .h2h-top-bar .p2-bar { background: #0a84ff; height: 100%; transition: width 0.5s ease; }
         
         .career-title { font-size: 1rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
         .career-stats-box { background: #2c2c2e; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); margin-bottom: 25px; }
@@ -52,15 +57,16 @@
         .career-bar-container .p2-bar { background: #0a84ff; height: 100%; }
         
         .bwf-card { background: #2c2c2e; border-radius: 10px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        .bwf-header { background: #3a3a3c; padding: 10px 15px; display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-        .bwf-body { padding: 15px; }
-        .bwf-player { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .bwf-name { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
-        .bwf-scores { display: flex; gap: 12px; font-weight: bold; font-size: 1.1rem; }
+        .bwf-header { background: #3a3a3c; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .bwf-body { padding: 12px 15px; }
+        .bwf-player { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .bwf-player:last-child { margin-bottom: 0; }
+        .bwf-name { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+        .bwf-scores { display: flex; gap: 10px; font-weight: bold; font-size: 1rem; }
         .bwf-score-item { width: 22px; text-align: center; }
         .bwf-score-red { color: #ff3b30; }
         .bwf-score-white { color: #ffffff; }
-        .bwf-footer { border-top: 1px solid #3a3a3c; padding: 10px 15px; font-size: 0.8rem; color: #aaa; display: flex; justify-content: space-between; text-transform: uppercase; }
+        .bwf-footer { border-top: 1px solid #3a3a3c; padding: 8px 15px; font-size: 0.75rem; color: #aaa; display: flex; justify-content: space-between; text-transform: uppercase; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 10px; text-align: center; border-bottom: 1px solid #3a3a3c; }
@@ -100,9 +106,7 @@
 
     <div class="card admin-card" id="adminPanel">
         <div class="admin-title">👑 Admin Approval Inbox</div>
-        <div id="pendingList">
-            <p style='text-align:center; color:#aaa;'>Loading pending items...</p>
-        </div>
+        <div id="pendingList"><p style='text-align:center; color:#aaa;'>Loading pending items...</p></div>
     </div>
 
     <!-- 1. 折叠面板：录入比赛 -->
@@ -196,26 +200,23 @@
     <!-- 4. Ranking Leaderboard -->
     <div class="card">
         <h2>🏆 Leaderboard</h2>
-        
         <div class="mode-toggle" style="margin-top: 10px; margin-bottom: 15px;">
             <button id="btnRankSingles" class="active" onclick="setRankMode('singles')">👤 Singles</button>
             <button id="btnRankDoubles" onclick="setRankMode('doubles')">👥 Doubles</button>
         </div>
-
         <table>
             <thead><tr><th>Rank</th><th id="rankHeaderPlayer">Player</th><th>W / L</th><th>Win %</th></tr></thead>
             <tbody id="rankingTableBody"></tbody>
         </table>
     </div>
 
-    <!-- 🌟 Profile Modal (支持单打和双打双模自适应) -->
+    <!-- 🌟 Profile Modal -->
     <div id="profileModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeProfile()">×</span>
             <div class="profile-header" id="profileTitle">Player Name</div>
             
             <div class="career-title" style="margin-bottom: 15px;">RESULTS SUMMARY</div>
-            
             <div class="results-summary-card">
                 <div class="rs-top">
                     <div class="rs-col"><div class="rs-val" id="profHighestRank">1</div><div class="rs-label">Highest<br>Rank</div></div>
@@ -234,9 +235,8 @@
                 <canvas id="rankingChart"></canvas>
             </div>
 
-            <!-- 🌟 双打专属：隐藏在卡片内部的化学反应饼图区域 -->
             <div id="profChemChartContainer" class="career-stats-box" style="display:none; text-align:center; padding: 15px 10px;">
-                <div style="font-size:0.85rem; color:#aaa; font-weight:bold; margin-bottom:15px;">🤝 PARTNER CHEMISTRY (WIN / LOSS)</div>
+                <div style="font-size:0.85rem; color:#aaa; font-weight:bold; margin-bottom:15px;">🤝 PARTNER CHEMISTRY</div>
                 <div style="width: 100%; max-width: 130px; margin: 0 auto 10px auto;">
                     <canvas id="profChemPieCanvas"></canvas>
                 </div>
@@ -245,6 +245,16 @@
             <div class="stat-list-row"><span class="stat-label">Total Matches Played:</span><span class="stat-value" id="profTotal">0</span></div>
             <div class="stat-list-row"><span class="stat-label" id="lblNemesis">Toughest Opponent:</span><span class="stat-value" id="profNemesis">-</span></div>
             <div class="stat-list-row"><span class="stat-label" id="lblFavorite">Favorite Opponent:</span><span class="stat-value" id="profFavorite">-</span></div>
+            
+            <!-- 🌟 核心新增：专属历史战绩和日期筛选框 -->
+            <div class="career-title" style="margin-top: 25px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #3a3a3c; padding-top: 20px;">
+                <span style="color:#ff3b30;">MATCH HISTORY</span>
+                <!-- 暗黑模式日历选择器 -->
+                <input type="date" id="profileHistoryDate" onchange="filterProfileHistory()" style="width: auto; padding: 6px 10px; background: #2c2c2e; border: 1px solid #3a3a3c; color: #fff; border-radius: 6px; font-size: 0.8rem; margin: 0;">
+            </div>
+            <!-- 战绩列表存放区 -->
+            <div id="profileHistoryList" style="margin-top: 15px; display: flex; flex-direction: column;"></div>
+            
         </div>
     </div>
 
@@ -290,6 +300,9 @@
         window.currentMatchMode = 'singles';
         window.currentH2HMode = 'singles';
         window.currentRankMode = 'singles'; 
+        
+        // 🌟 存储当前主页过滤所需的全部比赛数据
+        window.currentProfileMatches = [];
 
         window.setMatchMode = function(mode) {
             window.currentMatchMode = mode;
@@ -609,17 +622,11 @@
                 let statsArray = Object.values(pairStats);
                 statsArray.forEach(s => { s.rate = parseFloat(((s.wins / s.total) * 100).toFixed(1)); });
                 statsArray.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
-                if (statsArray.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">No doubles records yet</td></tr>`; return;
-                }
+                if (statsArray.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">No doubles records yet</td></tr>`; return; }
                 statsArray.forEach((s, index) => {
                     let p1Obj = players.find(p => p.name === s.p1) || { flag: '🏳️' }; let p2Obj = players.find(p => p.name === s.p2) || { flag: '🏳️' };
                     const tr = document.createElement('tr');
-                    // 🌟 核心升级：双打组合队伍现在可以被完美点击弹窗查看！
-                    tr.innerHTML = `<td>${index + 1}</td>
-                                    <td class="clickable-name" onclick="openTeamProfile('${s.p1}', '${s.p2}')"><div style="display:flex; align-items:center; justify-content:center; gap:5px;"><span>${p1Obj.flag}${p2Obj.flag}</span> <span>${s.p1} / ${s.p2}</span></div></td>
-                                    <td>${s.wins}W / ${s.losses}L</td>
-                                    <td>${s.rate}%</td>`;
+                    tr.innerHTML = `<td>${index + 1}</td><td class="clickable-name" onclick="openTeamProfile('${s.p1}', '${s.p2}')"><div style="display:flex; align-items:center; justify-content:center; gap:5px;"><span>${p1Obj.flag}${p2Obj.flag}</span> <span>${s.p1} / ${s.p2}</span></div></td><td>${s.wins}W / ${s.losses}L</td><td>${s.rate}%</td>`;
                     tbody.appendChild(tr);
                 });
             }
@@ -639,11 +646,8 @@
             return history;
         };
 
-        // 🌟 核心新增：生成双打固定组合的历史排名记录曲线
         window.generateTeamHistoricalRanks = function(p1, p2) {
-            let history = []; let runningPairs = {};
-            const getPairKey = (n1, n2) => [n1, n2].sort().join(' | ');
-
+            let history = []; let runningPairs = {}; const getPairKey = (n1, n2) => [n1, n2].sort().join(' | ');
             allDoubles.forEach((m, idx) => {
                 if (m.winners && m.winners.length === 2) {
                     let k = getPairKey(m.winners[0], m.winners[1]); if(!runningPairs[k]) runningPairs[k] = { w:0, l:0, t:0 };
@@ -655,48 +659,104 @@
                 }
                 let arr = Object.keys(runningPairs).map(k => ({ key: k, rate: (runningPairs[k].w / runningPairs[k].t) * 100, w: runningPairs[k].w, l: runningPairs[k].l }));
                 arr.sort((a,b) => b.rate - a.rate || b.w - a.w || a.l - b.l);
-                
-                let targetKey = getPairKey(p1, p2);
-                let currentRankIndex = arr.findIndex(x => x.key === targetKey);
-                if (currentRankIndex !== -1) {
-                    history.push({ matchNum: idx + 1, rank: currentRankIndex + 1 });
-                }
+                let targetKey = getPairKey(p1, p2); let currentRankIndex = arr.findIndex(x => x.key === targetKey);
+                if (currentRankIndex !== -1) { history.push({ matchNum: idx + 1, rank: currentRankIndex + 1 }); }
             });
             return history;
         };
 
-        // 🌟 核心新增：双打固定组合主页弹窗加载逻辑
+        // 🌟 渲染最新动态战绩列表的核心功能
+        window.renderProfileHistory = function(filterDate = '') {
+            const listContainer = document.getElementById('profileHistoryList');
+            listContainer.innerHTML = '';
+            
+            let matchesToShow = window.currentProfileMatches;
+            if (filterDate) {
+                matchesToShow = matchesToShow.filter(m => {
+                    let d = new Date(m.date);
+                    // 转换为本地时区的 YYYY-MM-DD 格式，精准匹配日期选择器
+                    let dStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    return dStr === filterDate;
+                });
+            }
+
+            if (matchesToShow.length === 0) {
+                listContainer.innerHTML = `<div style="text-align:center; color:#888; padding: 15px 0; font-size:0.9rem;">No matches found for this date.</div>`;
+                return;
+            }
+
+            let html = '';
+            matchesToShow.forEach(m => {
+                let isDouble = m.matchType === 'doubles';
+                let typeTag = isDouble ? 'MD' : 'MS';
+                let wp1, wp2, lp1, lp2, wNameDisplay, lNameDisplay;
+                
+                if (isDouble) {
+                    wp1 = players.find(p => p.name === m.winners[0]) || { flag: '🏳️' };
+                    wp2 = players.find(p => p.name === m.winners[1]) || { flag: '🏳️' };
+                    lp1 = players.find(p => p.name === m.losers[0]) || { flag: '🏳️' };
+                    lp2 = players.find(p => p.name === m.losers[1]) || { flag: '🏳️' };
+                    wNameDisplay = `<span>${wp1.flag}${wp2.flag}</span> <strong>${m.winners[0]} / ${m.winners[1]}</strong>`;
+                    lNameDisplay = `<span>${lp1.flag}${lp2.flag}</span> <span style="color:#aaa;">${m.losers[0]} / ${m.losers[1]}</span>`;
+                } else {
+                    wp1 = players.find(p => p.name === m.winner) || { flag: '🏳️' };
+                    lp1 = players.find(p => p.name === m.loser) || { flag: '🏳️' };
+                    wNameDisplay = `<span>${wp1.flag}</span> <strong>${m.winner}</strong>`;
+                    lNameDisplay = `<span>${lp1.flag}</span> <span style="color:#aaa;">${m.loser}</span>`;
+                }
+
+                let wScoresHTML = ''; let lScoresHTML = '';
+                if (m.scores && m.scores.length > 0) {
+                    m.scores.forEach(s => {
+                        if (s.w !== "" && s.l !== "") {
+                            let wVal = parseInt(s.w), lVal = parseInt(s.l);
+                            let wClass = wVal > lVal ? 'bwf-score-red' : 'bwf-score-white';
+                            let lClass = lVal > wVal ? 'bwf-score-red' : 'bwf-score-white';
+                            wScoresHTML += `<div class="bwf-score-item ${wClass}">${s.w}</div>`; 
+                            lScoresHTML += `<div class="bwf-score-item ${lClass}">${s.l}</div>`;
+                        }
+                    });
+                }
+                
+                let dateObj = new Date(m.date);
+                let dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+                
+                html += `
+                <div class="bwf-card" style="margin-bottom: 10px;">
+                    <div class="bwf-body" style="padding: 10px 15px;">
+                        <div class="bwf-player" style="margin-bottom:8px;"><div class="bwf-name" style="font-size:0.9rem;">${wNameDisplay}</div><div class="bwf-scores">${wScoresHTML}</div></div>
+                        <div class="bwf-player" style="margin-bottom:0;"><div class="bwf-name" style="font-size:0.9rem;">${lNameDisplay}</div><div class="bwf-scores">${lScoresHTML}</div></div>
+                    </div>
+                    <div class="bwf-footer" style="padding: 6px 15px;"><span>${typeTag} • ${dateStr}</span></div>
+                </div>`;
+            });
+            listContainer.innerHTML = html;
+        };
+
+        window.filterProfileHistory = function() {
+            let dateVal = document.getElementById('profileHistoryDate').value;
+            window.renderProfileHistory(dateVal);
+        };
+
         window.openTeamProfile = function(p1, p2) {
-            let p1Obj = players.find(p => p.name === p1) || { flag: '🏳️' };
-            let p2Obj = players.find(p => p.name === p2) || { flag: '🏳️' };
+            let p1Obj = players.find(p => p.name === p1) || { flag: '🏳️' }; let p2Obj = players.find(p => p.name === p2) || { flag: '🏳️' };
             document.getElementById('profileTitle').innerText = `${p1Obj.flag}${p2Obj.flag} ${p1} / ${p2}`;
             
-            // 筛选该队伍的所有比赛
-            let teamMatches = allDoubles.filter(m => 
-                (m.winners.includes(p1) && m.winners.includes(p2)) || (m.losers.includes(p1) && m.losers.includes(p2))
-            );
+            let teamMatches = allDoubles.filter(m => (m.winners.includes(p1) && m.winners.includes(p2)) || (m.losers.includes(p1) && m.losers.includes(p2)));
+            // 存入全局缓存并排序，供历史战绩调用
+            window.currentProfileMatches = teamMatches.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-            let tWins = 0, tLosses = 0, maxStreak = 0, currentStreak = 0;
-            let opponentsCount = {}; // 追踪最难缠对手组合与提款机组合
+            let tWins = 0, tLosses = 0, maxStreak = 0, currentStreak = 0; let opponentsCount = {};
 
             teamMatches.forEach(m => {
                 let isWin = m.winners.includes(p1);
                 let oppKey = isWin ? [m.losers[0], m.losers[1]].sort().join(' / ') : [m.winners[0], m.winners[1]].sort().join(' / ');
                 if (!opponentsCount[oppKey]) opponentsCount[oppKey] = { w: 0, l: 0 };
-
-                if (isWin) {
-                    tWins++; currentStreak++; if(currentStreak > maxStreak) maxStreak = currentStreak;
-                    opponentsCount[oppKey].w++;
-                } else {
-                    tLosses++; currentStreak = 0;
-                    opponentsCount[oppKey].l++;
-                }
+                if (isWin) { tWins++; currentStreak++; if(currentStreak > maxStreak) maxStreak = currentStreak; opponentsCount[oppKey].w++; } 
+                else { tLosses++; currentStreak = 0; opponentsCount[oppKey].l++; }
             });
 
-            let total = tWins + tLosses;
-            let winRateStr = total > 0 ? ((tWins/total)*100).toFixed(0) + '%' : '0%';
-
-            // 计算死敌和最喜欢的组合
+            let total = tWins + tLosses; let winRateStr = total > 0 ? ((tWins/total)*100).toFixed(0) + '%' : '0%';
             let nemesis = "-", favorite = "-"; let maxL = 0, maxW = 0;
             for (let opp in opponentsCount) {
                 if (opponentsCount[opp].l > maxL) { maxL = opponentsCount[opp].l; nemesis = opp; }
@@ -704,39 +764,26 @@
             }
 
             document.getElementById('profTotal').innerText = total;
-            document.getElementById('lblNemesis').innerText = "Toughest Team Opponent:";
-            document.getElementById('lblFavorite').innerText = "Favorite Team Opponent:";
+            document.getElementById('lblNemesis').innerText = "Toughest Team Opponent:"; document.getElementById('lblFavorite').innerText = "Favorite Team Opponent:";
             document.getElementById('profNemesis').innerText = maxL > 0 ? `${nemesis} (${maxL}L)` : '-';
             document.getElementById('profFavorite').innerText = maxW > 0 ? `${favorite} (${maxW}W)` : '-';
 
-            // 加载组合的历史排名变化曲线
             let historyData = window.generateTeamHistoricalRanks(p1, p2);
-            let teamRanks = historyData.map(h => h.rank);
-            let teamLabels = historyData.map(h => 'M' + h.matchNum);
+            let teamRanks = historyData.map(h => h.rank); let teamLabels = historyData.map(h => 'M' + h.matchNum);
+            let highestRank = teamRanks.length > 0 ? Math.min(...teamRanks) : "-"; let timesNo1 = teamRanks.filter(r => r === 1).length;
 
-            let highestRank = teamRanks.length > 0 ? Math.min(...teamRanks) : "-";
-            let timesNo1 = teamRanks.filter(r => r === 1).length;
+            document.getElementById('profHighestRank').innerText = highestRank; document.getElementById('profMatchesNo1').innerText = timesNo1; document.getElementById('profStreak').innerText = maxStreak;
+            document.getElementById('profGridTotal').innerText = total; document.getElementById('profGridWL').innerText = `${tWins}/${tLosses}`; document.getElementById('profGridRate').innerText = winRateStr;
 
-            document.getElementById('profHighestRank').innerText = highestRank;
-            document.getElementById('profMatchesNo1').innerText = timesNo1;
-            document.getElementById('profStreak').innerText = maxStreak;
-            document.getElementById('profGridTotal').innerText = total;
-            document.getElementById('profGridWL').innerText = `${tWins}/${tLosses}`;
-            document.getElementById('profGridRate').innerText = winRateStr;
-
-            // 显示隐藏的组合化学反应饼图区域
             document.getElementById('profChemChartContainer').style.display = 'block';
-
-            // 销毁并重建弹窗里的黄蓝默契饼图
             if (window.profPieChartInst) window.profPieChartInst.destroy();
             const pieCtx = document.getElementById('profChemPieCanvas').getContext('2d');
-            window.profPieChartInst = new Chart(pieCtx, {
-                type: 'pie',
-                data: { datasets: [{ data: [tWins, tLosses], backgroundColor: ['#ffcc00', '#0a84ff'], borderWidth: 0 }] },
-                options: { plugins: { legend: { display: false } } }
-            });
+            window.profPieChartInst = new Chart(pieCtx, { type: 'pie', data: { datasets: [{ data: (tWins===0&&tLosses===0)?[1]:[tWins, tLosses], backgroundColor: (tWins===0&&tLosses===0)?['#3a3a3c']:['#ffcc00', '#0a84ff'], borderWidth: 0 }] }, options: { plugins: { legend: { display: false } } } });
 
-            // 绘制排名历史曲线
+            // 初始化历史战绩列表和日历
+            document.getElementById('profileHistoryDate').value = '';
+            window.renderProfileHistory();
+
             window.drawChart(teamRanks, teamLabels, true);
             document.getElementById('profileModal').style.display = 'flex';
         };
@@ -744,24 +791,22 @@
         window.openProfile = function(playerName) {
             const player = players.find(p => p.name === playerName); if (!player) return;
             document.getElementById('profileTitle').innerText = `${player.flag} ${player.name}`;
-            document.getElementById('profChemChartContainer').style.display = 'none'; // 隐藏双打饼图
+            document.getElementById('profChemChartContainer').style.display = 'none';
 
             let pWins = 0, pLosses = 0, opponents = {}; let currentStreak = 0, maxStreak = 0;
             let playerMatches = allSingles.filter(m => m.winner === playerName || m.loser === playerName);
             
+            // 存入全局缓存并排序，供历史战绩调用
+            window.currentProfileMatches = playerMatches.sort((a,b) => new Date(b.date) - new Date(a.date));
+            
             playerMatches.forEach(m => {
-                if (m.winner === playerName) { 
-                    pWins++; opponents[m.loser] = opponents[m.loser] || { w: 0, l: 0 }; opponents[m.loser].w++; currentStreak++; if (currentStreak > maxStreak) maxStreak = currentStreak;
-                }
-                if (m.loser === playerName) { 
-                    pLosses++; opponents[m.winner] = opponents[m.winner] || { w: 0, l: 0 }; opponents[m.winner].l++; currentStreak = 0; 
-                }
+                if (m.winner === playerName) { pWins++; opponents[m.loser] = opponents[m.loser] || { w: 0, l: 0 }; opponents[m.loser].w++; currentStreak++; if (currentStreak > maxStreak) maxStreak = currentStreak; }
+                if (m.loser === playerName) { pLosses++; opponents[m.winner] = opponents[m.winner] || { w: 0, l: 0 }; opponents[m.winner].l++; currentStreak = 0; }
             });
 
             let total = pWins + pLosses; let winRateStr = total > 0 ? ((pWins/total)*100).toFixed(0) + '%' : '0%';
             document.getElementById('profTotal').innerText = total;
-            document.getElementById('lblNemesis').innerText = "Toughest Opponent:";
-            document.getElementById('lblFavorite').innerText = "Favorite Opponent:";
+            document.getElementById('lblNemesis').innerText = "Toughest Opponent:"; document.getElementById('lblFavorite').innerText = "Favorite Opponent:";
 
             let nemesis = "-", favorite = "-"; let maxLossesCount = 0, maxWinsCount = 0;
             for (let opp in opponents) {
@@ -779,6 +824,10 @@
             document.getElementById('profHighestRank').innerText = highestRank; document.getElementById('profMatchesNo1').innerText = timesNo1; document.getElementById('profStreak').innerText = maxStreak;
             document.getElementById('profGridTotal').innerText = total; document.getElementById('profGridWL').innerText = `${pWins}/${pLosses}`; document.getElementById('profGridRate').innerText = winRateStr;
 
+            // 初始化历史战绩列表和日历
+            document.getElementById('profileHistoryDate').value = '';
+            window.renderProfileHistory();
+
             if (playerRanks.length === 0) { window.drawChart([players.length || 5], ['No Matches'], false); } 
             else { window.drawChart(playerRanks, playerLabels, false); }
             document.getElementById('profileModal').style.display = 'flex';
@@ -787,27 +836,13 @@
         window.drawChart = function(dataRanks, labels, isTeamMode) {
             const ctx = document.getElementById('rankingChart').getContext('2d');
             if (rankingChartInstance) rankingChartInstance.destroy();
-            
-            // 自动推算Y轴极限：双打时上限为队伍合作总数组合数，单打时为总人数
             let computedMax = isTeamMode ? (allDoubles.length || 5) : (players.length || 5);
             if (computedMax < 5) computedMax = 5;
-
             if (dataRanks.length === 0) { dataRanks = [computedMax]; labels = ['No Matches']; }
-
             rankingChartInstance = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels: labels, 
-                    datasets: [{ label: 'Ranking', data: dataRanks, borderColor: '#ff3b30', borderWidth: 3, pointBackgroundColor: '#ff3b30', pointRadius: 3, fill: false, tension: 0.1 }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { reverse: true, min: 1, max: computedMax, ticks: { stepSize: 1, color: '#aaa' }, grid: { color: '#3a3a3c' } },
-                        x: { ticks: { color: '#aaa', maxTicksLimit: 8 }, grid: { display: false } }
-                    },
-                    plugins: { legend: { display: false } }
-                }
+                data: { labels: labels, datasets: [{ label: 'Ranking', data: dataRanks, borderColor: '#ff3b30', borderWidth: 3, pointBackgroundColor: '#ff3b30', pointRadius: 3, fill: false, tension: 0.1 }] },
+                options: { responsive: true, scales: { y: { reverse: true, min: 1, max: computedMax, ticks: { stepSize: 1, color: '#aaa' }, grid: { color: '#3a3a3c' } }, x: { ticks: { color: '#aaa', maxTicksLimit: 8 }, grid: { display: false } } }, plugins: { legend: { display: false } } }
             });
         };
 
