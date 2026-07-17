@@ -98,7 +98,7 @@
 
     <h1 onclick="adminLogin()">🏸 Pro Stats <span style="font-size:0.8rem; color:#4caf50;">(Sync 🟢)</span></h1>
 
-    <!-- 🌟 管理员待审批收件箱 -->
+    <!-- 管理员待审批收件箱 -->
     <div class="card admin-card" id="adminPanel">
         <div class="admin-title">👑 Admin Approval Inbox</div>
         <div id="pendingList">
@@ -272,12 +272,12 @@
                 clickCount = 0;
                 if(isAdmin) return alert("You are already logged in as Admin.");
                 
-                let pwd = prompt("🕵️‍♂️ Admin Access Required.\nEnter PIN:");
+                let pwd = prompt("Admin Access Required.\nEnter PIN:");
                 if(pwd === "8888") {
                     isAdmin = true;
                     document.getElementById('adminPanel').style.display = 'block';
                     window.renderAdminPanel();
-                    alert("Admin Mode Unlocked 🔓");
+                    alert("Admin Mode Unlocked");
                 } else if (pwd !== null) {
                     alert("Incorrect PIN!");
                 }
@@ -297,7 +297,6 @@
                 let dateStr = new Date(m.date).toLocaleDateString();
                 let scoreStr = "";
                 
-                // 获取具体分数并格式化显示
                 if (m.scores && m.scores.length > 0) {
                     let validScores = m.scores.filter(s => s.w !== "" && s.l !== "");
                     if (validScores.length > 0) {
@@ -379,19 +378,37 @@
             ];
 
             let invalidScore = false;
+            let hasValidGame = false;
+            let missingPair = false;
+
+            // 🏆 核心检查：分数必须配对，不能只填一半；必须至少有一局填了分
             scores.forEach(s => {
-                if (s.w !== "") { let v = parseInt(s.w); if (v < 0 || v > 30) invalidScore = true; }
-                if (s.l !== "") { let v = parseInt(s.l); if (v < 0 || v > 30) invalidScore = true; }
+                let wStr = s.w.trim();
+                let lStr = s.l.trim();
+                
+                if (wStr !== "" || lStr !== "") {
+                    if (wStr === "" || lStr === "") {
+                        missingPair = true; // 发现填了 W 没填 L，或者填了 L 没填 W
+                    } else {
+                        hasValidGame = true; // 完整填写了一局
+                        let wVal = parseInt(wStr);
+                        let lVal = parseInt(lStr);
+                        if (wVal < 0 || wVal > 30 || lVal < 0 || lVal > 30) invalidScore = true;
+                    }
+                }
             });
+
+            if (missingPair) return alert('Please complete BOTH scores for the games you played (e.g., 15 - 12).');
+            if (!hasValidGame) return alert('Please enter the score for at least one game!');
             if (invalidScore) return alert('Error: Score must be between 0 and 30!');
             
             try {
                 if(isAdmin) {
                     await addDoc(collection(db, "matches"), { winner: w, loser: l, scores: scores, date: new Date().toISOString() });
-                    alert('Match Saved directly! (Admin Privileges) 👑');
+                    alert('Match Saved directly! (Admin Privileges)');
                 } else {
                     await addDoc(collection(db, "pending_matches"), { winner: w, loser: l, scores: scores, date: new Date().toISOString() });
-                    alert('Match submitted! Waiting for Admin approval. ⏳');
+                    alert('Match submitted! Waiting for Admin approval.');
                 }
                 
                 ['g1w','g1l','g2w','g2l','g3w','g3l'].forEach(id => document.getElementById(id).value = '');
