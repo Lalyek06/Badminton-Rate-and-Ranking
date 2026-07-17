@@ -12,7 +12,6 @@
         
         .card { background: #1c1c1e; padding: 20px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         
-        /* 管理员专属控制台样式 */
         .admin-card { background: #1a1a1a; border: 2px solid #ffcc00; display: none; box-shadow: 0 0 15px rgba(255, 204, 0, 0.3); }
         .admin-title { color: #ffcc00; font-weight: bold; font-size: 1.2rem; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
         .admin-section-title { color: #aaa; font-size: 0.8rem; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; font-weight: bold; }
@@ -29,6 +28,13 @@
         .accordion.active:after { content: '▲'; color: #ff3b30; }
         .panel { padding: 0 10px; background-color: transparent; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; margin-bottom: 10px; }
         
+        /* 🌟 单双打模式切换按钮样式 */
+        .mode-toggle { display: flex; background: #2c2c2e; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        .mode-toggle button { flex: 1; padding: 10px; background: transparent; color: #aaa; border: none; cursor: pointer; font-weight: bold; font-size: 0.95rem; margin: 0; border-radius: 0; transition: 0.3s; }
+        .mode-toggle button.active { background: #ff3b30; color: #fff; }
+        .doubles-select-group { display: flex; gap: 10px; }
+        .doubles-select-group select { flex: 1; }
+
         .score-row { display: flex; justify-content: space-between; gap: 5px; margin: 15px 0; }
         .score-box { background: #2c2c2e; border-radius: 8px; padding: 10px 5px; flex: 1; text-align: center; border: 1px solid #3a3a3c; }
         .score-box label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 5px; font-weight: bold; }
@@ -112,16 +118,38 @@
     <button class="accordion" id="recordAccordion">🏸 RECORD MATCH</button>
     <div class="panel">
         <div class="card" style="margin-top: 5px;">
-            <label style="color:#aaa; font-size:0.8rem;">Winner:</label>
-            <select id="matchWinner"></select>
+            <!-- 🌟 单双打模式切换器 -->
+            <div class="mode-toggle">
+                <button id="btnSingles" class="active" onclick="setMatchMode('singles')">👤 Singles</button>
+                <button id="btnDoubles" onclick="setMatchMode('doubles')">👥 Doubles</button>
+            </div>
+
+            <label style="color:#aaa; font-size:0.8rem;">Winner(s):</label>
+            <div id="singlesWinnerGroup">
+                <select id="matchWinner"></select>
+            </div>
+            <div id="doublesWinnerGroup" class="doubles-select-group" style="display:none;">
+                <select id="matchWinner1"></select>
+                <select id="matchWinner2"></select>
+            </div>
+
             <div class="score-row">
                 <div class="score-box"><label>GAME 1</label><div class="score-inputs"><input type="number" id="g1w" placeholder="W" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"> <span class="score-dash">-</span> <input type="number" id="g1l" placeholder="L" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"></div></div>
                 <div class="score-box"><label>GAME 2</label><div class="score-inputs"><input type="number" id="g2w" placeholder="W" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"> <span class="score-dash">-</span> <input type="number" id="g2l" placeholder="L" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"></div></div>
                 <div class="score-box"><label>GAME 3</label><div class="score-inputs"><input type="number" id="g3w" placeholder="W" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"> <span class="score-dash">-</span> <input type="number" id="g3l" placeholder="L" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"></div></div>
             </div>
+            
             <div class="vs-text">VS</div>
-            <label style="color:#aaa; font-size:0.8rem;">Loser:</label>
-            <select id="matchLoser"></select>
+            
+            <label style="color:#aaa; font-size:0.8rem;">Loser(s):</label>
+            <div id="singlesLoserGroup">
+                <select id="matchLoser"></select>
+            </div>
+            <div id="doublesLoserGroup" class="doubles-select-group" style="display:none;">
+                <select id="matchLoser1"></select>
+                <select id="matchLoser2"></select>
+            </div>
+
             <button class="action-btn" onclick="recordMatch()">Submit Result</button>
         </div>
     </div>
@@ -132,7 +160,6 @@
         <div class="card" style="margin-top: 5px;">
             <input type="text" id="playerName" placeholder="Enter player name">
             <select id="playerCountry">
-                <!-- 大马置顶，并扩展羽毛球强国选项 -->
                 <option value="🇲🇾">🇲🇾 Malaysia</option>
                 <option value="🇨🇳">🇨🇳 China</option>
                 <option value="🇮🇩">🇮🇩 Indonesia</option>
@@ -161,8 +188,8 @@
 
     <!-- 4. Ranking Leaderboard -->
     <div class="card">
-        <h2>🏆 Leaderboard</h2>
-        <p style="text-align:center; font-size:0.8rem; color:#aaa;">* Click a player's name for deep analysis</p>
+        <h2>🏆 Leaderboard (Singles)</h2>
+        <p style="text-align:center; font-size:0.8rem; color:#aaa;">* Doubles rankings coming soon in Phase 2</p>
         <table>
             <thead><tr><th>Rank</th><th>Player</th><th>W / L</th><th>Win %</th></tr></thead>
             <tbody id="rankingTableBody"></tbody>
@@ -253,9 +280,22 @@
         let players = [];
         let matches = [];
         let pendingMatches = [];
-        let pendingPlayers = []; // 新增：待审批球员
+        let pendingPlayers = []; 
         let rankingChartInstance = null;
         let isAdmin = false; 
+        
+        window.currentMatchMode = 'singles'; // 默认单打
+
+        // 🌟 切换模式逻辑
+        window.setMatchMode = function(mode) {
+            window.currentMatchMode = mode;
+            document.getElementById('btnSingles').classList.toggle('active', mode === 'singles');
+            document.getElementById('btnDoubles').classList.toggle('active', mode === 'doubles');
+            document.getElementById('singlesWinnerGroup').style.display = mode === 'singles' ? 'block' : 'none';
+            document.getElementById('doublesWinnerGroup').style.display = mode === 'doubles' ? 'flex' : 'none';
+            document.getElementById('singlesLoserGroup').style.display = mode === 'singles' ? 'block' : 'none';
+            document.getElementById('doublesLoserGroup').style.display = mode === 'doubles' ? 'flex' : 'none';
+        };
 
         // 监听各个集合
         onSnapshot(collection(db, "players"), (snapshot) => {
@@ -276,7 +316,6 @@
             window.renderAdminPanel();
         });
 
-        // 监听待审批球员集合
         onSnapshot(collection(db, "pending_players"), (snapshot) => {
             pendingPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             window.renderAdminPanel();
@@ -305,14 +344,13 @@
             }
         };
 
-        // 综合管理员看板：分块显示比赛和球员
+        // 管理员控制台：增加对双打名称的显示支持
         window.renderAdminPanel = function() {
             const panel = document.getElementById('pendingList');
             if(!panel) return;
             
             let html = "";
             
-            // 比赛审核区域
             html += `<div class="admin-section-title">PENDING MATCHES (${pendingMatches.length})</div>`;
             if (pendingMatches.length === 0) {
                 html += "<p style='text-align:center; color:#555; font-size:0.85rem; margin-bottom:20px;'>No pending matches.</p>";
@@ -326,11 +364,17 @@
                             scoreStr = ` <span style="color:#4caf50; font-weight:bold; font-size:0.9rem;">(${validScores.map(s => `${s.w}-${s.l}`).join(', ')})</span>`;
                         }
                     }
+                    
+                    // 识别是单打还是双打，合并显示名称
+                    let wText = m.matchType === 'doubles' ? `${m.winners[0]} & ${m.winners[1]}` : m.winner;
+                    let lText = m.matchType === 'doubles' ? `${m.losers[0]} & ${m.losers[1]}` : m.loser;
+                    let typeTag = m.matchType === 'doubles' ? `<span style="font-size:0.7rem; background:#4caf50; padding:2px 4px; border-radius:4px; margin-left:5px;">MD</span>` : '';
+
                     html += `
                     <div style="background:#2c2c2e; padding:12px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
                         <div>
-                            <div style="font-size:0.75rem; color:#888; margin-bottom:4px;">${dateStr}</div>
-                            <div style="font-size:1rem;"><strong style="color:#ff3b30;">${m.winner}</strong> def. ${m.loser}${scoreStr}</div>
+                            <div style="font-size:0.75rem; color:#888; margin-bottom:4px;">${dateStr} ${typeTag}</div>
+                            <div style="font-size:1rem;"><strong style="color:#ff3b30;">${wText}</strong> def. ${lText}${scoreStr}</div>
                         </div>
                         <div style="display:flex; gap:8px;">
                             <button onclick="approveMatch('${m.id}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">✅</button>
@@ -340,7 +384,6 @@
                 });
             }
 
-            // 球员审核区域
             html += `<div class="admin-section-title" style="margin-top:20px;">PENDING PLAYERS (${pendingPlayers.length})</div>`;
             if (pendingPlayers.length === 0) {
                 html += "<p style='text-align:center; color:#555; font-size:0.85rem;'>No pending players.</p>";
@@ -360,7 +403,6 @@
             panel.innerHTML = html;
         };
 
-        // 球员审批功能
         window.approvePlayer = async function(id) {
             const p = pendingPlayers.find(x => x.id === id);
             if(!p) return;
@@ -377,12 +419,20 @@
             } catch(e) { alert("Error rejecting player: " + e); }
         };
 
-        // 比赛审批功能
         window.approveMatch = async function(id) {
             const m = pendingMatches.find(x => x.id === id);
             if(!m) return;
             try {
-                await addDoc(collection(db, "matches"), { winner: m.winner, loser: m.loser, scores: m.scores, date: m.date });
+                // 恢复为无 ID 提交以保持结构干净
+                let dataToSave = { scores: m.scores, date: m.date, matchType: m.matchType || 'singles' };
+                if (m.matchType === 'doubles') {
+                    dataToSave.winners = m.winners;
+                    dataToSave.losers = m.losers;
+                } else {
+                    dataToSave.winner = m.winner;
+                    dataToSave.loser = m.loser;
+                }
+                await addDoc(collection(db, "matches"), dataToSave);
                 await deleteDoc(doc(db, "pending_matches", id));
             } catch(e) { alert("Error approving match: " + e); }
         };
@@ -394,20 +444,13 @@
             } catch(e) { alert("Error rejecting match: " + e); }
         };
 
-        // 升级版：提交球员逻辑
         window.addPlayer = async function() {
             const name = document.getElementById('playerName').value.trim();
             const flag = document.getElementById('playerCountry').value;
             
             if (!name) return alert('Please enter a name.');
-            
-            // 双重防线查重
-            if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-                return alert('Player already exists in the official list.');
-            }
-            if (pendingPlayers.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-                return alert('Player is already waiting for approval.');
-            }
+            if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) return alert('Player already exists in the official list.');
+            if (pendingPlayers.some(p => p.name.toLowerCase() === name.toLowerCase())) return alert('Player is already waiting for approval.');
             
             try {
                 if (isAdmin) {
@@ -422,8 +465,9 @@
             } catch (e) { alert("Error connecting to Firebase!"); }
         };
 
+        // 更新下拉菜单，适配双打框
         window.updateDropdowns = function() {
-            const dropdowns = ['matchWinner', 'matchLoser', 'queryP1', 'queryP2'];
+            const dropdowns = ['matchWinner', 'matchLoser', 'queryP1', 'queryP2', 'matchWinner1', 'matchWinner2', 'matchLoser1', 'matchLoser2'];
             dropdowns.forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
@@ -440,54 +484,72 @@
         };
 
         window.recordMatch = async function() {
-            const w = document.getElementById('matchWinner').value;
-            const l = document.getElementById('matchLoser').value;
-            if (!w || !l) return alert('Please add players first.');
-            if (w === l) return alert('Cannot play against self.');
-            
-            const scores = [
-                { w: document.getElementById('g1w').value, l: document.getElementById('g1l').value },
-                { w: document.getElementById('g2w').value, l: document.getElementById('g2l').value },
-                { w: document.getElementById('g3w').value, l: document.getElementById('g3l').value }
-            ];
+            let isDoubles = window.currentMatchMode === 'doubles';
+            let matchData = {
+                scores: [
+                    { w: document.getElementById('g1w').value, l: document.getElementById('g1l').value },
+                    { w: document.getElementById('g2w').value, l: document.getElementById('g2l').value },
+                    { w: document.getElementById('g3w').value, l: document.getElementById('g3l').value }
+                ],
+                date: new Date().toISOString(),
+                matchType: isDoubles ? 'doubles' : 'singles'
+            };
 
-            let invalidScore = false;
-            let hasValidGame = false;
-            let missingPair = false;
-
-            scores.forEach(s => {
-                let wStr = s.w.trim();
-                let lStr = s.l.trim();
+            if (isDoubles) {
+                let w1 = document.getElementById('matchWinner1').value;
+                let w2 = document.getElementById('matchWinner2').value;
+                let l1 = document.getElementById('matchLoser1').value;
+                let l2 = document.getElementById('matchLoser2').value;
+                if (!w1 || !w2 || !l1 || !l2) return alert('Please select players first.');
                 
+                let uniqueCheck = new Set([w1, w2, l1, l2]);
+                if (uniqueCheck.size !== 4) return alert('Cannot select the same player multiple times in a doubles match!');
+                
+                matchData.winners = [w1, w2];
+                matchData.losers = [l1, l2];
+            } else {
+                let w = document.getElementById('matchWinner').value;
+                let l = document.getElementById('matchLoser').value;
+                if (!w || !l) return alert('Please add players first.');
+                if (w === l) return alert('Cannot play against self.');
+                matchData.winner = w;
+                matchData.loser = l;
+            }
+
+            let invalidScore = false, hasValidGame = false, missingPair = false;
+            matchData.scores.forEach(s => {
+                let wStr = s.w.trim(), lStr = s.l.trim();
                 if (wStr !== "" || lStr !== "") {
-                    if (wStr === "" || lStr === "") {
-                        missingPair = true; 
-                    } else {
+                    if (wStr === "" || lStr === "") missingPair = true; 
+                    else {
                         hasValidGame = true; 
-                        let wVal = parseInt(wStr);
-                        let lVal = parseInt(lStr);
+                        let wVal = parseInt(wStr), lVal = parseInt(lStr);
                         if (wVal < 0 || wVal > 30 || lVal < 0 || lVal > 30) invalidScore = true;
                     }
                 }
             });
 
-            if (missingPair) return alert('Please complete BOTH scores for the games you played (e.g., 15 - 12).');
+            if (missingPair) return alert('Please complete BOTH scores for the games you played.');
             if (!hasValidGame) return alert('Please enter the score for at least one game!');
             if (invalidScore) return alert('Error: Score must be between 0 and 30!');
             
             try {
                 if(isAdmin) {
-                    await addDoc(collection(db, "matches"), { winner: w, loser: l, scores: scores, date: new Date().toISOString() });
+                    await addDoc(collection(db, "matches"), matchData);
                     alert('Match Saved directly! (Admin Privileges)');
                 } else {
-                    await addDoc(collection(db, "pending_matches"), { winner: w, loser: l, scores: scores, date: new Date().toISOString() });
+                    await addDoc(collection(db, "pending_matches"), matchData);
                     alert('Match submitted! Waiting for Admin approval.');
                 }
-                
                 ['g1w','g1l','g2w','g2l','g3w','g3l'].forEach(id => document.getElementById(id).value = '');
                 document.getElementById('recordAccordion').click();
             } catch (e) { alert("Error: Database permission denied."); }
         };
+
+        // 🌟 防破防核心：在排行榜和H2H中暂时过滤掉双打数据（避免系统读取不到字符串报错）
+        function getSinglesMatches() {
+            return matches.filter(m => m.matchType !== 'doubles');
+        }
 
         window.calculateH2H = function() {
             const p1Name = document.getElementById('queryP1').value;
@@ -497,7 +559,10 @@
 
             let p1Obj = players.find(p => p.name === p1Name) || { flag: '🏳️' };
             let p2Obj = players.find(p => p.name === p2Name) || { flag: '🏳️' };
-            const h2hMatches = matches.filter(m => (m.winner === p1Name && m.loser === p2Name) || (m.winner === p2Name && m.loser === p1Name));
+            
+            let singlesMatches = getSinglesMatches(); // 使用安全过滤后的单打数据
+            
+            const h2hMatches = singlesMatches.filter(m => (m.winner === p1Name && m.loser === p2Name) || (m.winner === p2Name && m.loser === p1Name));
             const p1H2HWins = h2hMatches.filter(m => m.winner === p1Name).length;
             const p2H2HWins = h2hMatches.filter(m => m.winner === p2Name).length;
             const totalH2H = h2hMatches.length;
@@ -506,7 +571,7 @@
             let p2H2HWidth = totalH2H > 0 ? (p2H2HWins / totalH2H) * 100 : 50;
 
             let p1Wins = 0, p1Losses = 0, p2Wins = 0, p2Losses = 0;
-            matches.forEach(m => {
+            singlesMatches.forEach(m => {
                 if (m.winner === p1Name) p1Wins++; if (m.loser === p1Name) p1Losses++;
                 if (m.winner === p2Name) p2Wins++; if (m.loser === p2Name) p2Losses++;
             });
@@ -517,7 +582,7 @@
 
             let html = `
                 <div class="h2h-top-bar"><div class="p1-bar" style="width: ${p1H2HWidth}%;"></div><div class="p2-bar" style="width: ${p2H2HWidth}%;"></div></div>
-                <div class="career-title">CAREER STATS</div>
+                <div class="career-title">SINGLES CAREER STATS</div>
                 <div class="career-stats-box">
                     <div class="stat-flex" style="font-size: 1.3rem;"><span style="color:#ffcc00">${p1Total}</span><span class="stat-center">MATCHES</span><span style="color:#0a84ff">${p2Total}</span></div>
                     <div class="career-bar-container"><div class="p1-bar" style="width: ${p1CareerWidth}%;"></div><div class="p2-bar" style="width: ${p2CareerWidth}%;"></div></div>
@@ -567,8 +632,9 @@
             const tbody = document.getElementById('rankingTableBody');
             tbody.innerHTML = '';
             let stats = players.map(p => ({ name: p.name, flag: p.flag, wins: 0, losses: 0, total: 0, rate: 0 }));
+            let singlesMatches = getSinglesMatches();
 
-            matches.forEach(m => {
+            singlesMatches.forEach(m => {
                 let wPlayer = stats.find(s => s.name === m.winner);
                 let lPlayer = stats.find(s => s.name === m.loser);
                 if (wPlayer) { wPlayer.wins++; wPlayer.total++; }
@@ -594,8 +660,9 @@
         window.generateHistoricalRanks = function() {
             let history = []; 
             let tempStats = players.map(p => ({ name: p.name, wins: 0, losses: 0, total: 0, rate: 0, hasPlayed: false }));
+            let singlesMatches = getSinglesMatches();
             
-            matches.forEach((m, matchIndex) => {
+            singlesMatches.forEach((m, matchIndex) => {
                 let w = tempStats.find(s => s.name === m.winner); 
                 let l = tempStats.find(s => s.name === m.loser);
                 if (w) { w.wins++; w.total++; w.rate = (w.wins / w.total) * 100; w.hasPlayed = true; }
@@ -619,7 +686,8 @@
             let pWins = 0, pLosses = 0, opponents = {};
             let currentStreak = 0, maxStreak = 0;
             
-            let playerMatches = matches.filter(m => m.winner === playerName || m.loser === playerName);
+            let singlesMatches = getSinglesMatches();
+            let playerMatches = singlesMatches.filter(m => m.winner === playerName || m.loser === playerName);
             
             playerMatches.forEach(m => {
                 if (m.winner === playerName) { 
