@@ -7,13 +7,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #000; color: #fff; padding: 20px; margin: 0; }
-        /* 标题现在变成了一个按钮鼠标指针 */
         h1 { color: #ff3b30; text-align: center; margin-bottom: 25px; letter-spacing: 1px; cursor: pointer; user-select: none; }
         h2 { color: #fff; font-size: 1.2rem; margin-bottom: 15px; }
         
         .card { background: #1c1c1e; padding: 20px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         
-        /* 管理员专属控制台样式 */
         .admin-card { background: #1a1a1a; border: 2px solid #ffcc00; display: none; box-shadow: 0 0 15px rgba(255, 204, 0, 0.3); }
         .admin-title { color: #ffcc00; font-weight: bold; font-size: 1.2rem; text-align: center; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; }
         
@@ -98,10 +96,9 @@
 </head>
 <body>
 
-    <!-- 隐藏机关：连续点击标题5次触发 Admin 模式 -->
     <h1 onclick="adminLogin()">🏸 Pro Stats <span style="font-size:0.8rem; color:#4caf50;">(Sync 🟢)</span></h1>
 
-    <!-- 🌟 管理员待审批收件箱 (默认隐藏) -->
+    <!-- 🌟 管理员待审批收件箱 -->
     <div class="card admin-card" id="adminPanel">
         <div class="admin-title">👑 Admin Approval Inbox</div>
         <div id="pendingList">
@@ -224,7 +221,6 @@
         }
     </script>
 
-    <!-- 注意：此处导入了 deleteDoc 和 doc 用于管理员删除待审批数据 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -245,16 +241,14 @@
         let matches = [];
         let pendingMatches = [];
         let rankingChartInstance = null;
-        let isAdmin = false; // 管理员状态标识
+        let isAdmin = false; 
 
-        // 监听正式球员
         onSnapshot(collection(db, "players"), (snapshot) => {
             players = snapshot.docs.map(doc => doc.data());
             window.updateDropdowns();
             window.renderRanking();
         });
 
-        // 监听正式比赛
         onSnapshot(collection(db, "matches"), (snapshot) => {
             matches = snapshot.docs.map(doc => doc.data());
             matches.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -262,13 +256,11 @@
             window.calculateH2H();
         });
 
-        // 监听待审批区 (Pending Inbox)
         onSnapshot(collection(db, "pending_matches"), (snapshot) => {
             pendingMatches = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             window.renderAdminPanel();
         });
 
-        // 👑 隐藏机关逻辑：连续点击5次
         let clickCount = 0;
         let clickTimer = null;
         window.adminLogin = function() {
@@ -280,7 +272,6 @@
                 clickCount = 0;
                 if(isAdmin) return alert("You are already logged in as Admin.");
                 
-                // 默认密码为 8888，你可以自己在这个代码里改掉！
                 let pwd = prompt("🕵️‍♂️ Admin Access Required.\nEnter PIN:");
                 if(pwd === "8888") {
                     isAdmin = true;
@@ -293,7 +284,6 @@
             }
         };
 
-        // 渲染管理员审批列表
         window.renderAdminPanel = function() {
             const panel = document.getElementById('pendingList');
             if(!panel) return;
@@ -305,11 +295,21 @@
             let html = "";
             pendingMatches.forEach(m => {
                 let dateStr = new Date(m.date).toLocaleDateString();
+                let scoreStr = "";
+                
+                // 获取具体分数并格式化显示
+                if (m.scores && m.scores.length > 0) {
+                    let validScores = m.scores.filter(s => s.w !== "" && s.l !== "");
+                    if (validScores.length > 0) {
+                        scoreStr = ` <span style="color:#4caf50; font-weight:bold; font-size:0.9rem;">(${validScores.map(s => `${s.w}-${s.l}`).join(', ')})</span>`;
+                    }
+                }
+
                 html += `
                 <div style="background:#2c2c2e; padding:12px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
                     <div>
                         <div style="font-size:0.75rem; color:#888; margin-bottom:4px;">${dateStr}</div>
-                        <div style="font-size:1rem;"><strong style="color:#ff3b30;">${m.winner}</strong> def. ${m.loser}</div>
+                        <div style="font-size:1rem;"><strong style="color:#ff3b30;">${m.winner}</strong> def. ${m.loser}${scoreStr}</div>
                     </div>
                     <div style="display:flex; gap:8px;">
                         <button onclick="approveMatch('${m.id}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">✅</button>
@@ -320,19 +320,15 @@
             panel.innerHTML = html;
         };
 
-        // 管理员：通过审批
         window.approveMatch = async function(id) {
             const m = pendingMatches.find(x => x.id === id);
             if(!m) return;
             try {
-                // 1. 写入正式排行榜
                 await addDoc(collection(db, "matches"), { winner: m.winner, loser: m.loser, scores: m.scores, date: m.date });
-                // 2. 从待审批区删除
                 await deleteDoc(doc(db, "pending_matches", id));
             } catch(e) { alert("Error approving: " + e); }
         };
 
-        // 管理员：拒绝并删除假数据
         window.rejectMatch = async function(id) {
             if(!confirm("Are you sure you want to REJECT and delete this match?")) return;
             try {
@@ -349,6 +345,7 @@
                 await addDoc(collection(db, "players"), { name: name, flag: flag });
                 document.getElementById('playerName').value = '';
                 document.getElementsByClassName("accordion")[1].click();
+                alert('Player added successfully!');
             } catch (e) { alert("Error connecting to Firebase!"); }
         };
 
@@ -390,13 +387,11 @@
             
             try {
                 if(isAdmin) {
-                    // 如果是管理员亲自输入，免审核直接录入正式库
                     await addDoc(collection(db, "matches"), { winner: w, loser: l, scores: scores, date: new Date().toISOString() });
                     alert('Match Saved directly! (Admin Privileges) 👑');
                 } else {
-                    // 如果是普通人输入，进入待审批区
                     await addDoc(collection(db, "pending_matches"), { winner: w, loser: l, scores: scores, date: new Date().toISOString() });
-                    alert('Match submitted! Waiting for Admin approval. ⏳\n(比分已提交，等待管理员确认入榜)');
+                    alert('Match submitted! Waiting for Admin approval. ⏳');
                 }
                 
                 ['g1w','g1l','g2w','g2l','g3w','g3l'].forEach(id => document.getElementById(id).value = '');
