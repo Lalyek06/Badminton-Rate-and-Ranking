@@ -7,10 +7,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #000; color: #fff; padding: 20px; margin: 0; }
-        h1 { color: #ff3b30; text-align: center; margin-bottom: 25px; letter-spacing: 1px; }
+        /* 标题现在变成了一个按钮鼠标指针 */
+        h1 { color: #ff3b30; text-align: center; margin-bottom: 25px; letter-spacing: 1px; cursor: pointer; user-select: none; }
         h2 { color: #fff; font-size: 1.2rem; margin-bottom: 15px; }
         
         .card { background: #1c1c1e; padding: 20px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        
+        /* 管理员专属控制台样式 */
+        .admin-card { background: #1a1a1a; border: 2px solid #ffcc00; display: none; box-shadow: 0 0 15px rgba(255, 204, 0, 0.3); }
+        .admin-title { color: #ffcc00; font-weight: bold; font-size: 1.2rem; text-align: center; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; }
+        
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; box-sizing: border-box; font-size: 1rem; }
         input[type="number"] { padding: 8px; }
         input, select { background: #2c2c2e; color: #fff; }
@@ -92,7 +98,16 @@
 </head>
 <body>
 
-    <h1>🏸 Pro Stats <span style="font-size:0.8rem; color:#4caf50;">(Sync 🟢)</span></h1>
+    <!-- 隐藏机关：连续点击标题5次触发 Admin 模式 -->
+    <h1 onclick="adminLogin()">🏸 Pro Stats <span style="font-size:0.8rem; color:#4caf50;">(Sync 🟢)</span></h1>
+
+    <!-- 🌟 管理员待审批收件箱 (默认隐藏) -->
+    <div class="card admin-card" id="adminPanel">
+        <div class="admin-title">👑 Admin Approval Inbox</div>
+        <div id="pendingList">
+            <p style='text-align:center; color:#aaa;'>Loading pending matches...</p>
+        </div>
+    </div>
 
     <!-- 1. 折叠面板：录入比赛 -->
     <button class="accordion" id="recordAccordion">🏸 RECORD MATCH</button>
@@ -101,7 +116,6 @@
             <label style="color:#aaa; font-size:0.8rem;">Winner:</label>
             <select id="matchWinner"></select>
             <div class="score-row">
-                <!-- 物理防呆锁：输入自动限制在 0 - 30 之间 -->
                 <div class="score-box"><label>GAME 1</label><div class="score-inputs"><input type="number" id="g1w" placeholder="W" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"> <span class="score-dash">-</span> <input type="number" id="g1l" placeholder="L" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"></div></div>
                 <div class="score-box"><label>GAME 2</label><div class="score-inputs"><input type="number" id="g2w" placeholder="W" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"> <span class="score-dash">-</span> <input type="number" id="g2l" placeholder="L" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"></div></div>
                 <div class="score-box"><label>GAME 3</label><div class="score-inputs"><input type="number" id="g3w" placeholder="W" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"> <span class="score-dash">-</span> <input type="number" id="g3l" placeholder="L" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"></div></div>
@@ -145,7 +159,7 @@
         </table>
     </div>
 
-    <!-- Profile Modal (个人主页弹窗) -->
+    <!-- Profile Modal -->
     <div id="profileModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeProfile()">×</span>
@@ -210,9 +224,10 @@
         }
     </script>
 
+    <!-- 注意：此处导入了 deleteDoc 和 doc 用于管理员删除待审批数据 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCLNmEoXM7yOvm7PnccfwgkR55i8KEphP8",
@@ -228,20 +243,102 @@
 
         let players = [];
         let matches = [];
+        let pendingMatches = [];
         let rankingChartInstance = null;
+        let isAdmin = false; // 管理员状态标识
 
+        // 监听正式球员
         onSnapshot(collection(db, "players"), (snapshot) => {
             players = snapshot.docs.map(doc => doc.data());
             window.updateDropdowns();
             window.renderRanking();
         });
 
+        // 监听正式比赛
         onSnapshot(collection(db, "matches"), (snapshot) => {
             matches = snapshot.docs.map(doc => doc.data());
             matches.sort((a, b) => new Date(a.date) - new Date(b.date));
             window.renderRanking();
             window.calculateH2H();
         });
+
+        // 监听待审批区 (Pending Inbox)
+        onSnapshot(collection(db, "pending_matches"), (snapshot) => {
+            pendingMatches = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            window.renderAdminPanel();
+        });
+
+        // 👑 隐藏机关逻辑：连续点击5次
+        let clickCount = 0;
+        let clickTimer = null;
+        window.adminLogin = function() {
+            clickCount++;
+            clearTimeout(clickTimer);
+            clickTimer = setTimeout(() => { clickCount = 0; }, 2000); 
+            
+            if(clickCount >= 5) {
+                clickCount = 0;
+                if(isAdmin) return alert("You are already logged in as Admin.");
+                
+                // 默认密码为 8888，你可以自己在这个代码里改掉！
+                let pwd = prompt("🕵️‍♂️ Admin Access Required.\nEnter PIN:");
+                if(pwd === "8888") {
+                    isAdmin = true;
+                    document.getElementById('adminPanel').style.display = 'block';
+                    window.renderAdminPanel();
+                    alert("Admin Mode Unlocked 🔓");
+                } else if (pwd !== null) {
+                    alert("Incorrect PIN!");
+                }
+            }
+        };
+
+        // 渲染管理员审批列表
+        window.renderAdminPanel = function() {
+            const panel = document.getElementById('pendingList');
+            if(!panel) return;
+            if(pendingMatches.length === 0) {
+                panel.innerHTML = "<p style='text-align:center; color:#aaa; font-size:0.9rem;'>No pending matches to review.</p>";
+                return;
+            }
+            
+            let html = "";
+            pendingMatches.forEach(m => {
+                let dateStr = new Date(m.date).toLocaleDateString();
+                html += `
+                <div style="background:#2c2c2e; padding:12px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:0.75rem; color:#888; margin-bottom:4px;">${dateStr}</div>
+                        <div style="font-size:1rem;"><strong style="color:#ff3b30;">${m.winner}</strong> def. ${m.loser}</div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button onclick="approveMatch('${m.id}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">✅</button>
+                        <button onclick="rejectMatch('${m.id}')" style="background:#3a3a3c; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">❌</button>
+                    </div>
+                </div>`;
+            });
+            panel.innerHTML = html;
+        };
+
+        // 管理员：通过审批
+        window.approveMatch = async function(id) {
+            const m = pendingMatches.find(x => x.id === id);
+            if(!m) return;
+            try {
+                // 1. 写入正式排行榜
+                await addDoc(collection(db, "matches"), { winner: m.winner, loser: m.loser, scores: m.scores, date: m.date });
+                // 2. 从待审批区删除
+                await deleteDoc(doc(db, "pending_matches", id));
+            } catch(e) { alert("Error approving: " + e); }
+        };
+
+        // 管理员：拒绝并删除假数据
+        window.rejectMatch = async function(id) {
+            if(!confirm("Are you sure you want to REJECT and delete this match?")) return;
+            try {
+                await deleteDoc(doc(db, "pending_matches", id));
+            } catch(e) { alert("Error rejecting: " + e); }
+        };
 
         window.addPlayer = async function() {
             const name = document.getElementById('playerName').value.trim();
@@ -292,9 +389,16 @@
             if (invalidScore) return alert('Error: Score must be between 0 and 30!');
             
             try {
-                await addDoc(collection(db, "matches"), { 
-                    winner: w, loser: l, scores: scores, date: new Date().toISOString() 
-                });
+                if(isAdmin) {
+                    // 如果是管理员亲自输入，免审核直接录入正式库
+                    await addDoc(collection(db, "matches"), { winner: w, loser: l, scores: scores, date: new Date().toISOString() });
+                    alert('Match Saved directly! (Admin Privileges) 👑');
+                } else {
+                    // 如果是普通人输入，进入待审批区
+                    await addDoc(collection(db, "pending_matches"), { winner: w, loser: l, scores: scores, date: new Date().toISOString() });
+                    alert('Match submitted! Waiting for Admin approval. ⏳\n(比分已提交，等待管理员确认入榜)');
+                }
+                
                 ['g1w','g1l','g2w','g2l','g3w','g3l'].forEach(id => document.getElementById(id).value = '');
                 document.getElementById('recordAccordion').click();
             } catch (e) { alert("Error: Database permission denied."); }
@@ -388,7 +492,6 @@
 
             stats.forEach(s => { s.rate = s.total > 0 ? parseFloat(((s.wins / s.total) * 100).toFixed(1)) : 0; });
             
-            // 🏅 核心公平系统：没打过的人沉底，按 胜率 -> 胜场 -> 负场最少 排序
             stats.sort((a, b) => {
                 if (a.total === 0 && b.total > 0) return 1;
                 if (b.total === 0 && a.total > 0) return -1;
@@ -405,7 +508,6 @@
 
         window.generateHistoricalRanks = function() {
             let history = []; 
-            // 加入 hasPlayed 标签，追踪此人是否已经出战
             let tempStats = players.map(p => ({ name: p.name, wins: 0, losses: 0, total: 0, rate: 0, hasPlayed: false }));
             
             matches.forEach((m, matchIndex) => {
@@ -414,7 +516,6 @@
                 if (w) { w.wins++; w.total++; w.rate = (w.wins / w.total) * 100; w.hasPlayed = true; }
                 if (l) { l.losses++; l.total++; l.rate = (l.wins / l.total) * 100; l.hasPlayed = true; }
                 
-                // 仅对已经打过比赛的人进行排名，维持公平决胜规则
                 let activePlayers = tempStats.filter(s => s.hasPlayed);
                 activePlayers.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
                 
@@ -465,7 +566,6 @@
             document.getElementById('profNemesis').innerText = maxLossesCount > 0 ? `${nemesis} (${maxLossesCount}L)` : '-';
             document.getElementById('profFavorite').innerText = maxWinsCount > 0 ? `${favorite} (${maxWinsCount}W)` : '-';
 
-            // 提取排名：屏蔽掉“还没上场前”的历史比赛
             const rankHistory = window.generateHistoricalRanks();
             let playerRanks = [];
             let playerLabels = [];
@@ -489,7 +589,6 @@
             document.getElementById('profGridWL').innerText = `${pWins}/${pLosses}`;
             document.getElementById('profGridRate').innerText = winRateStr;
 
-            // 绘图时如果数据为空，则显示为 No Matches
             if (playerRanks.length === 0) {
                 window.drawChart([players.length || 5], ['No Matches']);
             } else {
@@ -509,7 +608,6 @@
                 type: 'line',
                 data: {
                     labels: labels, 
-                    // 折线颜色更新为电竞红，配合整体UI
                     datasets: [{ label: 'Ranking', data: dataRanks, borderColor: '#ff3b30', borderWidth: 3, pointBackgroundColor: '#ff3b30', pointRadius: 3, fill: false, tension: 0.1 }]
                 },
                 options: {
