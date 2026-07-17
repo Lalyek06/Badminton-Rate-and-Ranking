@@ -202,19 +202,18 @@
     <div class="card">
         <h2>🏆 Leaderboard</h2>
         
-        <!-- 🌟 新增：排行榜双模式切换器 -->
         <div class="mode-toggle" style="margin-top: 10px; margin-bottom: 15px;">
             <button id="btnRankSingles" class="active" onclick="setRankMode('singles')">👤 Singles</button>
             <button id="btnRankDoubles" onclick="setRankMode('doubles')">👥 Doubles</button>
         </div>
 
         <table>
-            <thead><tr><th>Rank</th><th>Player</th><th>W / L</th><th>Win %</th></tr></thead>
+            <thead><tr><th>Rank</th><th id="rankHeaderPlayer">Player</th><th>W / L</th><th>Win %</th></tr></thead>
             <tbody id="rankingTableBody"></tbody>
         </table>
     </div>
 
-    <!-- Profile Modal (注：目前个人主页依旧偏向显示单打的数据雷达) -->
+    <!-- Profile Modal -->
     <div id="profileModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeProfile()">×</span>
@@ -279,7 +278,7 @@
         
         window.currentMatchMode = 'singles';
         window.currentH2HMode = 'singles';
-        window.currentRankMode = 'singles'; // 🌟 新增：排行榜模式状态
+        window.currentRankMode = 'singles'; 
 
         window.setMatchMode = function(mode) {
             window.currentMatchMode = mode;
@@ -301,12 +300,12 @@
             window.calculateH2H(); 
         };
 
-        // 🌟 新增：切换排行榜模式
+        // 排行榜模式切换
         window.setRankMode = function(mode) {
             window.currentRankMode = mode;
             document.getElementById('btnRankSingles').classList.toggle('active', mode === 'singles');
             document.getElementById('btnRankDoubles').classList.toggle('active', mode === 'doubles');
-            window.renderRanking(); // 切换时重新渲染排行榜
+            window.renderRanking(); 
         };
 
         onSnapshot(collection(db, "players"), (snapshot) => {
@@ -628,46 +627,74 @@
         window.renderRanking = function() {
             const tbody = document.getElementById('rankingTableBody');
             tbody.innerHTML = '';
-            let stats = players.map(p => ({ name: p.name, flag: p.flag, wins: 0, losses: 0, total: 0, rate: 0 }));
+            const headerPlayer = document.getElementById('rankHeaderPlayer');
 
             if (window.currentRankMode === 'singles') {
+                if (headerPlayer) headerPlayer.innerText = 'Player';
+                let stats = players.map(p => ({ name: p.name, flag: p.flag, wins: 0, losses: 0, total: 0, rate: 0, hasPlayed: false }));
+
                 allSingles.forEach(m => {
                     let wPlayer = stats.find(s => s.name === m.winner);
                     let lPlayer = stats.find(s => s.name === m.loser);
-                    if (wPlayer) { wPlayer.wins++; wPlayer.total++; }
-                    if (lPlayer) { lPlayer.losses++; lPlayer.total++; }
+                    if (wPlayer) { wPlayer.wins++; wPlayer.total++; wPlayer.hasPlayed = true; }
+                    if (lPlayer) { lPlayer.losses++; lPlayer.total++; lPlayer.hasPlayed = true; }
+                });
+
+                stats.forEach(s => { s.rate = s.total > 0 ? parseFloat(((s.wins / s.total) * 100).toFixed(1)) : 0; });
+                
+                stats.sort((a, b) => {
+                    if (!a.hasPlayed && b.hasPlayed) return 1;
+                    if (!b.hasPlayed && a.hasPlayed) return -1;
+                    return b.rate - a.rate || b.wins - a.wins || a.losses - b.losses; 
+                });
+
+                stats.forEach((s, index) => {
+                    let displayRank = s.total > 0 ? index + 1 : "-";
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${displayRank}</td><td class="clickable-name" onclick="openProfile('${s.name}')">${s.flag} ${s.name}</td><td>${s.wins}W / ${s.losses}L</td><td>${s.total > 0 ? s.rate + '%' : '-'}</td>`;
+                    tbody.appendChild(tr);
                 });
             } else {
+                // 👥 双打排行榜 (排名具体的两人组合队伍)
+                if (headerPlayer) headerPlayer.innerText = 'Team (Partners)';
+                let pairStats = {}; 
+                const getPairKey = (n1, n2) => [n1, n2].sort().join(' | ');
+
                 allDoubles.forEach(m => {
-                    if (m.winners) {
-                        m.winners.forEach(wName => {
-                            let wPlayer = stats.find(s => s.name === wName);
-                            if (wPlayer) { wPlayer.wins++; wPlayer.total++; }
-                        });
+                    if (m.winners && m.winners.length === 2) {
+                        let key = getPairKey(m.winners[0], m.winners[1]);
+                        if (!pairStats[key]) pairStats[key] = { p1: m.winners[0], p2: m.winners[1], wins: 0, losses: 0, total: 0 };
+                        pairStats[key].wins++; pairStats[key].total++;
                     }
-                    if (m.losers) {
-                        m.losers.forEach(lName => {
-                            let lPlayer = stats.find(s => s.name === lName);
-                            if (lPlayer) { lPlayer.losses++; lPlayer.total++; }
-                        });
+                    if (m.losers && m.losers.length === 2) {
+                        let key = getPairKey(m.losers[0], m.losers[1]);
+                        if (!pairStats[key]) pairStats[key] = { p1: m.losers[0], p2: m.losers[1], wins: 0, losses: 0, total: 0 };
+                        pairStats[key].losses++; pairStats[key].total++;
                     }
                 });
+
+                let statsArray = Object.values(pairStats);
+                statsArray.forEach(s => { s.rate = parseFloat(((s.wins / s.total) * 100).toFixed(1)); });
+                statsArray.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
+
+                if (statsArray.length === 0) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td colspan="4" style="text-align:center; color:#888;">No doubles records yet</td>`;
+                    tbody.appendChild(tr);
+                    return;
+                }
+
+                statsArray.forEach((s, index) => {
+                    let p1Obj = players.find(p => p.name === s.p1) || { flag: '🏳️' };
+                    let p2Obj = players.find(p => p.name === s.p2) || { flag: '🏳️' };
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${index + 1}</td>
+                                    <td><div style="display:flex; align-items:center; justify-content:center; gap:5px;"><span>${p1Obj.flag}${p2Obj.flag}</span> <span>${s.p1} / ${s.p2}</span></div></td>
+                                    <td>${s.wins}W / ${s.losses}L</td>
+                                    <td>${s.rate}%</td>`;
+                    tbody.appendChild(tr);
+                });
             }
-
-            stats.forEach(s => { s.rate = s.total > 0 ? parseFloat(((s.wins / s.total) * 100).toFixed(1)) : 0; });
-            
-            stats.sort((a, b) => {
-                if (a.total === 0 && b.total > 0) return 1;
-                if (b.total === 0 && a.total > 0) return -1;
-                return b.rate - a.rate || b.wins - a.wins || a.losses - b.losses; 
-            });
-
-            stats.forEach((s, index) => {
-                let displayRank = s.total > 0 ? index + 1 : "-";
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${displayRank}</td><td class="clickable-name" onclick="openProfile('${s.name}')">${s.flag} ${s.name}</td><td>${s.wins}W / ${s.losses}L</td><td>${s.total > 0 ? s.rate + '%' : '-'}</td>`;
-                tbody.appendChild(tr);
-            });
         };
 
         window.generateHistoricalRanks = function() {
