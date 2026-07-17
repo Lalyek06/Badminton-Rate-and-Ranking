@@ -156,18 +156,12 @@
         <div class="card" style="margin-top: 5px;">
             <input type="text" id="playerName" placeholder="Enter player name">
             <select id="playerCountry">
-                <option value="🇲🇾">🇲🇾 Malaysia</option>
-                <option value="🇨🇳">🇨🇳 China</option>
-                <option value="🇮🇩">🇮🇩 Indonesia</option>
-                <option value="🇯🇵">🇯🇵 Japan</option>
-                <option value="🇰🇷">🇰🇷 South Korea</option>
-                <option value="🇹🇭">🇹🇭 Thailand</option>
-                <option value="🇹🇼">🇹🇼 Chinese Taipei</option>
-                <option value="🇩🇰">🇩🇰 Denmark</option>
-                <option value="🇸🇬">🇸🇬 Singapore</option>
-                <option value="🇬🇧">🇬🇧 UK</option>
-                <option value="🇺🇸">🇺🇸 USA</option>
-                <option value="🏳️">🏳️ Other</option>
+                <option value="🇲🇾">🇲🇾 Malaysia</option><option value="🇨🇳">🇨🇳 China</option>
+                <option value="🇮🇩">🇮🇩 Indonesia</option><option value="🇯🇵">🇯🇵 Japan</option>
+                <option value="🇰🇷">🇰🇷 South Korea</option><option value="🇹🇭">🇹🇭 Thailand</option>
+                <option value="🇹🇼">🇹🇼 Chinese Taipei</option><option value="🇩🇰">🇩🇰 Denmark</option>
+                <option value="🇸🇬">🇸🇬 Singapore</option><option value="🇬🇧">🇬🇧 UK</option>
+                <option value="🇺🇸">🇺🇸 USA</option><option value="🏳️">🏳️ Other</option>
             </select>
             <button class="action-btn" onclick="addPlayer()">Submit Player</button>
         </div>
@@ -177,20 +171,21 @@
     <div class="card">
         <h2 style="text-align:left; color:#fff; font-size:1.2rem; margin-bottom:5px;">H2H STATISTICS</h2>
         
-        <!-- 🌟 H2H 单双打模式切换器 -->
+        <!-- 🌟 H2H 3大模式切换器 -->
         <div class="mode-toggle" style="margin-top: 10px;">
             <button id="btnH2HSingles" class="active" onclick="setH2HMode('singles')">👤 Singles</button>
-            <button id="btnH2HDoubles" onclick="setH2HMode('doubles')">👥 Doubles</button>
+            <button id="btnH2HChemistry" onclick="setH2HMode('chemistry')">🤝 Chemistry</button>
+            <button id="btnH2HDoubles" onclick="setH2HMode('doubles')">👥 Team</button>
         </div>
 
-        <!-- H2H 单打选择框 -->
+        <!-- 针对 Singles 和 Chemistry (选2人) -->
         <div id="h2hSinglesGroup">
             <select id="queryP1" onchange="calculateH2H()" style="margin-bottom: 5px;"></select>
-            <div class="vs-text" style="font-size: 1rem; color: #888;">VS</div>
+            <div class="vs-text" style="font-size: 1rem; color: #888;">&</div>
             <select id="queryP2" onchange="calculateH2H()"></select>
         </div>
 
-        <!-- 🌟 H2H 双打选择框 -->
+        <!-- 针对 Team Doubles (选4人) -->
         <div id="h2hDoublesGroup" style="display:none;">
             <div style="font-size:0.8rem; color:#ffcc00; font-weight:bold; margin-bottom:5px;">TEAM A</div>
             <div class="doubles-select-group">
@@ -220,13 +215,10 @@
 
     <!-- Profile Modal -->
     <div id="profileModal" class="modal">
-        <!-- 保持和之前一样的代码 -->
         <div class="modal-content">
             <span class="close-btn" onclick="closeProfile()">×</span>
             <div class="profile-header" id="profileTitle">🇨🇳 Player Name</div>
-            
             <div class="career-title" style="margin-bottom: 15px;">RESULTS SUMMARY</div>
-            
             <div class="results-summary-card">
                 <div class="rs-top">
                     <div class="rs-col"><div class="rs-val" id="profHighestRank">1</div><div class="rs-label">Highest<br>Rank</div></div>
@@ -274,11 +266,18 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let players = [], matches = [], pendingMatches = [], pendingPlayers = [], rankingChartInstance = null, isAdmin = false; 
+        let players = [];
+        let rawMatches = [], rawDoublesMatches = [];
+        let allSingles = [], allDoubles = [];
+        let pendingSingles = [], pendingDoubles = []; 
+        let pendingPlayers = []; 
+        let rankingChartInstance = null;
+        let isAdmin = false; 
         
         window.currentMatchMode = 'singles';
-        window.currentH2HMode = 'singles'; // 🌟 新增：H2H模式状态
+        window.currentH2HMode = 'singles';
 
+        // 控制面板切换
         window.setMatchMode = function(mode) {
             window.currentMatchMode = mode;
             document.getElementById('btnSingles').classList.toggle('active', mode === 'singles');
@@ -289,31 +288,55 @@
             document.getElementById('doublesLoserGroup').style.display = mode === 'doubles' ? 'flex' : 'none';
         };
 
-        // 🌟 新增：切换 H2H 面板
         window.setH2HMode = function(mode) {
             window.currentH2HMode = mode;
             document.getElementById('btnH2HSingles').classList.toggle('active', mode === 'singles');
+            document.getElementById('btnH2HChemistry').classList.toggle('active', mode === 'chemistry');
             document.getElementById('btnH2HDoubles').classList.toggle('active', mode === 'doubles');
-            document.getElementById('h2hSinglesGroup').style.display = mode === 'singles' ? 'block' : 'none';
+            
+            document.getElementById('h2hSinglesGroup').style.display = (mode === 'singles' || mode === 'chemistry') ? 'block' : 'none';
             document.getElementById('h2hDoublesGroup').style.display = mode === 'doubles' ? 'block' : 'none';
-            window.calculateH2H(); // 切换时重新计算
+            window.calculateH2H(); 
         };
 
+        // Firebase 监听器
         onSnapshot(collection(db, "players"), (snapshot) => {
             players = snapshot.docs.map(doc => doc.data());
-            window.updateDropdowns();
-            window.renderRanking();
+            window.updateDropdowns(); window.renderRanking();
         });
 
-        onSnapshot(collection(db, "matches"), (snapshot) => {
-            matches = snapshot.docs.map(doc => doc.data());
-            matches.sort((a, b) => new Date(a.date) - new Date(b.date));
+        // 🌟 核心：监听分别的单打和双打集合，并进行兼容合并
+        function mergeMatches() {
+            allSingles = rawMatches.filter(m => m.matchType !== 'doubles').sort((a, b) => new Date(a.date) - new Date(b.date));
+            allDoubles = [...rawMatches.filter(m => m.matchType === 'doubles'), ...rawDoublesMatches].sort((a, b) => new Date(a.date) - new Date(b.date));
             window.renderRanking();
             window.calculateH2H();
+        }
+
+        onSnapshot(collection(db, "matches"), (snapshot) => {
+            rawMatches = snapshot.docs.map(doc => doc.data());
+            mergeMatches();
         });
 
-        onSnapshot(collection(db, "pending_matches"), (snapshot) => { pendingMatches = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); window.renderAdminPanel(); });
-        onSnapshot(collection(db, "pending_players"), (snapshot) => { pendingPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); window.renderAdminPanel(); });
+        onSnapshot(collection(db, "matches_doubles"), (snapshot) => {
+            rawDoublesMatches = snapshot.docs.map(doc => doc.data());
+            mergeMatches();
+        });
+
+        onSnapshot(collection(db, "pending_matches"), (snapshot) => {
+            pendingSingles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), _col: 'pending_matches', _dest: 'matches' }));
+            window.renderAdminPanel();
+        });
+
+        onSnapshot(collection(db, "pending_doubles_matches"), (snapshot) => {
+            pendingDoubles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), _col: 'pending_doubles_matches', _dest: 'matches_doubles' }));
+            window.renderAdminPanel();
+        });
+
+        onSnapshot(collection(db, "pending_players"), (snapshot) => {
+            pendingPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            window.renderAdminPanel();
+        });
 
         let clickCount = 0, clickTimer = null;
         window.adminLogin = function() {
@@ -321,64 +344,87 @@
             if(clickCount >= 5) {
                 clickCount = 0;
                 if(isAdmin) return alert("You are already logged in as Admin.");
-                let pwd = prompt("Admin Access Required.\nEnter PIN:");
-                if(pwd === "8888") { isAdmin = true; document.getElementById('adminPanel').style.display = 'block'; window.renderAdminPanel(); alert("Admin Mode Unlocked"); } 
-                else if (pwd !== null) { alert("Incorrect PIN!"); }
+                if(prompt("Admin Access Required.\nEnter PIN:") === "8888") { 
+                    isAdmin = true; document.getElementById('adminPanel').style.display = 'block'; window.renderAdminPanel(); alert("Admin Mode Unlocked"); 
+                } else { alert("Incorrect PIN!"); }
             }
         };
 
-        window.renderAdminPanel = function() { /* 省略展开（和之前完全一致，负责渲染管理员界面） */ 
+        window.renderAdminPanel = function() {
             const panel = document.getElementById('pendingList');
             if(!panel) return;
             let html = "";
-            html += `<div class="admin-section-title">PENDING MATCHES (${pendingMatches.length})</div>`;
-            if (pendingMatches.length === 0) { html += "<p style='text-align:center; color:#555; font-size:0.85rem; margin-bottom:20px;'>No pending matches.</p>"; } 
-            else {
-                pendingMatches.forEach(m => {
+            let allPendingMatches = [...pendingSingles, ...pendingDoubles];
+            
+            html += `<div class="admin-section-title">PENDING MATCHES (${allPendingMatches.length})</div>`;
+            if (allPendingMatches.length === 0) {
+                html += "<p style='text-align:center; color:#555; font-size:0.85rem; margin-bottom:20px;'>No pending matches.</p>";
+            } else {
+                allPendingMatches.forEach(m => {
                     let dateStr = new Date(m.date).toLocaleDateString();
                     let scoreStr = "";
                     if (m.scores && m.scores.length > 0) {
                         let validScores = m.scores.filter(s => s.w !== "" && s.l !== "");
                         if (validScores.length > 0) scoreStr = ` <span style="color:#4caf50; font-weight:bold; font-size:0.9rem;">(${validScores.map(s => `${s.w}-${s.l}`).join(', ')})</span>`;
                     }
+                    
                     let wText = m.matchType === 'doubles' ? `${m.winners[0]} & ${m.winners[1]}` : m.winner;
                     let lText = m.matchType === 'doubles' ? `${m.losers[0]} & ${m.losers[1]}` : m.loser;
-                    let typeTag = m.matchType === 'doubles' ? `<span style="font-size:0.7rem; background:#4caf50; padding:2px 4px; border-radius:4px; margin-left:5px;">MD</span>` : '';
+                    let typeTag = m.matchType === 'doubles' ? `<span style="font-size:0.7rem; background:#4caf50; padding:2px 4px; border-radius:4px; margin-left:5px;">MD</span>` : '<span style="font-size:0.7rem; background:#ffcc00; color:#000; padding:2px 4px; border-radius:4px; margin-left:5px;">MS</span>';
 
-                    html += `<div style="background:#2c2c2e; padding:12px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;"><div><div style="font-size:0.75rem; color:#888; margin-bottom:4px;">${dateStr} ${typeTag}</div><div style="font-size:1rem;"><strong style="color:#ff3b30;">${wText}</strong> def. ${lText}${scoreStr}</div></div><div style="display:flex; gap:8px;"><button onclick="approveMatch('${m.id}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">✅</button><button onclick="rejectMatch('${m.id}')" style="background:#3a3a3c; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">❌</button></div></div>`;
+                    html += `<div style="background:#2c2c2e; padding:12px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;"><div><div style="font-size:0.75rem; color:#888; margin-bottom:4px;">${dateStr} ${typeTag}</div><div style="font-size:1rem;"><strong style="color:#ff3b30;">${wText}</strong> def. ${lText}${scoreStr}</div></div><div style="display:flex; gap:8px;"><button onclick="approveMatch('${m.id}', '${m._col}', '${m._dest}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">✅</button><button onclick="rejectMatch('${m.id}', '${m._col}')" style="background:#3a3a3c; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">❌</button></div></div>`;
                 });
             }
+
             html += `<div class="admin-section-title" style="margin-top:20px;">PENDING PLAYERS (${pendingPlayers.length})</div>`;
-            if (pendingPlayers.length === 0) { html += "<p style='text-align:center; color:#555; font-size:0.85rem;'>No pending players.</p>"; } 
-            else {
-                pendingPlayers.forEach(p => { html += `<div style="background:#2c2c2e; padding:12px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;"><div style="font-size:1rem;"><strong>${p.flag} ${p.name}</strong></div><div style="display:flex; gap:8px;"><button onclick="approvePlayer('${p.id}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">✅</button><button onclick="rejectPlayer('${p.id}')" style="background:#3a3a3c; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">❌</button></div></div>`; });
+            if (pendingPlayers.length === 0) {
+                html += "<p style='text-align:center; color:#555; font-size:0.85rem;'>No pending players.</p>";
+            } else {
+                pendingPlayers.forEach(p => {
+                    html += `<div style="background:#2c2c2e; padding:12px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;"><div style="font-size:1rem;"><strong>${p.flag} ${p.name}</strong></div><div style="display:flex; gap:8px;"><button onclick="approvePlayer('${p.id}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">✅</button><button onclick="rejectPlayer('${p.id}')" style="background:#3a3a3c; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">❌</button></div></div>`;
+                });
             }
             panel.innerHTML = html;
         };
 
-        window.approvePlayer = async function(id) { const p = pendingPlayers.find(x => x.id === id); if(!p) return; try { await addDoc(collection(db, "players"), { name: p.name, flag: p.flag }); await deleteDoc(doc(db, "pending_players", id)); } catch(e) { alert("Error approving player: " + e); } };
-        window.rejectPlayer = async function(id) { if(!confirm("Are you sure you want to REJECT and delete this player?")) return; try { await deleteDoc(doc(db, "pending_players", id)); } catch(e) { alert("Error rejecting player: " + e); } };
-        window.approveMatch = async function(id) {
-            const m = pendingMatches.find(x => x.id === id); if(!m) return;
+        window.approvePlayer = async function(id) {
+            const p = pendingPlayers.find(x => x.id === id); if(!p) return;
+            try { await addDoc(collection(db, "players"), { name: p.name, flag: p.flag }); await deleteDoc(doc(db, "pending_players", id)); } catch(e) { alert("Error: " + e); }
+        };
+
+        window.rejectPlayer = async function(id) {
+            if(!confirm("Are you sure you want to REJECT this player?")) return;
+            try { await deleteDoc(doc(db, "pending_players", id)); } catch(e) { alert("Error: " + e); }
+        };
+
+        window.approveMatch = async function(id, sourceCol, destCol) {
+            let list = sourceCol === 'pending_matches' ? pendingSingles : pendingDoubles;
+            const m = list.find(x => x.id === id); if(!m) return;
             try {
                 let dataToSave = { scores: m.scores, date: m.date, matchType: m.matchType || 'singles' };
-                if (m.matchType === 'doubles') { dataToSave.winners = m.winners; dataToSave.losers = m.losers; } 
-                else { dataToSave.winner = m.winner; dataToSave.loser = m.loser; }
-                await addDoc(collection(db, "matches"), dataToSave);
-                await deleteDoc(doc(db, "pending_matches", id));
-            } catch(e) { alert("Error approving match: " + e); }
+                if (m.matchType === 'doubles' || destCol === 'matches_doubles') {
+                    dataToSave.winners = m.winners; dataToSave.losers = m.losers; dataToSave.matchType = 'doubles';
+                } else {
+                    dataToSave.winner = m.winner; dataToSave.loser = m.loser;
+                }
+                await addDoc(collection(db, destCol), dataToSave);
+                await deleteDoc(doc(db, sourceCol, id));
+            } catch(e) { alert("Error: " + e); }
         };
-        window.rejectMatch = async function(id) { if(!confirm("Are you sure you want to REJECT and delete this match?")) return; try { await deleteDoc(doc(db, "pending_matches", id)); } catch(e) { alert("Error rejecting match: " + e); } };
+
+        window.rejectMatch = async function(id, sourceCol) {
+            if(!confirm("Are you sure you want to REJECT this match?")) return;
+            try { await deleteDoc(doc(db, sourceCol, id)); } catch(e) { alert("Error: " + e); }
+        };
 
         window.addPlayer = async function() {
-            const name = document.getElementById('playerName').value.trim();
-            const flag = document.getElementById('playerCountry').value;
+            const name = document.getElementById('playerName').value.trim(); const flag = document.getElementById('playerCountry').value;
             if (!name) return alert('Please enter a name.');
-            if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) return alert('Player already exists in the official list.');
+            if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) return alert('Player already exists.');
             if (pendingPlayers.some(p => p.name.toLowerCase() === name.toLowerCase())) return alert('Player is already waiting for approval.');
             try {
-                if (isAdmin) { await addDoc(collection(db, "players"), { name: name, flag: flag }); alert('Player added directly! (Admin Privileges)'); } 
-                else { await addDoc(collection(db, "pending_players"), { name: name, flag: flag }); alert('Player submitted! Waiting for Admin approval.'); }
+                if (isAdmin) { await addDoc(collection(db, "players"), { name: name, flag: flag }); alert('Player added directly!'); } 
+                else { await addDoc(collection(db, "pending_players"), { name: name, flag: flag }); alert('Player submitted for approval.'); }
                 document.getElementById('playerName').value = ''; document.getElementsByClassName("accordion")[1].click();
             } catch (e) { alert("Error connecting to Firebase!"); }
         };
@@ -386,23 +432,23 @@
         window.updateDropdowns = function() {
             const dropdowns = ['matchWinner', 'matchLoser', 'queryP1', 'queryP2', 'matchWinner1', 'matchWinner2', 'matchLoser1', 'matchLoser2', 'queryT1P1', 'queryT1P2', 'queryT2P1', 'queryT2P2'];
             dropdowns.forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                const currentVal = el.value;
-                el.innerHTML = '';
+                const el = document.getElementById(id); if (!el) return;
+                const currentVal = el.value; el.innerHTML = '';
                 players.forEach(p => {
-                    const opt = document.createElement('option');
-                    opt.value = p.name; opt.innerText = `${p.flag} ${p.name}`;
-                    el.appendChild(opt);
+                    const opt = document.createElement('option'); opt.value = p.name; opt.innerText = `${p.flag} ${p.name}`; el.appendChild(opt);
                 });
                 if (players.some(p => p.name === currentVal)) el.value = currentVal;
             });
         };
 
-        window.recordMatch = async function() { /* 省略，和之前完全一致，负责录入比赛 */ 
+        window.recordMatch = async function() {
             let isDoubles = window.currentMatchMode === 'doubles';
             let matchData = {
-                scores: [ { w: document.getElementById('g1w').value, l: document.getElementById('g1l').value }, { w: document.getElementById('g2w').value, l: document.getElementById('g2l').value }, { w: document.getElementById('g3w').value, l: document.getElementById('g3l').value } ],
+                scores: [
+                    { w: document.getElementById('g1w').value, l: document.getElementById('g1l').value },
+                    { w: document.getElementById('g2w').value, l: document.getElementById('g2l').value },
+                    { w: document.getElementById('g3w').value, l: document.getElementById('g3l').value }
+                ],
                 date: new Date().toISOString(), matchType: isDoubles ? 'doubles' : 'singles'
             };
 
@@ -410,8 +456,7 @@
                 let w1 = document.getElementById('matchWinner1').value, w2 = document.getElementById('matchWinner2').value;
                 let l1 = document.getElementById('matchLoser1').value, l2 = document.getElementById('matchLoser2').value;
                 if (!w1 || !w2 || !l1 || !l2) return alert('Please select players first.');
-                let uniqueCheck = new Set([w1, w2, l1, l2]);
-                if (uniqueCheck.size !== 4) return alert('Cannot select the same player multiple times in a doubles match!');
+                if (new Set([w1, w2, l1, l2]).size !== 4) return alert('Cannot select same player multiple times!');
                 matchData.winners = [w1, w2]; matchData.losers = [l1, l2];
             } else {
                 let w = document.getElementById('matchWinner').value, l = document.getElementById('matchLoser').value;
@@ -434,31 +479,29 @@
             if (invalidScore) return alert('Error: Score must be between 0 and 30!');
             
             try {
-                if(isAdmin) { await addDoc(collection(db, "matches"), matchData); alert('Match Saved directly! (Admin Privileges)'); } 
-                else { await addDoc(collection(db, "pending_matches"), matchData); alert('Match submitted! Waiting for Admin approval.'); }
+                if(isAdmin) {
+                    await addDoc(collection(db, isDoubles ? "matches_doubles" : "matches"), matchData);
+                    alert('Match Saved directly!');
+                } else {
+                    await addDoc(collection(db, isDoubles ? "pending_doubles_matches" : "pending_matches"), matchData);
+                    alert('Match submitted for approval.');
+                }
                 ['g1w','g1l','g2w','g2l','g3w','g3l'].forEach(id => document.getElementById(id).value = '');
                 document.getElementById('recordAccordion').click();
-            } catch (e) { alert("Error: Database permission denied."); }
+            } catch (e) { alert("Error: " + e); }
         };
 
-        function getSinglesMatches() { return matches.filter(m => m.matchType !== 'doubles'); }
-
-        // 🌟 终极 H2H 引擎 (兼容单双打双模式)
+        // 🌟 终极纯净 H2H 引擎
         window.calculateH2H = function() {
             const resBox = document.getElementById('h2hResult');
             
-            // ============== 单打 H2H 模式 ==============
+            // ============== 👤 单打 H2H 纯净版 ==============
             if (window.currentH2HMode === 'singles') {
-                const p1Name = document.getElementById('queryP1').value;
-                const p2Name = document.getElementById('queryP2').value;
+                const p1Name = document.getElementById('queryP1').value; const p2Name = document.getElementById('queryP2').value;
                 if (!p1Name || !p2Name || p1Name === p2Name) { resBox.innerHTML = `<div style="text-align:center; color:#888; margin-top:20px;">Please select two different players</div>`; return; }
 
-                let p1Obj = players.find(p => p.name === p1Name) || { flag: '🏳️' };
-                let p2Obj = players.find(p => p.name === p2Name) || { flag: '🏳️' };
-                
-                let singlesMatches = getSinglesMatches();
                 let p1Wins = 0, p1Losses = 0, p2Wins = 0, p2Losses = 0;
-                singlesMatches.forEach(m => {
+                allSingles.forEach(m => {
                     if (m.winner === p1Name) p1Wins++; if (m.loser === p1Name) p1Losses++;
                     if (m.winner === p2Name) p2Wins++; if (m.loser === p2Name) p2Losses++;
                 });
@@ -466,26 +509,10 @@
                 let p1CareerWidth = totalCareer > 0 ? (p1Total / totalCareer) * 100 : 50;
                 let p2CareerWidth = totalCareer > 0 ? (p2Total / totalCareer) * 100 : 50;
 
-                const h2hMatches = singlesMatches.filter(m => (m.winner === p1Name && m.loser === p2Name) || (m.winner === p2Name && m.loser === p1Name));
-                const p1H2HWins = h2hMatches.filter(m => m.winner === p1Name).length;
-                const p2H2HWins = h2hMatches.filter(m => m.winner === p2Name).length;
+                const h2hMatches = allSingles.filter(m => (m.winner === p1Name && m.loser === p2Name) || (m.winner === p2Name && m.loser === p1Name));
+                const p1H2HWins = h2hMatches.filter(m => m.winner === p1Name).length; const p2H2HWins = h2hMatches.filter(m => m.winner === p2Name).length;
                 const totalH2H = h2hMatches.length;
-                let p1H2HWidth = totalH2H > 0 ? (p1H2HWins / totalH2H) * 100 : 50;
-                let p2H2HWidth = totalH2H > 0 ? (p2H2HWins / totalH2H) * 100 : 50;
-
-                let doublesMatches = matches.filter(m => m.matchType === 'doubles');
-                let partnersMatches = doublesMatches.filter(m => (m.winners && m.winners.includes(p1Name) && m.winners.includes(p2Name)) || (m.losers && m.losers.includes(p1Name) && m.losers.includes(p2Name)));
-                let partnersWins = partnersMatches.filter(m => m.winners.includes(p1Name)).length;
-                let partnersLosses = partnersMatches.filter(m => m.losers.includes(p1Name)).length;
-                let partnersTotal = partnersMatches.length;
-                let partnersRate = partnersTotal > 0 ? ((partnersWins / partnersTotal) * 100).toFixed(0) : 0;
-
-                let opponentsMatches = doublesMatches.filter(m => (m.winners && m.winners.includes(p1Name) && m.losers && m.losers.includes(p2Name)) || (m.winners && m.winners.includes(p2Name) && m.losers && m.losers.includes(p1Name)));
-                let oppP1Wins = opponentsMatches.filter(m => m.winners.includes(p1Name)).length;
-                let oppP2Wins = opponentsMatches.filter(m => m.winners.includes(p2Name)).length;
-                let oppTotal = opponentsMatches.length;
-                let oppP1Rate = oppTotal > 0 ? ((oppP1Wins / oppTotal) * 100).toFixed(0) : 0;
-                let oppP2Rate = oppTotal > 0 ? ((oppP2Wins / oppTotal) * 100).toFixed(0) : 0;
+                let p1H2HWidth = totalH2H > 0 ? (p1H2HWins / totalH2H) * 100 : 50; let p2H2HWidth = totalH2H > 0 ? (p2H2HWins / totalH2H) * 100 : 50;
 
                 let html = `
                     <div class="career-title" style="color:#aaa; font-size:0.85rem;">👤 SINGLES H2H (WINS)</div>
@@ -499,11 +526,57 @@
                         <div class="stat-flex" style="margin-top: 15px;"><span>${p1Wins}</span><span class="stat-center">Win</span><span>${p2Wins}</span></div>
                         <div class="stat-flex"><span>${p1Losses}</span><span class="stat-center">Loss</span><span>${p2Losses}</span></div>
                     </div>
+                `;
 
-                    <div class="career-title" style="color:#ff3b30; margin-top:25px;">🔥 DOUBLES CHEMISTRY</div>
+                let allEncounters = h2hMatches.sort((a, b) => new Date(b.date) - new Date(a.date));
+                if (allEncounters.length > 0) {
+                    html += `<div class="section-header"><span class="career-title" style="margin-bottom:0;">LAST ENCOUNTER</span></div>`;
+                    let lastMatch = allEncounters[0]; 
+                    let wp = players.find(p => p.name === lastMatch.winner) || { flag: '🏳️' }; let lp = players.find(p => p.name === lastMatch.loser) || { flag: '🏳️' };
+                    let wScoresHTML = ''; let lScoresHTML = '';
+                    if (lastMatch.scores && lastMatch.scores.length > 0) {
+                        lastMatch.scores.forEach(s => {
+                            if (s.w !== "" && s.l !== "") {
+                                let wVal = parseInt(s.w), lVal = parseInt(s.l);
+                                let wClass = wVal > lVal ? 'bwf-score-red' : 'bwf-score-white', lClass = lVal > wVal ? 'bwf-score-red' : 'bwf-score-white';
+                                wScoresHTML += `<div class="bwf-score-item ${wClass}">${s.w}</div>`; lScoresHTML += `<div class="bwf-score-item ${lClass}">${s.l}</div>`;
+                            }
+                        });
+                    }
+                    let dateObj = lastMatch.date ? new Date(lastMatch.date) : new Date();
+                    let dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+                    html += `<div class="bwf-card" style="margin-top: 0;"><div class="bwf-header"><span>FRIENDLY MATCH ${dateObj.getFullYear()}</span><span>Result</span></div><div class="bwf-body"><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;"><span>${wp.flag}</span> <strong>${lastMatch.winner}</strong></div><div class="bwf-scores">${wScoresHTML}</div></div><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;"><span>${lp.flag}</span> <span style="color:#aaa;">${lastMatch.loser}</span></div><div class="bwf-scores">${lScoresHTML}</div></div></div><div class="bwf-footer"><span>MS • DATE: ${dateStr}</span><span>-</span></div></div>`;
+                } else { html += `<div style="text-align:center; color:#888; padding: 20px 0;">No match history between these players yet.</div>`; }
+                resBox.innerHTML = html;
+            }
+            
+            // ============== 🤝 个人化学反应纯净版 ==============
+            else if (window.currentH2HMode === 'chemistry') {
+                const p1Name = document.getElementById('queryP1').value; const p2Name = document.getElementById('queryP2').value;
+                if (!p1Name || !p2Name || p1Name === p2Name) { resBox.innerHTML = `<div style="text-align:center; color:#888; margin-top:20px;">Please select two different players</div>`; return; }
+
+                let partnersMatches = allDoubles.filter(m => (m.winners && m.winners.includes(p1Name) && m.winners.includes(p2Name)) || (m.losers && m.losers.includes(p1Name) && m.losers.includes(p2Name)));
+                let partnersWins = partnersMatches.filter(m => m.winners.includes(p1Name)).length;
+                let partnersLosses = partnersMatches.filter(m => m.losers.includes(p1Name)).length;
+                let partnersTotal = partnersMatches.length;
+                let partnersRate = partnersTotal > 0 ? ((partnersWins / partnersTotal) * 100).toFixed(0) : 0;
+
+                let opponentsMatches = allDoubles.filter(m => (m.winners && m.winners.includes(p1Name) && m.losers && m.losers.includes(p2Name)) || (m.winners && m.winners.includes(p2Name) && m.losers && m.losers.includes(p1Name)));
+                let oppP1Wins = opponentsMatches.filter(m => m.winners.includes(p1Name)).length;
+                let oppP2Wins = opponentsMatches.filter(m => m.winners.includes(p2Name)).length;
+                let oppTotal = opponentsMatches.length;
+                let oppP1Rate = oppTotal > 0 ? ((oppP1Wins / oppTotal) * 100).toFixed(0) : 0;
+                let oppP2Rate = oppTotal > 0 ? ((oppP2Wins / oppTotal) * 100).toFixed(0) : 0;
+
+                let html = `
+                    <div class="career-title" style="color:#ff3b30; margin-top:5px;">🔥 DOUBLES CHEMISTRY</div>
                     <div class="career-stats-box" style="border: 1px solid #3a3a3c; margin-bottom: 25px;">
                         <div style="text-align:center; font-size: 0.85rem; color:#aaa; margin-bottom: 15px; font-weight:bold;">🤝 AS PARTNERS</div>
-                        <div class="stat-flex"><span style="color:#4caf50;">${partnersWins} W</span><span class="stat-center" style="font-size:0.85rem;">Win Rate: <span style="color:#fff;">${partnersRate}%</span></span><span style="color:#ff3b30;">${partnersLosses} L</span></div>
+                        <div class="stat-flex">
+                            <span style="color:#ffcc00;">${partnersWins} W</span>
+                            <span class="stat-center" style="font-size:0.85rem;">Win Rate: <span style="color:#fff;">${partnersRate}%</span></span>
+                            <span style="color:#0a84ff;">${partnersLosses} L</span>
+                        </div>
                         <hr style="border: 0; border-top: 1px dashed #3a3a3c; margin: 20px 0;">
                         <div style="text-align:center; font-size: 0.85rem; color:#aaa; margin-bottom: 15px; font-weight:bold;">⚔️ AS OPPONENTS</div>
                         <div class="stat-flex"><span style="color:#ffcc00">${oppP1Wins} W</span><span class="stat-center" style="font-size:0.8rem; color:#888;">${oppTotal} MATCHES</span><span style="color:#0a84ff">${oppP2Wins} W</span></div>
@@ -511,28 +584,17 @@
                     </div>
                 `;
 
-                let allEncounters = matches.filter(m => {
-                    if (m.matchType === 'doubles') return (m.winners.includes(p1Name) || m.losers.includes(p1Name)) && (m.winners.includes(p2Name) || m.losers.includes(p2Name));
-                    else return (m.winner === p1Name || m.loser === p1Name) && (m.winner === p2Name || m.loser === p2Name);
+                let allEncounters = allDoubles.filter(m => {
+                    return (m.winners.includes(p1Name) || m.losers.includes(p1Name)) && (m.winners.includes(p2Name) || m.losers.includes(p2Name));
                 }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 if (allEncounters.length > 0) {
                     html += `<div class="section-header"><span class="career-title" style="margin-bottom:0;">LAST ENCOUNTER</span></div>`;
                     let lastMatch = allEncounters[0]; 
-                    
-                    let wNameDisplay = '', lNameDisplay = '';
-                    let typeTag = 'MS';
-
-                    if (lastMatch.matchType === 'doubles') {
-                        typeTag = 'MD';
-                        let wp1 = players.find(p => p.name === lastMatch.winners[0]) || { flag: '🏳️' }; let wp2 = players.find(p => p.name === lastMatch.winners[1]) || { flag: '🏳️' };
-                        let lp1 = players.find(p => p.name === lastMatch.losers[0]) || { flag: '🏳️' }; let lp2 = players.find(p => p.name === lastMatch.losers[1]) || { flag: '🏳️' };
-                        wNameDisplay = `<span>${wp1.flag}${wp2.flag}</span> <strong>${lastMatch.winners[0]} / ${lastMatch.winners[1]}</strong>`;
-                        lNameDisplay = `<span>${lp1.flag}${lp2.flag}</span> <span style="color:#aaa;">${lastMatch.losers[0]} / ${lastMatch.losers[1]}</span>`;
-                    } else {
-                        let wp = players.find(p => p.name === lastMatch.winner) || { flag: '🏳️' }; let lp = players.find(p => p.name === lastMatch.loser) || { flag: '🏳️' };
-                        wNameDisplay = `<span>${wp.flag}</span> <strong>${lastMatch.winner}</strong>`; lNameDisplay = `<span>${lp.flag}</span> <span style="color:#aaa;">${lastMatch.loser}</span>`;
-                    }
+                    let wp1 = players.find(p => p.name === lastMatch.winners[0]) || { flag: '🏳️' }; let wp2 = players.find(p => p.name === lastMatch.winners[1]) || { flag: '🏳️' };
+                    let lp1 = players.find(p => p.name === lastMatch.losers[0]) || { flag: '🏳️' }; let lp2 = players.find(p => p.name === lastMatch.losers[1]) || { flag: '🏳️' };
+                    let wNameDisplay = `<span>${wp1.flag}${wp2.flag}</span> <strong>${lastMatch.winners[0]} / ${lastMatch.winners[1]}</strong>`;
+                    let lNameDisplay = `<span>${lp1.flag}${lp2.flag}</span> <span style="color:#aaa;">${lastMatch.losers[0]} / ${lastMatch.losers[1]}</span>`;
                     
                     let wScoresHTML = ''; let lScoresHTML = '';
                     if (lastMatch.scores && lastMatch.scores.length > 0) {
@@ -544,35 +606,24 @@
                             }
                         });
                     }
-                    
                     let dateObj = lastMatch.date ? new Date(lastMatch.date) : new Date();
                     let dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
                     
-                    html += `<div class="bwf-card" style="margin-top: 0;"><div class="bwf-header"><span>FRIENDLY MATCH ${dateObj.getFullYear()}</span><span>Result</span></div><div class="bwf-body"><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${wNameDisplay}</div><div class="bwf-scores">${wScoresHTML}</div></div><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${lNameDisplay}</div><div class="bwf-scores">${lScoresHTML}</div></div></div><div class="bwf-footer"><span>${typeTag} • DATE: ${dateStr}</span><span>-</span></div></div>`;
-                } else {
-                    html += `<div style="text-align:center; color:#888; padding: 20px 0;">No match history between these players yet.</div>`;
-                }
+                    html += `<div class="bwf-card" style="margin-top: 0;"><div class="bwf-header"><span>FRIENDLY MATCH ${dateObj.getFullYear()}</span><span>Result</span></div><div class="bwf-body"><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${wNameDisplay}</div><div class="bwf-scores">${wScoresHTML}</div></div><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${lNameDisplay}</div><div class="bwf-scores">${lScoresHTML}</div></div></div><div class="bwf-footer"><span>MD • DATE: ${dateStr}</span><span>-</span></div></div>`;
+                } else { html += `<div style="text-align:center; color:#888; padding: 20px 0;">No doubles history between these players yet.</div>`; }
                 resBox.innerHTML = html;
-            } 
+            }
             
-            // ============== 🌟 双打 H2H 模式 ==============
+            // ============== 👥 团队双打对决纯净版 ==============
             else if (window.currentH2HMode === 'doubles') {
-                const t1p1 = document.getElementById('queryT1P1').value;
-                const t1p2 = document.getElementById('queryT1P2').value;
-                const t2p1 = document.getElementById('queryT2P1').value;
-                const t2p2 = document.getElementById('queryT2P2').value;
-
+                const t1p1 = document.getElementById('queryT1P1').value; const t1p2 = document.getElementById('queryT1P2').value;
+                const t2p1 = document.getElementById('queryT2P1').value; const t2p2 = document.getElementById('queryT2P2').value;
                 if (!t1p1 || !t1p2 || !t2p1 || !t2p2) return;
                 
-                // 防呆：必须选 4 个不同的人
                 let uniqueCheck = new Set([t1p1, t1p2, t2p1, t2p2]);
-                if (uniqueCheck.size !== 4) {
-                    resBox.innerHTML = `<div style="text-align:center; color:#ff3b30; margin-top:20px; font-weight:bold;">Error: Please select 4 different players!</div>`;
-                    return;
-                }
+                if (uniqueCheck.size !== 4) { resBox.innerHTML = `<div style="text-align:center; color:#ff3b30; margin-top:20px; font-weight:bold;">Error: Please select 4 different players!</div>`; return; }
 
-                // 筛选这两个组合交手的历史记录
-                let doublesH2HMatches = matches.filter(m => m.matchType === 'doubles' &&
+                let doublesH2HMatches = allDoubles.filter(m => 
                     ((m.winners.includes(t1p1) && m.winners.includes(t1p2) && m.losers.includes(t2p1) && m.losers.includes(t2p2)) ||
                      (m.losers.includes(t1p1) && m.losers.includes(t1p2) && m.winners.includes(t2p1) && m.winners.includes(t2p2)))
                 ).sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -586,23 +637,15 @@
 
                 let html = `
                     <div class="career-title" style="color:#aaa; font-size:0.85rem; text-align:center;">👥 TEAM H2H (WINS)</div>
-                    <div class="h2h-top-bar" style="margin-bottom:15px; margin-top:5px;">
-                        <div class="p1-bar" style="width: ${t1Width}%;"></div>
-                        <div class="p2-bar" style="width: ${t2Width}%;"></div>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; font-size:1.1rem; font-weight:bold; margin-bottom:25px;">
-                        <span style="color:#ffcc00">TEAM A: ${t1Wins}</span>
-                        <span style="color:#0a84ff">${t2Wins} :TEAM B</span>
-                    </div>
+                    <div class="h2h-top-bar" style="margin-bottom:15px; margin-top:5px;"><div class="p1-bar" style="width: ${t1Width}%;"></div><div class="p2-bar" style="width: ${t2Width}%;"></div></div>
+                    <div style="display:flex; justify-content:space-between; font-size:1.1rem; font-weight:bold; margin-bottom:25px;"><span style="color:#ffcc00">TEAM A: ${t1Wins}</span><span style="color:#0a84ff">${t2Wins} :TEAM B</span></div>
                 `;
 
                 if (total > 0) {
                     html += `<div class="section-header"><span class="career-title" style="margin-bottom:0;">LAST ENCOUNTER</span></div>`;
                     let lastMatch = doublesH2HMatches[0];
-                    
                     let wp1 = players.find(p => p.name === lastMatch.winners[0]) || { flag: '🏳️' }; let wp2 = players.find(p => p.name === lastMatch.winners[1]) || { flag: '🏳️' };
                     let lp1 = players.find(p => p.name === lastMatch.losers[0]) || { flag: '🏳️' }; let lp2 = players.find(p => p.name === lastMatch.losers[1]) || { flag: '🏳️' };
-                    
                     let wNameDisplay = `<span>${wp1.flag}${wp2.flag}</span> <strong>${lastMatch.winners[0]} / ${lastMatch.winners[1]}</strong>`;
                     let lNameDisplay = `<span>${lp1.flag}${lp2.flag}</span> <span style="color:#aaa;">${lastMatch.losers[0]} / ${lastMatch.losers[1]}</span>`;
                     
@@ -610,21 +653,16 @@
                     if (lastMatch.scores && lastMatch.scores.length > 0) {
                         lastMatch.scores.forEach(s => {
                             if (s.w !== "" && s.l !== "") {
-                                let wVal = parseInt(s.w); let lVal = parseInt(s.l);
-                                let wClass = wVal > lVal ? 'bwf-score-red' : 'bwf-score-white'; let lClass = lVal > wVal ? 'bwf-score-red' : 'bwf-score-white';
+                                let wVal = parseInt(s.w), lVal = parseInt(s.l);
+                                let wClass = wVal > lVal ? 'bwf-score-red' : 'bwf-score-white', lClass = lVal > wVal ? 'bwf-score-red' : 'bwf-score-white';
                                 wScoresHTML += `<div class="bwf-score-item ${wClass}">${s.w}</div>`; lScoresHTML += `<div class="bwf-score-item ${lClass}">${s.l}</div>`;
                             }
                         });
                     }
-                    
                     let dateObj = lastMatch.date ? new Date(lastMatch.date) : new Date();
                     let dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
-                    
                     html += `<div class="bwf-card" style="margin-top: 0;"><div class="bwf-header"><span>FRIENDLY MATCH ${dateObj.getFullYear()}</span><span>Result</span></div><div class="bwf-body"><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${wNameDisplay}</div><div class="bwf-scores">${wScoresHTML}</div></div><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${lNameDisplay}</div><div class="bwf-scores">${lScoresHTML}</div></div></div><div class="bwf-footer"><span>MD • DATE: ${dateStr}</span><span>-</span></div></div>`;
-                } else {
-                    html += `<div class="career-stats-box" style="text-align:center; padding: 30px 10px;"><div style="color:#888; font-size:0.95rem;">These two teams have never played against each other.</div></div>`;
-                }
-                
+                } else { html += `<div class="career-stats-box" style="text-align:center; padding: 30px 10px;"><div style="color:#888; font-size:0.95rem;">These two teams have never played against each other.</div></div>`; }
                 resBox.innerHTML = html;
             }
         };
@@ -633,9 +671,8 @@
             const tbody = document.getElementById('rankingTableBody');
             tbody.innerHTML = '';
             let stats = players.map(p => ({ name: p.name, flag: p.flag, wins: 0, losses: 0, total: 0, rate: 0 }));
-            let singlesMatches = getSinglesMatches();
 
-            singlesMatches.forEach(m => {
+            allSingles.forEach(m => {
                 let wPlayer = stats.find(s => s.name === m.winner);
                 let lPlayer = stats.find(s => s.name === m.loser);
                 if (wPlayer) { wPlayer.wins++; wPlayer.total++; }
@@ -643,7 +680,6 @@
             });
 
             stats.forEach(s => { s.rate = s.total > 0 ? parseFloat(((s.wins / s.total) * 100).toFixed(1)) : 0; });
-            
             stats.sort((a, b) => {
                 if (a.total === 0 && b.total > 0) return 1;
                 if (b.total === 0 && a.total > 0) return -1;
@@ -661,9 +697,8 @@
         window.generateHistoricalRanks = function() {
             let history = []; 
             let tempStats = players.map(p => ({ name: p.name, wins: 0, losses: 0, total: 0, rate: 0, hasPlayed: false }));
-            let singlesMatches = getSinglesMatches();
             
-            singlesMatches.forEach((m, matchIndex) => {
+            allSingles.forEach((m, matchIndex) => {
                 let w = tempStats.find(s => s.name === m.winner); 
                 let l = tempStats.find(s => s.name === m.loser);
                 if (w) { w.wins++; w.total++; w.rate = (w.wins / w.total) * 100; w.hasPlayed = true; }
@@ -687,8 +722,7 @@
             let pWins = 0, pLosses = 0, opponents = {};
             let currentStreak = 0, maxStreak = 0;
             
-            let singlesMatches = getSinglesMatches();
-            let playerMatches = singlesMatches.filter(m => m.winner === playerName || m.loser === playerName);
+            let playerMatches = allSingles.filter(m => m.winner === playerName || m.loser === playerName);
             
             playerMatches.forEach(m => {
                 if (m.winner === playerName) { 
@@ -721,8 +755,7 @@
             document.getElementById('profFavorite').innerText = maxWinsCount > 0 ? `${favorite} (${maxWinsCount}W)` : '-';
 
             const rankHistory = window.generateHistoricalRanks();
-            let playerRanks = [];
-            let playerLabels = [];
+            let playerRanks = []; let playerLabels = [];
             
             rankHistory.forEach(h => {
                 if (h.ranks[playerName]) {
@@ -743,11 +776,8 @@
             document.getElementById('profGridWL').innerText = `${pWins}/${pLosses}`;
             document.getElementById('profGridRate').innerText = winRateStr;
 
-            if (playerRanks.length === 0) {
-                window.drawChart([players.length || 5], ['No Matches']);
-            } else {
-                window.drawChart(playerRanks, playerLabels);
-            }
+            if (playerRanks.length === 0) { window.drawChart([players.length || 5], ['No Matches']); } 
+            else { window.drawChart(playerRanks, playerLabels); }
             
             document.getElementById('profileModal').style.display = 'flex';
         };
@@ -755,9 +785,7 @@
         window.drawChart = function(dataRanks, labels) {
             const ctx = document.getElementById('rankingChart').getContext('2d');
             if (rankingChartInstance) rankingChartInstance.destroy();
-            
             let maxVal = players.length > 5 ? players.length : 5;
-
             rankingChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
