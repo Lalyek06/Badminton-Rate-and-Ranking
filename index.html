@@ -103,7 +103,6 @@
 
     <h1 onclick="adminLogin()">🏸 Pro Stats <span style="font-size:0.8rem; color:#4caf50;">(Sync 🟢)</span></h1>
 
-    <!-- 🌟 管理员审批中心 -->
     <div class="card admin-card" id="adminPanel">
         <div class="admin-title">👑 Admin Approval Inbox</div>
         <div id="pendingList">
@@ -171,20 +170,17 @@
     <div class="card">
         <h2 style="text-align:left; color:#fff; font-size:1.2rem; margin-bottom:5px;">H2H STATISTICS</h2>
         
-        <!-- 🌟 回归最纯净的单双打二选一 -->
         <div class="mode-toggle" style="margin-top: 10px;">
             <button id="btnH2HSingles" class="active" onclick="setH2HMode('singles')">👤 Singles</button>
             <button id="btnH2HDoubles" onclick="setH2HMode('doubles')">👥 Doubles</button>
         </div>
 
-        <!-- H2H 单打选择框 -->
         <div id="h2hSinglesGroup">
             <select id="queryP1" onchange="calculateH2H()" style="margin-bottom: 5px;"></select>
             <div class="vs-text" style="font-size: 1rem; color: #888;">VS</div>
             <select id="queryP2" onchange="calculateH2H()"></select>
         </div>
 
-        <!-- H2H 双打选择框 -->
         <div id="h2hDoublesGroup" style="display:none;">
             <div style="font-size:0.8rem; color:#ffcc00; font-weight:bold; margin-bottom:5px;">TEAM A</div>
             <div class="doubles-select-group">
@@ -204,15 +200,21 @@
 
     <!-- 4. Ranking Leaderboard -->
     <div class="card">
-        <h2>🏆 Leaderboard (Singles)</h2>
-        <p style="text-align:center; font-size:0.8rem; color:#aaa;">* Doubles rankings coming soon in Phase 3</p>
+        <h2>🏆 Leaderboard</h2>
+        
+        <!-- 🌟 新增：排行榜双模式切换器 -->
+        <div class="mode-toggle" style="margin-top: 10px; margin-bottom: 15px;">
+            <button id="btnRankSingles" class="active" onclick="setRankMode('singles')">👤 Singles</button>
+            <button id="btnRankDoubles" onclick="setRankMode('doubles')">👥 Doubles</button>
+        </div>
+
         <table>
             <thead><tr><th>Rank</th><th>Player</th><th>W / L</th><th>Win %</th></tr></thead>
             <tbody id="rankingTableBody"></tbody>
         </table>
     </div>
 
-    <!-- Profile Modal -->
+    <!-- Profile Modal (注：目前个人主页依旧偏向显示单打的数据雷达) -->
     <div id="profileModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeProfile()">×</span>
@@ -277,6 +279,7 @@
         
         window.currentMatchMode = 'singles';
         window.currentH2HMode = 'singles';
+        window.currentRankMode = 'singles'; // 🌟 新增：排行榜模式状态
 
         window.setMatchMode = function(mode) {
             window.currentMatchMode = mode;
@@ -298,6 +301,14 @@
             window.calculateH2H(); 
         };
 
+        // 🌟 新增：切换排行榜模式
+        window.setRankMode = function(mode) {
+            window.currentRankMode = mode;
+            document.getElementById('btnRankSingles').classList.toggle('active', mode === 'singles');
+            document.getElementById('btnRankDoubles').classList.toggle('active', mode === 'doubles');
+            window.renderRanking(); // 切换时重新渲染排行榜
+        };
+
         onSnapshot(collection(db, "players"), (snapshot) => {
             players = snapshot.docs.map(doc => doc.data());
             window.updateDropdowns(); window.renderRanking();
@@ -311,6 +322,7 @@
 
         onSnapshot(collection(db, "matches"), (snapshot) => { rawMatches = snapshot.docs.map(doc => doc.data()); mergeMatches(); });
         onSnapshot(collection(db, "matches_doubles"), (snapshot) => { rawDoublesMatches = snapshot.docs.map(doc => doc.data()); mergeMatches(); });
+        
         onSnapshot(collection(db, "pending_matches"), (snapshot) => { pendingSingles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), _col: 'pending_matches' })); window.renderAdminPanel(); });
         onSnapshot(collection(db, "pending_doubles_matches"), (snapshot) => { pendingDoubles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), _col: 'pending_doubles_matches' })); window.renderAdminPanel(); });
         onSnapshot(collection(db, "pending_players"), (snapshot) => { pendingPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); window.renderAdminPanel(); });
@@ -472,7 +484,6 @@
         window.calculateH2H = function() {
             const resBox = document.getElementById('h2hResult');
             
-            // ============== 👤 单打 H2H 纯净版 ==============
             if (window.currentH2HMode === 'singles') {
                 const p1Name = document.getElementById('queryP1').value; const p2Name = document.getElementById('queryP2').value;
                 if (!p1Name || !p2Name || p1Name === p2Name) { resBox.innerHTML = `<div style="text-align:center; color:#888; margin-top:20px;">Please select two different players</div>`; return; }
@@ -527,7 +538,6 @@
                 resBox.innerHTML = html;
             }
             
-            // ============== 👥 双打 (内嵌饼图化学反应) ==============
             else if (window.currentH2HMode === 'doubles') {
                 const t1p1 = document.getElementById('queryT1P1').value; const t1p2 = document.getElementById('queryT1P2').value;
                 const t2p1 = document.getElementById('queryT2P1').value; const t2p2 = document.getElementById('queryT2P2').value;
@@ -536,29 +546,27 @@
                 let uniqueCheck = new Set([t1p1, t1p2, t2p1, t2p2]);
                 if (uniqueCheck.size !== 4) { resBox.innerHTML = `<div style="text-align:center; color:#ff3b30; margin-top:20px; font-weight:bold;">Error: Please select 4 different players!</div>`; return; }
 
-                // 1. 两支队伍的正面对决 H2H
                 let doublesH2HMatches = allDoubles.filter(m => 
-                    ((m.winners.includes(t1p1) && m.winners.includes(t1p2) && m.losers.includes(t2p1) && m.losers.includes(t2p2)) ||
-                     (m.losers.includes(t1p1) && m.losers.includes(t1p2) && m.winners.includes(t2p1) && m.winners.includes(t2p2)))
+                    ((m.winners && m.winners.includes(t1p1) && m.winners.includes(t1p2) && m.losers && m.losers.includes(t2p1) && m.losers.includes(t2p2)) ||
+                     (m.losers && m.losers.includes(t1p1) && m.losers.includes(t1p2) && m.winners && m.winners.includes(t2p1) && m.winners.includes(t2p2)))
                 ).sort((a, b) => new Date(b.date) - new Date(a.date));
 
-                let t1Wins = doublesH2HMatches.filter(m => m.winners.includes(t1p1)).length;
-                let t2Wins = doublesH2HMatches.filter(m => m.winners.includes(t2p1)).length;
+                let t1Wins = doublesH2HMatches.filter(m => m.winners && m.winners.includes(t1p1)).length;
+                let t2Wins = doublesH2HMatches.filter(m => m.winners && m.winners.includes(t2p1)).length;
                 let total = doublesH2HMatches.length;
+
                 let t1Width = total > 0 ? (t1Wins / total) * 100 : 50;
                 let t2Width = total > 0 ? (t2Wins / total) * 100 : 50;
 
-                // 2. 队伍 A 的化学反应 (搭档数据)
                 let t1PartnerMatches = allDoubles.filter(m => (m.winners && m.winners.includes(t1p1) && m.winners.includes(t1p2)) || (m.losers && m.losers.includes(t1p1) && m.losers.includes(t1p2)));
-                let t1ChemWins = t1PartnerMatches.filter(m => m.winners.includes(t1p1)).length;
-                let t1ChemLosses = t1PartnerMatches.filter(m => m.losers.includes(t1p1)).length;
+                let t1ChemWins = t1PartnerMatches.filter(m => m.winners && m.winners.includes(t1p1)).length;
+                let t1ChemLosses = t1PartnerMatches.filter(m => m.losers && m.losers.includes(t1p1)).length;
                 let t1ChemTotal = t1PartnerMatches.length;
                 let t1ChemRate = t1ChemTotal > 0 ? ((t1ChemWins / t1ChemTotal) * 100).toFixed(0) : 0;
 
-                // 3. 队伍 B 的化学反应 (搭档数据)
                 let t2PartnerMatches = allDoubles.filter(m => (m.winners && m.winners.includes(t2p1) && m.winners.includes(t2p2)) || (m.losers && m.losers.includes(t2p1) && m.losers.includes(t2p2)));
-                let t2ChemWins = t2PartnerMatches.filter(m => m.winners.includes(t2p1)).length;
-                let t2ChemLosses = t2PartnerMatches.filter(m => m.losers.includes(t2p1)).length;
+                let t2ChemWins = t2PartnerMatches.filter(m => m.winners && m.winners.includes(t2p1)).length;
+                let t2ChemLosses = t2PartnerMatches.filter(m => m.losers && m.losers.includes(t2p1)).length;
                 let t2ChemTotal = t2PartnerMatches.length;
                 let t2ChemRate = t2ChemTotal > 0 ? ((t2ChemWins / t2ChemTotal) * 100).toFixed(0) : 0;
 
@@ -616,19 +624,38 @@
             }
         };
 
+        // 🌟 排行榜双模式核心渲染
         window.renderRanking = function() {
             const tbody = document.getElementById('rankingTableBody');
             tbody.innerHTML = '';
             let stats = players.map(p => ({ name: p.name, flag: p.flag, wins: 0, losses: 0, total: 0, rate: 0 }));
 
-            allSingles.forEach(m => {
-                let wPlayer = stats.find(s => s.name === m.winner);
-                let lPlayer = stats.find(s => s.name === m.loser);
-                if (wPlayer) { wPlayer.wins++; wPlayer.total++; }
-                if (lPlayer) { lPlayer.losses++; lPlayer.total++; }
-            });
+            if (window.currentRankMode === 'singles') {
+                allSingles.forEach(m => {
+                    let wPlayer = stats.find(s => s.name === m.winner);
+                    let lPlayer = stats.find(s => s.name === m.loser);
+                    if (wPlayer) { wPlayer.wins++; wPlayer.total++; }
+                    if (lPlayer) { lPlayer.losses++; lPlayer.total++; }
+                });
+            } else {
+                allDoubles.forEach(m => {
+                    if (m.winners) {
+                        m.winners.forEach(wName => {
+                            let wPlayer = stats.find(s => s.name === wName);
+                            if (wPlayer) { wPlayer.wins++; wPlayer.total++; }
+                        });
+                    }
+                    if (m.losers) {
+                        m.losers.forEach(lName => {
+                            let lPlayer = stats.find(s => s.name === lName);
+                            if (lPlayer) { lPlayer.losses++; lPlayer.total++; }
+                        });
+                    }
+                });
+            }
 
             stats.forEach(s => { s.rate = s.total > 0 ? parseFloat(((s.wins / s.total) * 100).toFixed(1)) : 0; });
+            
             stats.sort((a, b) => {
                 if (a.total === 0 && b.total > 0) return 1;
                 if (b.total === 0 && a.total > 0) return -1;
