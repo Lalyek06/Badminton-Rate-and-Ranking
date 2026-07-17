@@ -10,24 +10,19 @@
         h1 { color: #ff3b30; text-align: center; margin-bottom: 25px; letter-spacing: 1px; }
         h2 { color: #fff; font-size: 1.2rem; margin-bottom: 15px; }
         
-        /* 基础卡片样式 */
         .card { background: #1c1c1e; padding: 20px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        
-        /* 表单元素样式 */
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; box-sizing: border-box; font-size: 1rem; }
         input[type="number"] { padding: 8px; }
         input, select { background: #2c2c2e; color: #fff; }
         button.action-btn { background: #ff3b30; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 15px; }
         button.action-btn:hover { background: #e03228; }
         
-        /* 🌟 高级折叠面板 (Accordion) 样式 */
         .accordion { background-color: #1c1c1e; color: #ff3b30; cursor: pointer; padding: 15px 20px; width: 100%; border: 1px solid #3a3a3c; text-align: left; outline: none; font-size: 1.1rem; font-weight: bold; transition: 0.3s; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
         .accordion:hover, .accordion.active { background-color: #2c2c2e; }
         .accordion:after { content: '▼'; font-size: 0.9rem; color: #aaa; transition: 0.3s; }
         .accordion.active:after { content: '▲'; color: #ff3b30; }
         .panel { padding: 0 10px; background-color: transparent; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; margin-bottom: 10px; }
         
-        /* 比分输入区 */
         .score-row { display: flex; justify-content: space-between; gap: 5px; margin: 15px 0; }
         .score-box { background: #2c2c2e; border-radius: 8px; padding: 10px 5px; flex: 1; text-align: center; border: 1px solid #3a3a3c; }
         .score-box label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 5px; font-weight: bold; }
@@ -36,12 +31,10 @@
         .score-dash { color: #aaa; font-weight: bold; }
         .vs-text { font-size: 1.3rem; font-weight: bold; color: #ff3b30; text-align: center; margin: 5px 0; }
 
-        /* H2H 顶部对比条 */
         .h2h-top-bar { display: flex; height: 8px; background: #3a3a3c; border-radius: 4px; overflow: hidden; margin-bottom: 25px; margin-top: 10px; }
         .h2h-top-bar .p1-bar { background: #ffcc00; height: 100%; transition: width 0.5s ease; }
         .h2h-top-bar .p2-bar { background: #0a84ff; height: 100%; transition: width 0.5s ease; }
         
-        /* 生涯数据对比看板 */
         .career-title { font-size: 1rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
         .career-stats-box { background: #2c2c2e; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); margin-bottom: 25px; }
         .stat-flex { display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 8px; }
@@ -53,7 +46,6 @@
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .view-all { font-size: 0.8rem; color: #ff3b30; font-weight: bold; letter-spacing: 0.5px; }
 
-        /* BWF 风格比分卡片 */
         .bwf-card { background: #2c2c2e; border-radius: 10px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         .bwf-header { background: #3a3a3c; padding: 10px 15px; display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
         .bwf-body { padding: 15px; }
@@ -66,7 +58,6 @@
         .bwf-score-white { color: #ffffff; }
         .bwf-footer { border-top: 1px solid #3a3a3c; padding: 10px 15px; font-size: 0.8rem; color: #aaa; display: flex; justify-content: space-between; text-transform: uppercase; }
 
-        /* 排行榜表格 */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 10px; text-align: center; border-bottom: 1px solid #3a3a3c; }
         th { color: #ff3b30; font-weight: bold; font-size: 0.9rem; }
@@ -75,19 +66,27 @@
         tr:nth-child(3) td { color: #cd7f32; font-weight: bold; } 
         .clickable-name { color: #0a84ff; text-decoration: underline; cursor: pointer; }
         
-        /* 弹窗 (Modal) */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #1c1c1e; padding: 25px; border-radius: 15px; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto; position: relative; }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.8rem; color: #aaa; cursor: pointer; }
-        .profile-header { text-align: center; font-size: 1.5rem; margin-bottom: 15px; font-weight: bold; color: #fff; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.8rem; color: #aaa; cursor: pointer; z-index: 2000;}
+        .profile-header { text-align: center; font-size: 1.5rem; margin-bottom: 20px; font-weight: bold; color: #fff; }
         
-        .stats-hero { background: linear-gradient(135deg, #ff3b30, #c02b22); color: white; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4); }
-        .stats-hero .current-rank { font-size: 3.5rem; font-weight: bold; margin: 5px 0; line-height: 1; }
-        .stats-hero .rank-title { font-size: 0.9rem; margin-bottom: 15px; opacity: 0.9; }
-        .chart-container { background: #2c2c2e; border-radius: 12px; padding: 10px; margin-bottom: 20px; }
+        /* 🏆 新增：RESULTS SUMMARY 红白卡片样式 */
+        .results-summary-card { background: #fff; border-radius: 12px; overflow: hidden; margin-bottom: 25px; box-shadow: 0 6px 15px rgba(0,0,0,0.5); }
+        .rs-top { display: flex; padding: 18px 0; background: #fff; }
+        .rs-bottom { display: flex; padding: 18px 0; background: #e0241d; color: #fff; }
+        .rs-col { flex: 1; text-align: center; }
+        .rs-val { font-size: 1.8rem; font-weight: bold; line-height: 1.2; letter-spacing: -0.5px; }
+        .rs-top .rs-val { color: #e0241d; }
+        .rs-bottom .rs-val { color: #fff; }
+        .rs-label { font-size: 0.8rem; color: #333; margin-top: 4px; font-weight: 500; }
+        .rs-bottom .rs-label { color: #ffcccc; }
+        
+        .chart-container { background: #2c2c2e; border-radius: 12px; padding: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         .chart-title { font-size: 0.9rem; color: #aaa; margin-bottom: 10px; text-align: left; padding-left: 5px; font-weight: bold; }
         
         .stat-list-row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #3a3a3c; }
+        .stat-list-row:last-child { border-bottom: none; }
         .stat-label { color: #aaa; font-size: 0.9rem; }
         .stat-value { font-weight: bold; font-size: 0.9rem; }
     </style>
@@ -102,28 +101,11 @@
         <div class="card" style="margin-top: 5px;">
             <label style="color:#aaa; font-size:0.8rem;">Winner:</label>
             <select id="matchWinner"></select>
-            
             <div class="score-row">
-                <div class="score-box">
-                    <label>GAME 1</label>
-                    <div class="score-inputs">
-                        <input type="number" id="g1w" placeholder="W" min="0"> <span class="score-dash">-</span> <input type="number" id="g1l" placeholder="L" min="0">
-                    </div>
-                </div>
-                <div class="score-box">
-                    <label>GAME 2</label>
-                    <div class="score-inputs">
-                        <input type="number" id="g2w" placeholder="W" min="0"> <span class="score-dash">-</span> <input type="number" id="g2l" placeholder="L" min="0">
-                    </div>
-                </div>
-                <div class="score-box">
-                    <label>GAME 3</label>
-                    <div class="score-inputs">
-                        <input type="number" id="g3w" placeholder="W" min="0"> <span class="score-dash">-</span> <input type="number" id="g3l" placeholder="L" min="0">
-                    </div>
-                </div>
+                <div class="score-box"><label>GAME 1</label><div class="score-inputs"><input type="number" id="g1w" placeholder="W" min="0"> <span class="score-dash">-</span> <input type="number" id="g1l" placeholder="L" min="0"></div></div>
+                <div class="score-box"><label>GAME 2</label><div class="score-inputs"><input type="number" id="g2w" placeholder="W" min="0"> <span class="score-dash">-</span> <input type="number" id="g2l" placeholder="L" min="0"></div></div>
+                <div class="score-box"><label>GAME 3</label><div class="score-inputs"><input type="number" id="g3w" placeholder="W" min="0"> <span class="score-dash">-</span> <input type="number" id="g3l" placeholder="L" min="0"></div></div>
             </div>
-            
             <div class="vs-text">VS</div>
             <label style="color:#aaa; font-size:0.8rem;">Loser:</label>
             <select id="matchLoser"></select>
@@ -137,15 +119,8 @@
         <div class="card" style="margin-top: 5px;">
             <input type="text" id="playerName" placeholder="Enter player name">
             <select id="playerCountry">
-                <option value="🇨🇳">🇨🇳 China</option>
-                <option value="🇲🇾">🇲🇾 Malaysia</option>
-                <option value="🇸🇬">🇸🇬 Singapore</option>
-                <option value="🇮🇩">🇮🇩 Indonesia</option>
-                <option value="🇯🇵">🇯🇵 Japan</option>
-                <option value="🇰🇷">🇰🇷 South Korea</option>
-                <option value="🇬🇧">🇬🇧 UK</option>
-                <option value="🇺🇸">🇺🇸 USA</option>
-                <option value="🏳️">🏳️ Other</option>
+                <option value="🇨🇳">🇨🇳 China</option><option value="🇲🇾">🇲🇾 Malaysia</option><option value="🇸🇬">🇸🇬 Singapore</option><option value="🇮🇩">🇮🇩 Indonesia</option>
+                <option value="🇯🇵">🇯🇵 Japan</option><option value="🇰🇷">🇰🇷 South Korea</option><option value="🇬🇧">🇬🇧 UK</option><option value="🇺🇸">🇺🇸 USA</option><option value="🏳️">🏳️ Other</option>
             </select>
             <button class="action-btn" onclick="addPlayer()">Add Player</button>
         </div>
@@ -157,9 +132,7 @@
         <select id="queryP1" onchange="calculateH2H()" style="margin-bottom: 5px;"></select>
         <div class="vs-text" style="font-size: 1rem; color: #888;">VS</div>
         <select id="queryP2" onchange="calculateH2H()"></select>
-        <div id="h2hResult">
-            <div style="text-align:center; color:#888; margin-top:20px;">Please select two players</div>
-        </div>
+        <div id="h2hResult"><div style="text-align:center; color:#888; margin-top:20px;">Please select two players</div></div>
     </div>
 
     <!-- 4. Ranking Leaderboard -->
@@ -167,31 +140,48 @@
         <h2>🏆 Leaderboard</h2>
         <p style="text-align:center; font-size:0.8rem; color:#aaa;">* Click a player's name for deep analysis</p>
         <table>
-            <thead>
-                <tr>
-                    <th>Rank</th>
-                    <th>Player</th>
-                    <th>W / L</th>
-                    <th>Win %</th>
-                </tr>
-            </thead>
+            <thead><tr><th>Rank</th><th>Player</th><th>W / L</th><th>Win %</th></tr></thead>
             <tbody id="rankingTableBody"></tbody>
         </table>
     </div>
 
-    <!-- Profile Modal (隐藏的弹窗) -->
+    <!-- Profile Modal (个人主页弹窗) -->
     <div id="profileModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeProfile()">×</span>
             <div class="profile-header" id="profileTitle">🇨🇳 Player Name</div>
             
-            <div class="stats-hero">
-                <div class="current-rank" id="profCurrentRank">1</div>
-                <div class="rank-title">Current Ranking</div>
-                <div style="display: flex; justify-content: space-around; background: rgba(0,0,0,0.15); border-radius: 10px; padding: 10px 0;">
-                    <div class="stat-col"><span class="num" id="profHighestRank">1</span><span class="label" style="font-size:0.75rem;">Highest Rank</span></div>
-                    <div class="stat-col"><span class="num" id="profMatchesNo1">0</span><span class="label" style="font-size:0.75rem;">Matches as #1</span></div>
-                    <div class="stat-col"><span class="num" id="profWinRate">0%</span><span class="label" style="font-size:0.75rem;">Win Rate</span></div>
+            <div class="career-title" style="margin-bottom: 15px;">RESULTS SUMMARY</div>
+            
+            <!-- 🏆 全新红白 BWF 风格赛果总结卡片 -->
+            <div class="results-summary-card">
+                <div class="rs-top">
+                    <div class="rs-col">
+                        <div class="rs-val" id="profHighestRank">1</div>
+                        <div class="rs-label">Highest<br>Rank</div>
+                    </div>
+                    <div class="rs-col">
+                        <div class="rs-val" id="profMatchesNo1">0</div>
+                        <div class="rs-label">Matches<br>As #1</div>
+                    </div>
+                    <div class="rs-col">
+                        <div class="rs-val" id="profStreak">0</div>
+                        <div class="rs-label">Longest<br>Win Streak</div>
+                    </div>
+                </div>
+                <div class="rs-bottom">
+                    <div class="rs-col">
+                        <div class="rs-val" id="profGridTotal">0</div>
+                        <div class="rs-label">Matches</div>
+                    </div>
+                    <div class="rs-col">
+                        <div class="rs-val" id="profGridWL">0/0</div>
+                        <div class="rs-label">Won/Lost</div>
+                    </div>
+                    <div class="rs-col">
+                        <div class="rs-val" id="profGridRate">0%</div>
+                        <div class="rs-label">Win Rate</div>
+                    </div>
                 </div>
             </div>
 
@@ -200,13 +190,14 @@
                 <canvas id="rankingChart"></canvas>
             </div>
             
+            <!-- 维持原有的基础数据列表 -->
             <div class="stat-list-row"><span class="stat-label">Total Matches Played:</span><span class="stat-value" id="profTotal">0</span></div>
             <div class="stat-list-row"><span class="stat-label">Toughest Opponent:</span><span class="stat-value" id="profNemesis">-</span></div>
             <div class="stat-list-row"><span class="stat-label">Favorite Opponent:</span><span class="stat-value" id="profFavorite">-</span></div>
         </div>
     </div>
 
-    <!-- 折叠面板动画控制脚本 -->
+    <!-- 折叠面板动画脚本 -->
     <script>
         var acc = document.getElementsByClassName("accordion");
         for (var i = 0; i < acc.length; i++) {
@@ -261,15 +252,11 @@
             const flag = document.getElementById('playerCountry').value;
             if (!name) return alert('Please enter a name.');
             if (players.some(p => p.name === name)) return alert('Player already exists.');
-            
             try {
                 await addDoc(collection(db, "players"), { name: name, flag: flag });
                 document.getElementById('playerName').value = '';
-                // 成功后自动收起面板
                 document.getElementsByClassName("accordion")[1].click();
-            } catch (e) {
-                alert("Error connecting to Firebase!");
-            }
+            } catch (e) { alert("Error connecting to Firebase!"); }
         };
 
         window.updateDropdowns = function() {
@@ -306,26 +293,18 @@
                     winner: w, loser: l, scores: scores, date: new Date().toISOString() 
                 });
                 ['g1w','g1l','g2w','g2l','g3w','g3l'].forEach(id => document.getElementById(id).value = '');
-                // 成功录入后，自动收起录入面板
                 document.getElementById('recordAccordion').click();
-            } catch (e) {
-                alert("Error: Database permission denied.");
-            }
+            } catch (e) { alert("Error: Database permission denied."); }
         };
 
         window.calculateH2H = function() {
             const p1Name = document.getElementById('queryP1').value;
             const p2Name = document.getElementById('queryP2').value;
             const resBox = document.getElementById('h2hResult');
-            
-            if (!p1Name || !p2Name || p1Name === p2Name) { 
-                resBox.innerHTML = `<div style="text-align:center; color:#888; margin-top:20px;">Please select two different players</div>`; 
-                return; 
-            }
+            if (!p1Name || !p2Name || p1Name === p2Name) { resBox.innerHTML = `<div style="text-align:center; color:#888; margin-top:20px;">Please select two different players</div>`; return; }
 
             let p1Obj = players.find(p => p.name === p1Name) || { flag: '🏳️' };
             let p2Obj = players.find(p => p.name === p2Name) || { flag: '🏳️' };
-
             const h2hMatches = matches.filter(m => (m.winner === p1Name && m.loser === p2Name) || (m.winner === p2Name && m.loser === p1Name));
             const p1H2HWins = h2hMatches.filter(m => m.winner === p1Name).length;
             const p2H2HWins = h2hMatches.filter(m => m.winner === p2Name).length;
@@ -335,85 +314,44 @@
             let p2H2HWidth = totalH2H > 0 ? (p2H2HWins / totalH2H) * 100 : 50;
 
             let p1Wins = 0, p1Losses = 0, p2Wins = 0, p2Losses = 0;
-
             matches.forEach(m => {
-                if (m.winner === p1Name) p1Wins++;
-                if (m.loser === p1Name) p1Losses++;
-                if (m.winner === p2Name) p2Wins++;
-                if (m.loser === p2Name) p2Losses++;
+                if (m.winner === p1Name) p1Wins++; if (m.loser === p1Name) p1Losses++;
+                if (m.winner === p2Name) p2Wins++; if (m.loser === p2Name) p2Losses++;
             });
 
-            let p1Total = p1Wins + p1Losses;
-            let p2Total = p2Wins + p2Losses;
-            let totalCareer = p1Total + p2Total;
-            
+            let p1Total = p1Wins + p1Losses; let p2Total = p2Wins + p2Losses; let totalCareer = p1Total + p2Total;
             let p1CareerWidth = totalCareer > 0 ? (p1Total / totalCareer) * 100 : 50;
             let p2CareerWidth = totalCareer > 0 ? (p2Total / totalCareer) * 100 : 50;
 
             let html = `
-                <div class="h2h-top-bar">
-                    <div class="p1-bar" style="width: ${p1H2HWidth}%;"></div>
-                    <div class="p2-bar" style="width: ${p2H2HWidth}%;"></div>
-                </div>
-
+                <div class="h2h-top-bar"><div class="p1-bar" style="width: ${p1H2HWidth}%;"></div><div class="p2-bar" style="width: ${p2H2HWidth}%;"></div></div>
                 <div class="career-title">CAREER STATS</div>
                 <div class="career-stats-box">
-                    <div class="stat-flex" style="font-size: 1.3rem;">
-                        <span style="color:#ffcc00">${p1Total}</span>
-                        <span class="stat-center">MATCHES</span>
-                        <span style="color:#0a84ff">${p2Total}</span>
-                    </div>
-                    
-                    <div class="career-bar-container">
-                        <div class="p1-bar" style="width: ${p1CareerWidth}%;"></div>
-                        <div class="p2-bar" style="width: ${p2CareerWidth}%;"></div>
-                    </div>
-                    
-                    <div class="stat-flex" style="margin-top: 15px;">
-                        <span>${p1Wins}</span>
-                        <span class="stat-center">Win</span>
-                        <span>${p2Wins}</span>
-                    </div>
-                    <div class="stat-flex">
-                        <span>${p1Losses}</span>
-                        <span class="stat-center">Loss</span>
-                        <span>${p2Losses}</span>
-                    </div>
+                    <div class="stat-flex" style="font-size: 1.3rem;"><span style="color:#ffcc00">${p1Total}</span><span class="stat-center">MATCHES</span><span style="color:#0a84ff">${p2Total}</span></div>
+                    <div class="career-bar-container"><div class="p1-bar" style="width: ${p1CareerWidth}%;"></div><div class="p2-bar" style="width: ${p2CareerWidth}%;"></div></div>
+                    <div class="stat-flex" style="margin-top: 15px;"><span>${p1Wins}</span><span class="stat-center">Win</span><span>${p2Wins}</span></div>
+                    <div class="stat-flex"><span>${p1Losses}</span><span class="stat-center">Loss</span><span>${p2Losses}</span></div>
                 </div>
             `;
 
             if (totalH2H === 0) {
                 html += `<div style="text-align:center; color:#888; padding: 20px 0;">No match history between these players yet.</div>`;
-                resBox.innerHTML = html;
-                return;
+                resBox.innerHTML = html; return;
             }
 
-            html += `
-                <div class="section-header">
-                    <span class="career-title" style="margin-bottom:0;">LAST RESULT</span>
-                    <span class="view-all">H2H RECORD ></span>
-                </div>
-            `;
-
+            html += `<div class="section-header"><span class="career-title" style="margin-bottom:0;">LAST RESULT</span><span class="view-all">H2H RECORD ></span></div>`;
             let sortedMatches = [...h2hMatches].sort((a, b) => new Date(b.date) - new Date(a.date));
             let lastMatch = sortedMatches[0]; 
-            
             let wPlayer = players.find(p => p.name === lastMatch.winner) || { flag: '🏳️' };
             let lPlayer = players.find(p => p.name === lastMatch.loser) || { flag: '🏳️' };
-            
-            let wScoresHTML = '';
-            let lScoresHTML = '';
+            let wScoresHTML = ''; let lScoresHTML = '';
             
             if (lastMatch.scores && lastMatch.scores.length > 0) {
                 lastMatch.scores.forEach(s => {
                     if (s.w !== "" && s.l !== "") {
-                        let wVal = parseInt(s.w);
-                        let lVal = parseInt(s.l);
-                        let wClass = wVal > lVal ? 'bwf-score-red' : 'bwf-score-white';
-                        let lClass = lVal > wVal ? 'bwf-score-red' : 'bwf-score-white';
-                        
-                        wScoresHTML += `<div class="bwf-score-item ${wClass}">${s.w}</div>`;
-                        lScoresHTML += `<div class="bwf-score-item ${lClass}">${s.l}</div>`;
+                        let wVal = parseInt(s.w); let lVal = parseInt(s.l);
+                        let wClass = wVal > lVal ? 'bwf-score-red' : 'bwf-score-white'; let lClass = lVal > wVal ? 'bwf-score-red' : 'bwf-score-white';
+                        wScoresHTML += `<div class="bwf-score-item ${wClass}">${s.w}</div>`; lScoresHTML += `<div class="bwf-score-item ${lClass}">${s.l}</div>`;
                     }
                 });
             }
@@ -423,26 +361,13 @@
             
             html += `
             <div class="bwf-card" style="margin-top: 0;">
-                <div class="bwf-header">
-                    <span>FRIENDLY MATCH ${dateObj.getFullYear()}</span>
-                    <span>Result</span>
-                </div>
+                <div class="bwf-header"><span>FRIENDLY MATCH ${dateObj.getFullYear()}</span><span>Result</span></div>
                 <div class="bwf-body">
-                    <div class="bwf-player">
-                        <div class="bwf-name"><span>${wPlayer.flag}</span> <strong>${lastMatch.winner}</strong></div>
-                        <div class="bwf-scores">${wScoresHTML}</div>
-                    </div>
-                    <div class="bwf-player">
-                        <div class="bwf-name"><span>${lPlayer.flag}</span> <span style="color:#aaa;">${lastMatch.loser}</span></div>
-                        <div class="bwf-scores">${lScoresHTML}</div>
-                    </div>
+                    <div class="bwf-player"><div class="bwf-name"><span>${wPlayer.flag}</span> <strong>${lastMatch.winner}</strong></div><div class="bwf-scores">${wScoresHTML}</div></div>
+                    <div class="bwf-player"><div class="bwf-name"><span>${lPlayer.flag}</span> <span style="color:#aaa;">${lastMatch.loser}</span></div><div class="bwf-scores">${lScoresHTML}</div></div>
                 </div>
-                <div class="bwf-footer">
-                    <span>MS • DATE: ${dateStr}</span>
-                    <span>-</span>
-                </div>
+                <div class="bwf-footer"><span>MS • DATE: ${dateStr}</span><span>-</span></div>
             </div>`;
-            
             resBox.innerHTML = html;
         };
 
@@ -452,8 +377,7 @@
             let stats = players.map(p => ({ name: p.name, flag: p.flag, wins: 0, losses: 0, total: 0, rate: 0 }));
 
             matches.forEach(m => {
-                let wPlayer = stats.find(s => s.name === m.winner);
-                let lPlayer = stats.find(s => s.name === m.loser);
+                let wPlayer = stats.find(s => s.name === m.winner); let lPlayer = stats.find(s => s.name === m.loser);
                 if (wPlayer) { wPlayer.wins++; wPlayer.total++; }
                 if (lPlayer) { lPlayer.losses++; lPlayer.total++; }
             });
@@ -463,56 +387,70 @@
 
             stats.forEach((s, index) => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td class="clickable-name" onclick="openProfile('${s.name}')">${s.flag} ${s.name}</td>
-                    <td>${s.wins}W / ${s.losses}L</td>
-                    <td>${s.total > 0 ? s.rate + '%' : '-'}</td>
-                `;
+                tr.innerHTML = `<td>${index + 1}</td><td class="clickable-name" onclick="openProfile('${s.name}')">${s.flag} ${s.name}</td><td>${s.wins}W / ${s.losses}L</td><td>${s.total > 0 ? s.rate + '%' : '-'}</td>`;
                 tbody.appendChild(tr);
             });
         };
 
         window.generateHistoricalRanks = function() {
-            let history = [];
-            let tempStats = players.map(p => ({ name: p.name, wins: 0, total: 0, rate: 0 }));
+            let history = []; let tempStats = players.map(p => ({ name: p.name, wins: 0, total: 0, rate: 0 }));
             matches.forEach((m, matchIndex) => {
-                let w = tempStats.find(s => s.name === m.winner);
-                let l = tempStats.find(s => s.name === m.loser);
+                let w = tempStats.find(s => s.name === m.winner); let l = tempStats.find(s => s.name === m.loser);
                 if (w) { w.wins++; w.total++; w.rate = (w.wins / w.total) * 100; }
                 if (l) { l.total++; l.rate = (l.wins / l.total) * 100; }
                 let currentRankings = [...tempStats].sort((a, b) => b.rate - a.rate || b.wins - a.wins);
-                let rankMap = {};
-                currentRankings.forEach((s, i) => { rankMap[s.name] = i + 1; });
+                let rankMap = {}; currentRankings.forEach((s, i) => { rankMap[s.name] = i + 1; });
                 history.push({ matchNum: matchIndex + 1, ranks: rankMap });
             });
             return history;
         };
 
+        // 🌟 球员主页及新版红白卡片渲染逻辑
         window.openProfile = function(playerName) {
             const player = players.find(p => p.name === playerName);
             if (!player) return;
             document.getElementById('profileTitle').innerText = `${player.flag} ${player.name}`;
             
             let pWins = 0, pLosses = 0, opponents = {};
-            matches.forEach(m => {
-                if (m.winner === playerName) { pWins++; opponents[m.loser] = opponents[m.loser] || { w: 0, l: 0 }; opponents[m.loser].w++; }
-                if (m.loser === playerName) { pLosses++; opponents[m.winner] = opponents[m.winner] || { w: 0, l: 0 }; opponents[m.winner].l++; }
+            let currentStreak = 0, maxStreak = 0;
+            
+            // 计算胜负、连胜和对手数据
+            let playerMatches = matches.filter(m => m.winner === playerName || m.loser === playerName);
+            
+            playerMatches.forEach(m => {
+                if (m.winner === playerName) { 
+                    pWins++; 
+                    opponents[m.loser] = opponents[m.loser] || { w: 0, l: 0 }; 
+                    opponents[m.loser].w++; 
+                    
+                    currentStreak++;
+                    if (currentStreak > maxStreak) maxStreak = currentStreak;
+                }
+                if (m.loser === playerName) { 
+                    pLosses++; 
+                    opponents[m.winner] = opponents[m.winner] || { w: 0, l: 0 }; 
+                    opponents[m.winner].l++; 
+                    
+                    currentStreak = 0; // 输球打断连胜
+                }
             });
 
             let total = pWins + pLosses;
+            let winRateStr = total > 0 ? ((pWins/total)*100).toFixed(0) + '%' : '0%';
+            
+            // 填充旧版下方列表数据
             document.getElementById('profTotal').innerText = total;
-            document.getElementById('profWinRate').innerText = total > 0 ? ((pWins/total)*100).toFixed(0) + '%' : '0%';
 
             let nemesis = "-", favorite = "-";
-            let maxLosses = 0, maxWins = 0;
+            let maxLossesCount = 0, maxWinsCount = 0;
             for (let opp in opponents) {
-                if (opponents[opp].l > maxLosses) { maxLosses = opponents[opp].l; nemesis = opp; }
-                if (opponents[opp].w > maxWins) { maxWins = opponents[opp].w; favorite = opp; }
+                if (opponents[opp].l > maxLossesCount) { maxLossesCount = opponents[opp].l; nemesis = opp; }
+                if (opponents[opp].w > maxWinsCount) { maxWinsCount = opponents[opp].w; favorite = opp; }
             }
-            document.getElementById('profNemesis').innerText = maxLosses > 0 ? `${nemesis} (${maxLosses}L)` : '-';
-            document.getElementById('profFavorite').innerText = maxWins > 0 ? `${favorite} (${maxWins}W)` : '-';
+            document.getElementById('profNemesis').innerText = maxLossesCount > 0 ? `${nemesis} (${maxLossesCount}L)` : '-';
+            document.getElementById('profFavorite').innerText = maxWinsCount > 0 ? `${favorite} (${maxWinsCount}W)` : '-';
 
+            // 计算排名数据
             const rankHistory = window.generateHistoricalRanks();
             let playerRanks = rankHistory.map(h => h.ranks[playerName] || players.length);
             
@@ -520,9 +458,14 @@
             let highestRank = playerRanks.length > 0 ? Math.min(...playerRanks) : "-";
             let timesNo1 = playerRanks.filter(r => r === 1).length;
 
-            document.getElementById('profCurrentRank').innerText = currentRank;
+            // 填充全新红白卡片数据
             document.getElementById('profHighestRank').innerText = highestRank;
             document.getElementById('profMatchesNo1').innerText = timesNo1;
+            document.getElementById('profStreak').innerText = maxStreak;
+            
+            document.getElementById('profGridTotal').innerText = total;
+            document.getElementById('profGridWL').innerText = `${pWins}/${pLosses}`;
+            document.getElementById('profGridRate').innerText = winRateStr;
 
             window.drawChart(playerRanks, rankHistory.map(h => 'M' + h.matchNum));
             document.getElementById('profileModal').style.display = 'flex';
@@ -537,10 +480,7 @@
                 type: 'line',
                 data: {
                     labels: labels, 
-                    datasets: [{
-                        label: 'Ranking', data: dataRanks, borderColor: '#0a84ff', 
-                        borderWidth: 3, pointBackgroundColor: '#0a84ff', pointRadius: 3, fill: false, tension: 0.1
-                    }]
+                    datasets: [{ label: 'Ranking', data: dataRanks, borderColor: '#0a84ff', borderWidth: 3, pointBackgroundColor: '#0a84ff', pointRadius: 3, fill: false, tension: 0.1 }]
                 },
                 options: {
                     responsive: true,
