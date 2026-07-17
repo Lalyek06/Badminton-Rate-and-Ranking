@@ -12,8 +12,10 @@
         
         .card { background: #1c1c1e; padding: 20px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         
+        /* 管理员专属控制台样式 */
         .admin-card { background: #1a1a1a; border: 2px solid #ffcc00; display: none; box-shadow: 0 0 15px rgba(255, 204, 0, 0.3); }
-        .admin-title { color: #ffcc00; font-weight: bold; font-size: 1.2rem; text-align: center; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; }
+        .admin-title { color: #ffcc00; font-weight: bold; font-size: 1.2rem; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+        .admin-section-title { color: #aaa; font-size: 0.8rem; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; font-weight: bold; }
         
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; box-sizing: border-box; font-size: 1rem; }
         input[type="number"] { padding: 8px; }
@@ -98,11 +100,11 @@
 
     <h1 onclick="adminLogin()">🏸 Pro Stats <span style="font-size:0.8rem; color:#4caf50;">(Sync 🟢)</span></h1>
 
-    <!-- 管理员待审批收件箱 -->
+    <!-- 🌟 管理员审批中心 -->
     <div class="card admin-card" id="adminPanel">
         <div class="admin-title">👑 Admin Approval Inbox</div>
         <div id="pendingList">
-            <p style='text-align:center; color:#aaa;'>Loading pending matches...</p>
+            <p style='text-align:center; color:#aaa;'>Loading pending items...</p>
         </div>
     </div>
 
@@ -130,10 +132,21 @@
         <div class="card" style="margin-top: 5px;">
             <input type="text" id="playerName" placeholder="Enter player name">
             <select id="playerCountry">
-                <option value="🇨🇳">🇨🇳 China</option><option value="🇲🇾">🇲🇾 Malaysia</option><option value="🇸🇬">🇸🇬 Singapore</option><option value="🇮🇩">🇮🇩 Indonesia</option>
-                <option value="🇯🇵">🇯🇵 Japan</option><option value="🇰🇷">🇰🇷 South Korea</option><option value="🇬🇧">🇬🇧 UK</option><option value="🇺🇸">🇺🇸 USA</option><option value="🏳️">🏳️ Other</option>
+                <!-- 大马置顶，并扩展羽毛球强国选项 -->
+                <option value="🇲🇾">🇲🇾 Malaysia</option>
+                <option value="🇨🇳">🇨🇳 China</option>
+                <option value="🇮🇩">🇮🇩 Indonesia</option>
+                <option value="🇯🇵">🇯🇵 Japan</option>
+                <option value="🇰🇷">🇰🇷 South Korea</option>
+                <option value="🇹🇭">🇹🇭 Thailand</option>
+                <option value="🇹🇼">🇹🇼 Chinese Taipei</option>
+                <option value="🇩🇰">🇩🇰 Denmark</option>
+                <option value="🇸🇬">🇸🇬 Singapore</option>
+                <option value="🇬🇧">🇬🇧 UK</option>
+                <option value="🇺🇸">🇺🇸 USA</option>
+                <option value="🏳️">🏳️ Other</option>
             </select>
-            <button class="action-btn" onclick="addPlayer()">Add Player</button>
+            <button class="action-btn" onclick="addPlayer()">Submit Player</button>
         </div>
     </div>
 
@@ -240,9 +253,11 @@
         let players = [];
         let matches = [];
         let pendingMatches = [];
+        let pendingPlayers = []; // 新增：待审批球员
         let rankingChartInstance = null;
         let isAdmin = false; 
 
+        // 监听各个集合
         onSnapshot(collection(db, "players"), (snapshot) => {
             players = snapshot.docs.map(doc => doc.data());
             window.updateDropdowns();
@@ -258,6 +273,12 @@
 
         onSnapshot(collection(db, "pending_matches"), (snapshot) => {
             pendingMatches = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            window.renderAdminPanel();
+        });
+
+        // 监听待审批球员集合
+        onSnapshot(collection(db, "pending_players"), (snapshot) => {
+            pendingPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             window.renderAdminPanel();
         });
 
@@ -284,67 +305,120 @@
             }
         };
 
+        // 综合管理员看板：分块显示比赛和球员
         window.renderAdminPanel = function() {
             const panel = document.getElementById('pendingList');
             if(!panel) return;
-            if(pendingMatches.length === 0) {
-                panel.innerHTML = "<p style='text-align:center; color:#aaa; font-size:0.9rem;'>No pending matches to review.</p>";
-                return;
-            }
             
             let html = "";
-            pendingMatches.forEach(m => {
-                let dateStr = new Date(m.date).toLocaleDateString();
-                let scoreStr = "";
-                
-                if (m.scores && m.scores.length > 0) {
-                    let validScores = m.scores.filter(s => s.w !== "" && s.l !== "");
-                    if (validScores.length > 0) {
-                        scoreStr = ` <span style="color:#4caf50; font-weight:bold; font-size:0.9rem;">(${validScores.map(s => `${s.w}-${s.l}`).join(', ')})</span>`;
+            
+            // 比赛审核区域
+            html += `<div class="admin-section-title">PENDING MATCHES (${pendingMatches.length})</div>`;
+            if (pendingMatches.length === 0) {
+                html += "<p style='text-align:center; color:#555; font-size:0.85rem; margin-bottom:20px;'>No pending matches.</p>";
+            } else {
+                pendingMatches.forEach(m => {
+                    let dateStr = new Date(m.date).toLocaleDateString();
+                    let scoreStr = "";
+                    if (m.scores && m.scores.length > 0) {
+                        let validScores = m.scores.filter(s => s.w !== "" && s.l !== "");
+                        if (validScores.length > 0) {
+                            scoreStr = ` <span style="color:#4caf50; font-weight:bold; font-size:0.9rem;">(${validScores.map(s => `${s.w}-${s.l}`).join(', ')})</span>`;
+                        }
                     }
-                }
+                    html += `
+                    <div style="background:#2c2c2e; padding:12px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-size:0.75rem; color:#888; margin-bottom:4px;">${dateStr}</div>
+                            <div style="font-size:1rem;"><strong style="color:#ff3b30;">${m.winner}</strong> def. ${m.loser}${scoreStr}</div>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button onclick="approveMatch('${m.id}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">✅</button>
+                            <button onclick="rejectMatch('${m.id}')" style="background:#3a3a3c; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">❌</button>
+                        </div>
+                    </div>`;
+                });
+            }
 
-                html += `
-                <div style="background:#2c2c2e; padding:12px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div style="font-size:0.75rem; color:#888; margin-bottom:4px;">${dateStr}</div>
-                        <div style="font-size:1rem;"><strong style="color:#ff3b30;">${m.winner}</strong> def. ${m.loser}${scoreStr}</div>
-                    </div>
-                    <div style="display:flex; gap:8px;">
-                        <button onclick="approveMatch('${m.id}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">✅</button>
-                        <button onclick="rejectMatch('${m.id}')" style="background:#3a3a3c; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">❌</button>
-                    </div>
-                </div>`;
-            });
+            // 球员审核区域
+            html += `<div class="admin-section-title" style="margin-top:20px;">PENDING PLAYERS (${pendingPlayers.length})</div>`;
+            if (pendingPlayers.length === 0) {
+                html += "<p style='text-align:center; color:#555; font-size:0.85rem;'>No pending players.</p>";
+            } else {
+                pendingPlayers.forEach(p => {
+                    html += `
+                    <div style="background:#2c2c2e; padding:12px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-size:1rem;"><strong>${p.flag} ${p.name}</strong></div>
+                        <div style="display:flex; gap:8px;">
+                            <button onclick="approvePlayer('${p.id}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">✅</button>
+                            <button onclick="rejectPlayer('${p.id}')" style="background:#3a3a3c; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">❌</button>
+                        </div>
+                    </div>`;
+                });
+            }
+
             panel.innerHTML = html;
         };
 
+        // 球员审批功能
+        window.approvePlayer = async function(id) {
+            const p = pendingPlayers.find(x => x.id === id);
+            if(!p) return;
+            try {
+                await addDoc(collection(db, "players"), { name: p.name, flag: p.flag });
+                await deleteDoc(doc(db, "pending_players", id));
+            } catch(e) { alert("Error approving player: " + e); }
+        };
+
+        window.rejectPlayer = async function(id) {
+            if(!confirm("Are you sure you want to REJECT and delete this player?")) return;
+            try {
+                await deleteDoc(doc(db, "pending_players", id));
+            } catch(e) { alert("Error rejecting player: " + e); }
+        };
+
+        // 比赛审批功能
         window.approveMatch = async function(id) {
             const m = pendingMatches.find(x => x.id === id);
             if(!m) return;
             try {
                 await addDoc(collection(db, "matches"), { winner: m.winner, loser: m.loser, scores: m.scores, date: m.date });
                 await deleteDoc(doc(db, "pending_matches", id));
-            } catch(e) { alert("Error approving: " + e); }
+            } catch(e) { alert("Error approving match: " + e); }
         };
 
         window.rejectMatch = async function(id) {
             if(!confirm("Are you sure you want to REJECT and delete this match?")) return;
             try {
                 await deleteDoc(doc(db, "pending_matches", id));
-            } catch(e) { alert("Error rejecting: " + e); }
+            } catch(e) { alert("Error rejecting match: " + e); }
         };
 
+        // 升级版：提交球员逻辑
         window.addPlayer = async function() {
             const name = document.getElementById('playerName').value.trim();
             const flag = document.getElementById('playerCountry').value;
+            
             if (!name) return alert('Please enter a name.');
-            if (players.some(p => p.name === name)) return alert('Player already exists.');
+            
+            // 双重防线查重
+            if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                return alert('Player already exists in the official list.');
+            }
+            if (pendingPlayers.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                return alert('Player is already waiting for approval.');
+            }
+            
             try {
-                await addDoc(collection(db, "players"), { name: name, flag: flag });
+                if (isAdmin) {
+                    await addDoc(collection(db, "players"), { name: name, flag: flag });
+                    alert('Player added directly! (Admin Privileges)');
+                } else {
+                    await addDoc(collection(db, "pending_players"), { name: name, flag: flag });
+                    alert('Player submitted! Waiting for Admin approval.');
+                }
                 document.getElementById('playerName').value = '';
                 document.getElementsByClassName("accordion")[1].click();
-                alert('Player added successfully!');
             } catch (e) { alert("Error connecting to Firebase!"); }
         };
 
@@ -381,16 +455,15 @@
             let hasValidGame = false;
             let missingPair = false;
 
-            // 🏆 核心检查：分数必须配对，不能只填一半；必须至少有一局填了分
             scores.forEach(s => {
                 let wStr = s.w.trim();
                 let lStr = s.l.trim();
                 
                 if (wStr !== "" || lStr !== "") {
                     if (wStr === "" || lStr === "") {
-                        missingPair = true; // 发现填了 W 没填 L，或者填了 L 没填 W
+                        missingPair = true; 
                     } else {
-                        hasValidGame = true; // 完整填写了一局
+                        hasValidGame = true; 
                         let wVal = parseInt(wStr);
                         let lVal = parseInt(lStr);
                         if (wVal < 0 || wVal > 30 || lVal < 0 || lVal > 30) invalidScore = true;
