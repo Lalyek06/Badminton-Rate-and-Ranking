@@ -103,6 +103,7 @@
 
     <h1 onclick="adminLogin()">🏸 Pro Stats <span style="font-size:0.8rem; color:#4caf50;">(Sync 🟢)</span></h1>
 
+    <!-- 🌟 管理员审批中心 -->
     <div class="card admin-card" id="adminPanel">
         <div class="admin-title">👑 Admin Approval Inbox</div>
         <div id="pendingList">
@@ -170,18 +171,20 @@
     <div class="card">
         <h2 style="text-align:left; color:#fff; font-size:1.2rem; margin-bottom:5px;">H2H STATISTICS</h2>
         
+        <!-- 🌟 回归最纯净的单双打二选一 -->
         <div class="mode-toggle" style="margin-top: 10px;">
             <button id="btnH2HSingles" class="active" onclick="setH2HMode('singles')">👤 Singles</button>
-            <button id="btnH2HChemistry" onclick="setH2HMode('chemistry')">🤝 Chemistry</button>
-            <button id="btnH2HDoubles" onclick="setH2HMode('doubles')">👥 Team</button>
+            <button id="btnH2HDoubles" onclick="setH2HMode('doubles')">👥 Doubles</button>
         </div>
 
+        <!-- H2H 单打选择框 -->
         <div id="h2hSinglesGroup">
             <select id="queryP1" onchange="calculateH2H()" style="margin-bottom: 5px;"></select>
-            <div class="vs-text" style="font-size: 1rem; color: #888;">&</div>
+            <div class="vs-text" style="font-size: 1rem; color: #888;">VS</div>
             <select id="queryP2" onchange="calculateH2H()"></select>
         </div>
 
+        <!-- H2H 双打选择框 -->
         <div id="h2hDoublesGroup" style="display:none;">
             <div style="font-size:0.8rem; color:#ffcc00; font-weight:bold; margin-bottom:5px;">TEAM A</div>
             <div class="doubles-select-group">
@@ -288,10 +291,9 @@
         window.setH2HMode = function(mode) {
             window.currentH2HMode = mode;
             document.getElementById('btnH2HSingles').classList.toggle('active', mode === 'singles');
-            document.getElementById('btnH2HChemistry').classList.toggle('active', mode === 'chemistry');
             document.getElementById('btnH2HDoubles').classList.toggle('active', mode === 'doubles');
             
-            document.getElementById('h2hSinglesGroup').style.display = (mode === 'singles' || mode === 'chemistry') ? 'block' : 'none';
+            document.getElementById('h2hSinglesGroup').style.display = mode === 'singles' ? 'block' : 'none';
             document.getElementById('h2hDoublesGroup').style.display = mode === 'doubles' ? 'block' : 'none';
             window.calculateH2H(); 
         };
@@ -309,7 +311,6 @@
 
         onSnapshot(collection(db, "matches"), (snapshot) => { rawMatches = snapshot.docs.map(doc => doc.data()); mergeMatches(); });
         onSnapshot(collection(db, "matches_doubles"), (snapshot) => { rawDoublesMatches = snapshot.docs.map(doc => doc.data()); mergeMatches(); });
-        
         onSnapshot(collection(db, "pending_matches"), (snapshot) => { pendingSingles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), _col: 'pending_matches' })); window.renderAdminPanel(); });
         onSnapshot(collection(db, "pending_doubles_matches"), (snapshot) => { pendingDoubles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), _col: 'pending_doubles_matches' })); window.renderAdminPanel(); });
         onSnapshot(collection(db, "pending_players"), (snapshot) => { pendingPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); window.renderAdminPanel(); });
@@ -360,7 +361,6 @@
         window.approvePlayer = async function(id) { const p = pendingPlayers.find(x => x.id === id); if(!p) return; try { await addDoc(collection(db, "players"), { name: p.name, flag: p.flag }); await deleteDoc(doc(db, "pending_players", id)); } catch(e) { alert("Error: " + e); } };
         window.rejectPlayer = async function(id) { if(!confirm("Are you sure you want to REJECT this player?")) return; try { await deleteDoc(doc(db, "pending_players", id)); } catch(e) { alert("Error: " + e); } };
         
-        // 🌟 核心修复：硬性强制验证写入对应的数据库
         window.approveMatch = async function(id, sourceCol) {
             let m = pendingSingles.find(x => x.id === id) || pendingDoubles.find(x => x.id === id);
             if(!m) return;
@@ -527,71 +527,7 @@
                 resBox.innerHTML = html;
             }
             
-            // ============== 🤝 个人化学反应纯净版 ==============
-            else if (window.currentH2HMode === 'chemistry') {
-                const p1Name = document.getElementById('queryP1').value; const p2Name = document.getElementById('queryP2').value;
-                if (!p1Name || !p2Name || p1Name === p2Name) { resBox.innerHTML = `<div style="text-align:center; color:#888; margin-top:20px;">Please select two different players</div>`; return; }
-
-                let partnersMatches = allDoubles.filter(m => (m.winners && m.winners.includes(p1Name) && m.winners.includes(p2Name)) || (m.losers && m.losers.includes(p1Name) && m.losers.includes(p2Name)));
-                let partnersWins = partnersMatches.filter(m => m.winners.includes(p1Name)).length;
-                let partnersLosses = partnersMatches.filter(m => m.losers.includes(p1Name)).length;
-                let partnersTotal = partnersMatches.length;
-                let partnersRate = partnersTotal > 0 ? ((partnersWins / partnersTotal) * 100).toFixed(0) : 0;
-
-                let opponentsMatches = allDoubles.filter(m => (m.winners && m.winners.includes(p1Name) && m.losers && m.losers.includes(p2Name)) || (m.winners && m.winners.includes(p2Name) && m.losers && m.losers.includes(p1Name)));
-                let oppP1Wins = opponentsMatches.filter(m => m.winners.includes(p1Name)).length;
-                let oppP2Wins = opponentsMatches.filter(m => m.winners.includes(p2Name)).length;
-                let oppTotal = opponentsMatches.length;
-                let oppP1Rate = oppTotal > 0 ? ((oppP1Wins / oppTotal) * 100).toFixed(0) : 0;
-                let oppP2Rate = oppTotal > 0 ? ((oppP2Wins / oppTotal) * 100).toFixed(0) : 0;
-
-                let html = `
-                    <div class="career-title" style="color:#ff3b30; margin-top:5px; text-align:center;">🔥 DOUBLES CHEMISTRY</div>
-                    <div class="career-stats-box" style="border: 1px solid #3a3a3c; margin-bottom: 25px;">
-                        <div style="text-align:center; font-size: 0.85rem; color:#aaa; margin-bottom: 15px; font-weight:bold;">🤝 AS PARTNERS</div>
-                        <div class="stat-flex">
-                            <span style="color:#ffcc00;">${partnersWins} W</span>
-                            <span class="stat-center" style="font-size:0.85rem;">Win Rate: <span style="color:#fff;">${partnersRate}%</span></span>
-                            <span style="color:#0a84ff;">${partnersLosses} L</span>
-                        </div>
-                        <hr style="border: 0; border-top: 1px dashed #3a3a3c; margin: 20px 0;">
-                        <div style="text-align:center; font-size: 0.85rem; color:#aaa; margin-bottom: 15px; font-weight:bold;">⚔️ AS OPPONENTS</div>
-                        <div class="stat-flex"><span style="color:#ffcc00">${oppP1Wins} W</span><span class="stat-center" style="font-size:0.8rem; color:#888;">${oppTotal} MATCHES</span><span style="color:#0a84ff">${oppP2Wins} W</span></div>
-                        <div class="career-bar-container" style="margin-top:8px; margin-bottom:0; height:4px;"><div class="p1-bar" style="width: ${oppTotal>0 ? oppP1Rate : 50}%;"></div><div class="p2-bar" style="width: ${oppTotal>0 ? oppP2Rate : 50}%;"></div></div>
-                    </div>
-                `;
-
-                let allEncounters = allDoubles.filter(m => {
-                    return (m.winners.includes(p1Name) || m.losers.includes(p1Name)) && (m.winners.includes(p2Name) || m.losers.includes(p2Name));
-                }).sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                if (allEncounters.length > 0) {
-                    html += `<div class="section-header"><span class="career-title" style="margin-bottom:0;">LAST ENCOUNTER</span></div>`;
-                    let lastMatch = allEncounters[0]; 
-                    let wp1 = players.find(p => p.name === lastMatch.winners[0]) || { flag: '🏳️' }; let wp2 = players.find(p => p.name === lastMatch.winners[1]) || { flag: '🏳️' };
-                    let lp1 = players.find(p => p.name === lastMatch.losers[0]) || { flag: '🏳️' }; let lp2 = players.find(p => p.name === lastMatch.losers[1]) || { flag: '🏳️' };
-                    let wNameDisplay = `<span>${wp1.flag}${wp2.flag}</span> <strong>${lastMatch.winners[0]} / ${lastMatch.winners[1]}</strong>`;
-                    let lNameDisplay = `<span>${lp1.flag}${lp2.flag}</span> <span style="color:#aaa;">${lastMatch.losers[0]} / ${lastMatch.losers[1]}</span>`;
-                    
-                    let wScoresHTML = ''; let lScoresHTML = '';
-                    if (lastMatch.scores && lastMatch.scores.length > 0) {
-                        lastMatch.scores.forEach(s => {
-                            if (s.w !== "" && s.l !== "") {
-                                let wVal = parseInt(s.w), lVal = parseInt(s.l);
-                                let wClass = wVal > lVal ? 'bwf-score-red' : 'bwf-score-white', lClass = lVal > wVal ? 'bwf-score-red' : 'bwf-score-white';
-                                wScoresHTML += `<div class="bwf-score-item ${wClass}">${s.w}</div>`; lScoresHTML += `<div class="bwf-score-item ${lClass}">${s.l}</div>`;
-                            }
-                        });
-                    }
-                    let dateObj = lastMatch.date ? new Date(lastMatch.date) : new Date();
-                    let dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
-                    
-                    html += `<div class="bwf-card" style="margin-top: 0;"><div class="bwf-header"><span>FRIENDLY MATCH ${dateObj.getFullYear()}</span><span>Result</span></div><div class="bwf-body"><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${wNameDisplay}</div><div class="bwf-scores">${wScoresHTML}</div></div><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${lNameDisplay}</div><div class="bwf-scores">${lScoresHTML}</div></div></div><div class="bwf-footer"><span>MD • DATE: ${dateStr}</span><span>-</span></div></div>`;
-                } else { html += `<div style="text-align:center; color:#888; padding: 20px 0;">No doubles history between these players yet.</div>`; }
-                resBox.innerHTML = html;
-            }
-            
-            // ============== 👥 团队双打对决纯净版 ==============
+            // ============== 👥 双打 (内嵌饼图化学反应) ==============
             else if (window.currentH2HMode === 'doubles') {
                 const t1p1 = document.getElementById('queryT1P1').value; const t1p2 = document.getElementById('queryT1P2').value;
                 const t2p1 = document.getElementById('queryT2P1').value; const t2p2 = document.getElementById('queryT2P2').value;
@@ -600,6 +536,7 @@
                 let uniqueCheck = new Set([t1p1, t1p2, t2p1, t2p2]);
                 if (uniqueCheck.size !== 4) { resBox.innerHTML = `<div style="text-align:center; color:#ff3b30; margin-top:20px; font-weight:bold;">Error: Please select 4 different players!</div>`; return; }
 
+                // 1. 两支队伍的正面对决 H2H
                 let doublesH2HMatches = allDoubles.filter(m => 
                     ((m.winners.includes(t1p1) && m.winners.includes(t1p2) && m.losers.includes(t2p1) && m.losers.includes(t2p2)) ||
                      (m.losers.includes(t1p1) && m.losers.includes(t1p2) && m.winners.includes(t2p1) && m.winners.includes(t2p2)))
@@ -608,16 +545,17 @@
                 let t1Wins = doublesH2HMatches.filter(m => m.winners.includes(t1p1)).length;
                 let t2Wins = doublesH2HMatches.filter(m => m.winners.includes(t2p1)).length;
                 let total = doublesH2HMatches.length;
-
                 let t1Width = total > 0 ? (t1Wins / total) * 100 : 50;
                 let t2Width = total > 0 ? (t2Wins / total) * 100 : 50;
 
+                // 2. 队伍 A 的化学反应 (搭档数据)
                 let t1PartnerMatches = allDoubles.filter(m => (m.winners && m.winners.includes(t1p1) && m.winners.includes(t1p2)) || (m.losers && m.losers.includes(t1p1) && m.losers.includes(t1p2)));
                 let t1ChemWins = t1PartnerMatches.filter(m => m.winners.includes(t1p1)).length;
                 let t1ChemLosses = t1PartnerMatches.filter(m => m.losers.includes(t1p1)).length;
                 let t1ChemTotal = t1PartnerMatches.length;
                 let t1ChemRate = t1ChemTotal > 0 ? ((t1ChemWins / t1ChemTotal) * 100).toFixed(0) : 0;
 
+                // 3. 队伍 B 的化学反应 (搭档数据)
                 let t2PartnerMatches = allDoubles.filter(m => (m.winners && m.winners.includes(t2p1) && m.winners.includes(t2p2)) || (m.losers && m.losers.includes(t2p1) && m.losers.includes(t2p2)));
                 let t2ChemWins = t2PartnerMatches.filter(m => m.winners.includes(t2p1)).length;
                 let t2ChemLosses = t2PartnerMatches.filter(m => m.losers.includes(t2p1)).length;
