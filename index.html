@@ -71,7 +71,6 @@
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.8rem; color: #aaa; cursor: pointer; z-index: 2000;}
         .profile-header { text-align: center; font-size: 1.5rem; margin-bottom: 20px; font-weight: bold; color: #fff; }
         
-        /* 🏆 新增：RESULTS SUMMARY 红白卡片样式 */
         .results-summary-card { background: #fff; border-radius: 12px; overflow: hidden; margin-bottom: 25px; box-shadow: 0 6px 15px rgba(0,0,0,0.5); }
         .rs-top { display: flex; padding: 18px 0; background: #fff; }
         .rs-bottom { display: flex; padding: 18px 0; background: #e0241d; color: #fff; }
@@ -102,9 +101,10 @@
             <label style="color:#aaa; font-size:0.8rem;">Winner:</label>
             <select id="matchWinner"></select>
             <div class="score-row">
-                <div class="score-box"><label>GAME 1</label><div class="score-inputs"><input type="number" id="g1w" placeholder="W" min="0"> <span class="score-dash">-</span> <input type="number" id="g1l" placeholder="L" min="0"></div></div>
-                <div class="score-box"><label>GAME 2</label><div class="score-inputs"><input type="number" id="g2w" placeholder="W" min="0"> <span class="score-dash">-</span> <input type="number" id="g2l" placeholder="L" min="0"></div></div>
-                <div class="score-box"><label>GAME 3</label><div class="score-inputs"><input type="number" id="g3w" placeholder="W" min="0"> <span class="score-dash">-</span> <input type="number" id="g3l" placeholder="L" min="0"></div></div>
+                <!-- Validation: 增加 min="0" max="30" 控制 -->
+                <div class="score-box"><label>GAME 1</label><div class="score-inputs"><input type="number" id="g1w" placeholder="W" min="0" max="30"> <span class="score-dash">-</span> <input type="number" id="g1l" placeholder="L" min="0" max="30"></div></div>
+                <div class="score-box"><label>GAME 2</label><div class="score-inputs"><input type="number" id="g2w" placeholder="W" min="0" max="30"> <span class="score-dash">-</span> <input type="number" id="g2l" placeholder="L" min="0" max="30"></div></div>
+                <div class="score-box"><label>GAME 3</label><div class="score-inputs"><input type="number" id="g3w" placeholder="W" min="0" max="30"> <span class="score-dash">-</span> <input type="number" id="g3l" placeholder="L" min="0" max="30"></div></div>
             </div>
             <div class="vs-text">VS</div>
             <label style="color:#aaa; font-size:0.8rem;">Loser:</label>
@@ -153,7 +153,6 @@
             
             <div class="career-title" style="margin-bottom: 15px;">RESULTS SUMMARY</div>
             
-            <!-- 🏆 全新红白 BWF 风格赛果总结卡片 -->
             <div class="results-summary-card">
                 <div class="rs-top">
                     <div class="rs-col">
@@ -190,14 +189,12 @@
                 <canvas id="rankingChart"></canvas>
             </div>
             
-            <!-- 维持原有的基础数据列表 -->
             <div class="stat-list-row"><span class="stat-label">Total Matches Played:</span><span class="stat-value" id="profTotal">0</span></div>
             <div class="stat-list-row"><span class="stat-label">Toughest Opponent:</span><span class="stat-value" id="profNemesis">-</span></div>
             <div class="stat-list-row"><span class="stat-label">Favorite Opponent:</span><span class="stat-value" id="profFavorite">-</span></div>
         </div>
     </div>
 
-    <!-- 折叠面板动画脚本 -->
     <script>
         var acc = document.getElementsByClassName("accordion");
         for (var i = 0; i < acc.length; i++) {
@@ -213,7 +210,6 @@
         }
     </script>
 
-    <!-- Firebase SDK & 逻辑 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -287,6 +283,14 @@
                 { w: document.getElementById('g2w').value, l: document.getElementById('g2l').value },
                 { w: document.getElementById('g3w').value, l: document.getElementById('g3l').value }
             ];
+
+            // 安全锁：验证分数不得超过30，且不得小于0
+            let invalidScore = false;
+            scores.forEach(s => {
+                if (s.w !== "") { let v = parseInt(s.w); if (v < 0 || v > 30) invalidScore = true; }
+                if (s.l !== "") { let v = parseInt(s.l); if (v < 0 || v > 30) invalidScore = true; }
+            });
+            if (invalidScore) return alert('Error: Score must be between 0 and 30!');
             
             try {
                 await addDoc(collection(db, "matches"), { 
@@ -377,35 +381,51 @@
             let stats = players.map(p => ({ name: p.name, flag: p.flag, wins: 0, losses: 0, total: 0, rate: 0 }));
 
             matches.forEach(m => {
-                let wPlayer = stats.find(s => s.name === m.winner); let lPlayer = stats.find(s => s.name === m.loser);
+                let wPlayer = stats.find(s => s.name === m.winner);
+                let lPlayer = stats.find(s => s.name === m.loser);
                 if (wPlayer) { wPlayer.wins++; wPlayer.total++; }
                 if (lPlayer) { lPlayer.losses++; lPlayer.total++; }
             });
 
             stats.forEach(s => { s.rate = s.total > 0 ? parseFloat(((s.wins / s.total) * 100).toFixed(1)) : 0; });
-            stats.sort((a, b) => b.rate - a.rate || b.wins - a.wins);
+            
+            // 🏅 核心公平系统：没打过的人沉底，按 胜率 -> 胜场 -> 负场最少 排序
+            stats.sort((a, b) => {
+                if (a.total === 0 && b.total > 0) return 1;
+                if (b.total === 0 && a.total > 0) return -1;
+                return b.rate - a.rate || b.wins - a.wins || a.losses - b.losses; 
+            });
 
             stats.forEach((s, index) => {
+                let displayRank = s.total > 0 ? index + 1 : "-";
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${index + 1}</td><td class="clickable-name" onclick="openProfile('${s.name}')">${s.flag} ${s.name}</td><td>${s.wins}W / ${s.losses}L</td><td>${s.total > 0 ? s.rate + '%' : '-'}</td>`;
+                tr.innerHTML = `<td>${displayRank}</td><td class="clickable-name" onclick="openProfile('${s.name}')">${s.flag} ${s.name}</td><td>${s.wins}W / ${s.losses}L</td><td>${s.total > 0 ? s.rate + '%' : '-'}</td>`;
                 tbody.appendChild(tr);
             });
         };
 
         window.generateHistoricalRanks = function() {
-            let history = []; let tempStats = players.map(p => ({ name: p.name, wins: 0, total: 0, rate: 0 }));
+            let history = []; 
+            // 加入 hasPlayed 标签，追踪此人是否已经出战
+            let tempStats = players.map(p => ({ name: p.name, wins: 0, losses: 0, total: 0, rate: 0, hasPlayed: false }));
+            
             matches.forEach((m, matchIndex) => {
-                let w = tempStats.find(s => s.name === m.winner); let l = tempStats.find(s => s.name === m.loser);
-                if (w) { w.wins++; w.total++; w.rate = (w.wins / w.total) * 100; }
-                if (l) { l.total++; l.rate = (l.wins / l.total) * 100; }
-                let currentRankings = [...tempStats].sort((a, b) => b.rate - a.rate || b.wins - a.wins);
-                let rankMap = {}; currentRankings.forEach((s, i) => { rankMap[s.name] = i + 1; });
+                let w = tempStats.find(s => s.name === m.winner); 
+                let l = tempStats.find(s => s.name === m.loser);
+                if (w) { w.wins++; w.total++; w.rate = (w.wins / w.total) * 100; w.hasPlayed = true; }
+                if (l) { l.losses++; l.total++; l.rate = (l.wins / l.total) * 100; l.hasPlayed = true; }
+                
+                // 仅对已经打过比赛的人进行排名，维持公平决胜规则
+                let activePlayers = tempStats.filter(s => s.hasPlayed);
+                activePlayers.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
+                
+                let rankMap = {}; 
+                activePlayers.forEach((s, i) => { rankMap[s.name] = i + 1; });
                 history.push({ matchNum: matchIndex + 1, ranks: rankMap });
             });
             return history;
         };
 
-        // 🌟 球员主页及新版红白卡片渲染逻辑
         window.openProfile = function(playerName) {
             const player = players.find(p => p.name === playerName);
             if (!player) return;
@@ -414,7 +434,6 @@
             let pWins = 0, pLosses = 0, opponents = {};
             let currentStreak = 0, maxStreak = 0;
             
-            // 计算胜负、连胜和对手数据
             let playerMatches = matches.filter(m => m.winner === playerName || m.loser === playerName);
             
             playerMatches.forEach(m => {
@@ -422,7 +441,6 @@
                     pWins++; 
                     opponents[m.loser] = opponents[m.loser] || { w: 0, l: 0 }; 
                     opponents[m.loser].w++; 
-                    
                     currentStreak++;
                     if (currentStreak > maxStreak) maxStreak = currentStreak;
                 }
@@ -430,15 +448,13 @@
                     pLosses++; 
                     opponents[m.winner] = opponents[m.winner] || { w: 0, l: 0 }; 
                     opponents[m.winner].l++; 
-                    
-                    currentStreak = 0; // 输球打断连胜
+                    currentStreak = 0; 
                 }
             });
 
             let total = pWins + pLosses;
             let winRateStr = total > 0 ? ((pWins/total)*100).toFixed(0) + '%' : '0%';
             
-            // 填充旧版下方列表数据
             document.getElementById('profTotal').innerText = total;
 
             let nemesis = "-", favorite = "-";
@@ -450,15 +466,22 @@
             document.getElementById('profNemesis').innerText = maxLossesCount > 0 ? `${nemesis} (${maxLossesCount}L)` : '-';
             document.getElementById('profFavorite').innerText = maxWinsCount > 0 ? `${favorite} (${maxWinsCount}W)` : '-';
 
-            // 计算排名数据
+            // 提取排名：屏蔽掉“还没上场前”的历史比赛
             const rankHistory = window.generateHistoricalRanks();
-            let playerRanks = rankHistory.map(h => h.ranks[playerName] || players.length);
+            let playerRanks = [];
+            let playerLabels = [];
+            
+            rankHistory.forEach(h => {
+                if (h.ranks[playerName]) {
+                    playerRanks.push(h.ranks[playerName]);
+                    playerLabels.push('M' + h.matchNum);
+                }
+            });
             
             let currentRank = playerRanks.length > 0 ? playerRanks[playerRanks.length - 1] : "-";
             let highestRank = playerRanks.length > 0 ? Math.min(...playerRanks) : "-";
             let timesNo1 = playerRanks.filter(r => r === 1).length;
 
-            // 填充全新红白卡片数据
             document.getElementById('profHighestRank').innerText = highestRank;
             document.getElementById('profMatchesNo1').innerText = timesNo1;
             document.getElementById('profStreak').innerText = maxStreak;
@@ -467,14 +490,18 @@
             document.getElementById('profGridWL').innerText = `${pWins}/${pLosses}`;
             document.getElementById('profGridRate').innerText = winRateStr;
 
-            window.drawChart(playerRanks, rankHistory.map(h => 'M' + h.matchNum));
+            window.drawChart(playerRanks, playerLabels);
             document.getElementById('profileModal').style.display = 'flex';
         };
 
         window.drawChart = function(dataRanks, labels) {
             const ctx = document.getElementById('rankingChart').getContext('2d');
             if (rankingChartInstance) rankingChartInstance.destroy();
-            if (dataRanks.length === 0) { dataRanks = [players.length]; labels = ['No Matches']; }
+            
+            if (dataRanks.length === 0) { 
+                dataRanks = [players.length || 5]; 
+                labels = ['No Matches']; 
+            }
 
             rankingChartInstance = new Chart(ctx, {
                 type: 'line',
