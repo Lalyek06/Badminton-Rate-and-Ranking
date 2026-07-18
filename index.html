@@ -360,7 +360,7 @@
             <div class="profile-header" id="profileTitle">Player Name</div>
             <div class="career-title" style="margin-bottom: 15px;">RESULTS SUMMARY</div>
             <div class="results-summary-card">
-                <div class="rs-top"><div class="rs-col"><div class="rs-val" id="profHighestRank">1</div><div class="rs-label">Highest<br>Rank</div></div><div class="rs-col"><div class="rs-val" id="profMatchesNo1">0</div><div class="rs-label">Matches<br>As #1</div></div><div class="rs-col"><div class="rs-val" id="profStreak">0</div><div class="rs-label">Longest<br>Win Streak</div></div></div>
+                <div class="rs-top"><div class="rs-col"><div class="rs-val" id="profHighestRank">1</div><div class="rs-label">Highest<br>Rank</div></div><div class="rs-col"><div class="rs-val" id="profTourneysPlayed">0</div><div class="rs-label">Tournaments<br>Played</div></div><div class="rs-col"><div class="rs-val" id="profStreak">0</div><div class="rs-label">Longest<br>Win Streak</div></div></div>
                 <div class="rs-bottom"><div class="rs-col"><div class="rs-val" id="profGridTotal">0</div><div class="rs-label">Matches</div></div><div class="rs-col"><div class="rs-val" id="profGridWL">0/0</div><div class="rs-label">Won/Lost</div></div><div class="rs-col"><div class="rs-val" id="profGridRate">0%</div><div class="rs-label">Win Rate</div></div></div>
             </div>
             <div class="chart-container"><div class="chart-title">RANKING HISTORY</div><canvas id="rankingChart"></canvas></div>
@@ -437,6 +437,7 @@
         let players = []; let rawMatches = [], rawDoublesMatches = [];
         let allSingles = [], allDoubles = [];
         let pendingSingles = [], pendingDoubles = []; let pendingPlayers = []; 
+        let tourneyHistory = []; // <-- 新增的独立锦标赛历史数据库数组
         let rankingChartInstance = null; window.teamAChartInst = null; window.teamBChartInst = null; window.profPieChartInst = null;
         let isAdmin = false; 
         
@@ -474,6 +475,11 @@
             let cbHtml = "";
             players.forEach((p) => { cbHtml += `<label><input type="checkbox" class="player-cb" value="${p.name}" data-flag="${p.flag}"> ${p.flag} ${p.name}</label>`; });
             document.getElementById('playerCheckboxes').innerHTML = cbHtml;
+        });
+
+        // 监听并拉取历史记录
+        onSnapshot(collection(db, "tournaments_history"), (snapshot) => { 
+            tourneyHistory = snapshot.docs.map(doc => doc.data()); 
         });
 
         function mergeMatches() {
@@ -843,9 +849,17 @@
             document.getElementById('profNemesis').innerText = maxL > 0 ? `${nemesis} (${maxL}L)` : '-'; document.getElementById('profFavorite').innerText = maxW > 0 ? `${favorite} (${maxW}W)` : '-';
 
             let historyData = window.generateTeamHistoricalRanks(p1, p2); let teamRanks = historyData.map(h => h.rank); let teamLabels = historyData.map(h => 'M' + h.matchNum);
-            let highestRank = teamRanks.length > 0 ? Math.min(...teamRanks) : "-"; let timesNo1 = teamRanks.filter(r => r === 1).length;
-
-            document.getElementById('profHighestRank').innerText = highestRank; document.getElementById('profMatchesNo1').innerText = timesNo1; document.getElementById('profStreak').innerText = maxStreak;
+            let highestRank = teamRanks.length > 0 ? Math.min(...teamRanks) : "-"; 
+            
+            // 计算 Tournaments Played
+            let tPlayed = tourneyHistory.filter(t => t.participants && t.participants.includes(p1) && t.participants.includes(p2)).length;
+            if (tournament && tournament.participants && tournament.participants.includes(p1) && tournament.participants.includes(p2)) {
+                tPlayed++; 
+            }
+            
+            document.getElementById('profHighestRank').innerText = highestRank; 
+            document.getElementById('profTourneysPlayed').innerText = tPlayed; 
+            document.getElementById('profStreak').innerText = maxStreak;
             document.getElementById('profGridTotal').innerText = total; document.getElementById('profGridWL').innerText = `${tWins}/${tLosses}`; document.getElementById('profGridRate').innerText = winRateStr;
 
             document.getElementById('profChemChartContainer').style.display = 'block';
@@ -884,8 +898,17 @@
             const rankHistory = window.generateHistoricalRanks(); let playerRanks = []; let playerLabels = [];
             rankHistory.forEach(h => { if (h.ranks[playerName]) { playerRanks.push(h.ranks[playerName]); playerLabels.push('M' + h.matchNum); } });
             
-            let highestRank = playerRanks.length > 0 ? Math.min(...playerRanks) : "-"; let timesNo1 = playerRanks.filter(r => r === 1).length;
-            document.getElementById('profHighestRank').innerText = highestRank; document.getElementById('profMatchesNo1').innerText = timesNo1; document.getElementById('profStreak').innerText = maxStreak;
+            let highestRank = playerRanks.length > 0 ? Math.min(...playerRanks) : "-"; 
+            
+            // 计算 Tournaments Played
+            let tPlayed = tourneyHistory.filter(t => t.participants && t.participants.includes(playerName)).length;
+            if (tournament && tournament.participants && tournament.participants.includes(playerName)) {
+                tPlayed++; 
+            }
+
+            document.getElementById('profHighestRank').innerText = highestRank; 
+            document.getElementById('profTourneysPlayed').innerText = tPlayed; 
+            document.getElementById('profStreak').innerText = maxStreak;
             document.getElementById('profGridTotal').innerText = total; document.getElementById('profGridWL').innerText = `${pWins}/${pLosses}`; document.getElementById('profGridRate').innerText = winRateStr;
 
             document.getElementById('profileHistoryDate').value = ''; window.renderProfileHistory();
@@ -980,11 +1003,15 @@
             const checkboxes = document.querySelectorAll('.player-cb:checked');
             if (checkboxes.length < 2 || checkboxes.length > 16) return alert("Select 2-16 players.");
             
-            let selected = []; checkboxes.forEach(cb => selected.push({ name: cb.value, flag: cb.getAttribute('data-flag') }));
+            let selected = []; let realPlayers = [];
+            checkboxes.forEach(cb => { 
+                selected.push({ name: cb.value, flag: cb.getAttribute('data-flag') }); 
+                realPlayers.push(cb.value);
+            });
             while (selected.length < 16) { selected.push({ name: "BYE", flag: "➖" }); }
             selected = selected.sort(() => Math.random() - 0.5);
 
-            let newTournament = { R16: [], QF: [], SF: [], Final: [] };
+            let newTournament = { R16: [], QF: [], SF: [], Final: [], participants: realPlayers };
             for (let i = 0; i < 8; i++) { newTournament.R16.push({ id: `R16_${i}`, p1: selected[i*2], p2: selected[i*2+1], scores: { g1:['',''], g2:['',''], g3:['',''] }, winner: null }); }
             for(let i=0; i<4; i++) newTournament.QF.push({ id:`QF_${i}`, p1:null, p2:null, scores:{g1:['',''],g2:['',''],g3:['','']}, winner:null });
             for(let i=0; i<2; i++) newTournament.SF.push({ id:`SF_${i}`, p1:null, p2:null, scores:{g1:['',''],g2:['',''],g3:['','']}, winner:null });
@@ -1051,8 +1078,13 @@
 
         window.endTournament = async function() {
             if(!isAdmin) return;
-            if(!confirm("Clear Tournament?")) return;
-            try { await deleteDoc(doc(db, "tournaments", "active")); } catch(e) { alert("Error: " + e); }
+            if(!confirm("Clear Tournament? This will save the participants to history.")) return;
+            try { 
+                if(tournament && tournament.participants) {
+                    await addDoc(collection(db, "tournaments_history"), { date: new Date().toISOString(), participants: tournament.participants });
+                }
+                await deleteDoc(doc(db, "tournaments", "active")); 
+            } catch(e) { alert("Error: " + e); }
         };
 
     </script>
