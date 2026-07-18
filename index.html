@@ -8,14 +8,15 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #050505; color: #fff; padding: 20px 20px 100px 20px; margin: 0; }
         
-        h1 { color: #ff3b30; text-align: center; margin-bottom: 25px; letter-spacing: 1px; cursor: pointer; user-select: none; font-size: 1.6rem; }
+        /* Centered Header */
+        h1 { color: #ff3b30; text-align: center; margin-bottom: 25px; margin-top: 10px; letter-spacing: 1px; cursor: pointer; user-select: none; font-size: 1.6rem; }
         h2 { color: #fff; font-size: 1.2rem; margin-bottom: 15px; margin-top: 0; }
         
         .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Bottom Navigation Bar */
+        /* Professional SVG Bottom Navigation Bar */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #0a0a0c; display: flex; justify-content: space-around; align-items: center; padding: 10px 0; border-top: 1px solid #1c1c1e; z-index: 999; padding-bottom: env(safe-area-inset-bottom); }
         .nav-item { color: #666; display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; font-weight: 600; cursor: pointer; flex: 1; transition: 0.3s; }
         .nav-item.active { color: #fff; }
@@ -26,6 +27,7 @@
         .nav-item-center .nav-icon { margin-bottom: 0; }
         .nav-item-center span { display: none; }
 
+        /* General Styles */
         .card { background: #1c1c1e; padding: 20px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .admin-card { background: #1a1a1a; border: 2px solid #ffcc00; display: none; box-shadow: 0 0 15px rgba(255, 204, 0, 0.3); }
         .admin-title { color: #ffcc00; font-weight: bold; font-size: 1.2rem; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
@@ -102,6 +104,7 @@
         .stat-label { color: #aaa; font-size: 0.9rem; }
         .stat-value { font-weight: bold; font-size: 0.9rem; }
 
+        /* Rankings UI */
         .ranking-card-bwf { background: #0a0a0c; border: 1px solid #1c1c1e; padding: 20px 15px; border-radius: 12px; margin-bottom: 20px; }
         .ranking-header-title { text-align: center; color: #fff; font-weight: bold; font-size: 1.1rem; letter-spacing: 1px; margin-bottom: 3px; }
         .ranking-header-sub { text-align: center; color: #888; font-size: 0.7rem; margin-bottom: 20px; text-transform: uppercase; }
@@ -128,22 +131,29 @@
         .rank-tourneys { font-size: 0.7rem; color: #aaa; letter-spacing: 0.5px; }
         .rank-1 .rank-tourneys { color: #ffcccc; }
 
-        /* Tournament Drag/Swipe UI */
+        /* Tournament Drag/Swipe UI with Connecting Lines */
         .tourney-header { text-align: center; margin-bottom: 20px; }
         .tourney-header h2 { margin:0; font-size: 1.3rem; letter-spacing: 1px; color: #fff; }
         .tourney-header p { margin: 0; color: #888; font-size: 0.8rem; text-transform: uppercase; }
         
-        .bracket-wrapper { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 20px; padding-bottom: 20px; -webkit-overflow-scrolling: touch; }
+        .bracket-wrapper { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding: 20px 0 40px 0; -webkit-overflow-scrolling: touch; }
         .bracket-wrapper::-webkit-scrollbar { height: 6px; }
         .bracket-wrapper::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 3px; }
         
-        .round-column { min-width: 85vw; max-width: 320px; scroll-snap-align: center; display: flex; flex-direction: column; }
+        .round-column { min-width: 85vw; max-width: 320px; scroll-snap-align: center; display: flex; flex-direction: column; position: relative; }
         .round-title { text-align: center; font-size: 1rem; font-weight: bold; color: #888; margin-bottom: 15px; letter-spacing: 1px; }
+        .matches-wrapper { display: flex; flex-direction: column; justify-content: space-around; flex: 1; position: relative; }
         
-        .match-card-tourney { background: #1a1a1c; border-radius: 12px; margin-bottom: 15px; overflow: hidden; cursor: pointer; border-left: 4px solid transparent; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .match-slot { position: relative; display: flex; flex-direction: column; justify-content: center; flex: 1; padding: 0 20px; }
+        .match-card-tourney { background: #1a1a1c; border-radius: 12px; position: relative; z-index: 2; margin: 8px 0; overflow: hidden; cursor: pointer; border-left: 4px solid transparent; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         .match-card-tourney.active-match { border-left-color: #ff3b30; }
         .match-card-tourney:hover { background: #222; }
         
+        /* Bracket Connector Lines */
+        .round-column:not(:last-child) .match-slot::after { content: ''; position: absolute; right: 0; top: 50%; width: 20px; border-top: 2px solid #3a3a3c; z-index: 1; }
+        .round-column:not(:first-child) .match-slot::before { content: ''; position: absolute; left: 0; top: 50%; width: 20px; border-top: 2px solid #3a3a3c; z-index: 1; }
+        .round-column:not(:last-child) .match-slot:nth-child(odd) .vertical-line { position: absolute; right: 0; top: 50%; bottom: -50%; border-right: 2px solid #3a3a3c; z-index: 1; }
+
         .player-row-t { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #2a2a2c; }
         .player-row-t:last-child { border-bottom: none; }
         .player-info-t { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; color: #aaa; }
@@ -169,6 +179,7 @@
 </head>
 <body>
 
+    <!-- Centered Header -->
     <h1 onclick="adminLogin()">PRO STATS <span style="font-size:0.8rem; color:#4caf50;" id="adminSyncStatus"></span></h1>
 
     <!-- TAB 1: HOME -->
@@ -259,10 +270,9 @@
         
         <div id="tourneyEmptyState" class="empty-state">
             <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 14a4 4 0 0 0 6 6l1.5-1.5a10 10 0 0 0 9.5-2.5l-4-4-4 4"></path>
-                <path d="M8.5 8.5L20 10l-4-4-4 4"></path>
-                <path d="M14 4L11.5 8.5"></path>
-                <path d="M6 16l4 4"></path>
+                <path d="M4 14l6 6l9-9c1.4-1.4 1.8-3.4 1-5l-1.5 1.5l-2-2L18 4c-1.6-.8-3.6-.4-5 1z"/>
+                <path d="M7 11l6 6"/>
+                <path d="M10 8l6 6"/>
             </svg>
             <h3>No Live Tournament</h3>
             <p>There are no ongoing matches at the moment. Please check back later.</p>
@@ -281,7 +291,7 @@
                 <p>MAIN DRAW (SWIPE ❯)</p>
             </div>
             
-            <!-- 🌟 Scrollable Bracket Wrapper -->
+            <!-- Horizontal Swipe Bracket -->
             <div class="bracket-wrapper" id="bracketScrollContainer">
                 <!-- Columns injected here by JS -->
             </div>
@@ -292,7 +302,7 @@
         </div>
     </div>
 
-    <!-- Bottom Navigation Bar (Professional SVG Icons) -->
+    <!-- SVG Bottom Navigation Bar -->
     <div class="bottom-nav">
         <div class="nav-item active" id="nav-home" onclick="switchTab('home')">
             <div class="nav-icon">
@@ -302,12 +312,11 @@
         </div>
         <div class="nav-item-center" id="nav-tournament" onclick="switchTab('tournament')">
             <div class="nav-icon">
-                <!-- Exact angled shuttlecock SVG to match BWF style -->
-                <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 14a4 4 0 0 0 6 6l1.5-1.5a10 10 0 0 0 9.5-2.5l-4-4-4 4"></path>
-                    <path d="M8.5 8.5L20 10l-4-4-4 4"></path>
-                    <path d="M14 4L11.5 8.5"></path>
-                    <path d="M6 16l4 4"></path>
+                <!-- Safe, robust Shuttlecock SVG -->
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 14l6 6l9-9c1.4-1.4 1.8-3.4 1-5l-1.5 1.5l-2-2L18 4c-1.6-.8-3.6-.4-5 1z"/>
+                  <path d="M7 11l6 6"/>
+                  <path d="M10 8l6 6"/>
                 </svg>
             </div>
             <span>Live Scoring</span>
@@ -663,6 +672,7 @@
             }
         };
 
+        // 🌟 BWF Style Rankings Render
         window.renderRanking = function() {
             const container = document.getElementById('rankingListContainer'); container.innerHTML = '';
             document.getElementById('rankHeaderPlayer').innerText = window.currentRankMode === 'singles' ? 'SEED / PLAYER' : 'SEED / TEAM';
@@ -874,7 +884,7 @@
 
         window.closeProfile = function() { document.getElementById('profileModal').style.display = 'none'; };
 
-        // TOURNAMENT LOGIC
+        // 🌟 TOURNAMENT LOGIC (WITH TREE BRACKET RENDERING)
         window.renderTournamentBracket = function() {
             if (!tournament) return;
             
@@ -884,7 +894,8 @@
                 if (!matches || matches.length === 0) return;
                 
                 html += `<div class="round-column">
-                            <div class="round-title">${roundName}</div>`;
+                            <div class="round-title">${roundName}</div>
+                            <div class="matches-wrapper">`;
                             
                 matches.forEach((m, idx) => {
                     let p1 = m.p1 || { name: 'TBD', flag: '❓' }; let p2 = m.p2 || { name: 'TBD', flag: '❓' };
@@ -892,20 +903,26 @@
                     let isActive = (!m.winner && p1.name !== 'TBD' && p2.name !== 'TBD' && p1.name !== 'BYE' && p2.name !== 'BYE') ? 'active-match' : '';
                     let clickEvt = (isAdmin && p1.name !== 'TBD' && p2.name !== 'TBD' && p1.name !== 'BYE' && p2.name !== 'BYE') ? `onclick="openTourneyScoreModal('${roundName}', ${idx})"` : '';
                     
+                    // Add vertical lines only to odd matches (except Final)
+                    let vertLine = (idx % 2 === 0 && roundName !== 'Final') ? `<div class="vertical-line"></div>` : '';
+                    
                     html += `
-                    <div class="match-card-tourney ${isActive}" ${clickEvt}>
-                        <div class="player-row-t ${w1Class}">
-                            <div class="player-info-t"><span class="player-flag">${p1.flag}</span> <span class="player-name">${p1.name}</span></div>
-                            <div class="scores-t"><span class="win-dot"></span> <span class="score-item-t">${m.scores.g1[0]}</span><span class="score-item-t">${m.scores.g2[0]}</span><span class="score-item-t">${m.scores.g3[0]}</span></div>
-                        </div>
-                        <div class="player-row-t ${w2Class}">
-                            <div class="player-info-t"><span class="player-flag">${p2.flag}</span> <span class="player-name">${p2.name}</span></div>
-                            <div class="scores-t"><span class="win-dot"></span> <span class="score-item-t">${m.scores.g1[1]}</span><span class="score-item-t">${m.scores.g2[1]}</span><span class="score-item-t">${m.scores.g3[1]}</span></div>
+                    <div class="match-slot">
+                        ${vertLine}
+                        <div class="match-card-tourney ${isActive}" ${clickEvt}>
+                            <div class="player-row-t ${w1Class}">
+                                <div class="player-info-t"><span class="player-flag">${p1.flag}</span> <span class="player-name">${p1.name}</span></div>
+                                <div class="scores-t"><span class="win-dot"></span> <span class="score-item-t">${m.scores.g1[0]}</span><span class="score-item-t">${m.scores.g2[0]}</span><span class="score-item-t">${m.scores.g3[0]}</span></div>
+                            </div>
+                            <div class="player-row-t ${w2Class}">
+                                <div class="player-info-t"><span class="player-flag">${p2.flag}</span> <span class="player-name">${p2.name}</span></div>
+                                <div class="scores-t"><span class="win-dot"></span> <span class="score-item-t">${m.scores.g1[1]}</span><span class="score-item-t">${m.scores.g2[1]}</span><span class="score-item-t">${m.scores.g3[1]}</span></div>
+                            </div>
                         </div>
                     </div>`;
                 });
                 
-                html += `</div>`;
+                html += `</div></div>`;
             });
             document.getElementById('bracketScrollContainer').innerHTML = html;
         };
