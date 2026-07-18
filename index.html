@@ -15,7 +15,7 @@
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Navigation */
+        /* Professional Bottom Navigation */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #0a0a0c; display: flex; justify-content: space-around; align-items: center; padding: 10px 0; border-top: 1px solid #1c1c1e; z-index: 999; padding-bottom: env(safe-area-inset-bottom); }
         .nav-item { color: #666; display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; font-weight: 600; cursor: pointer; flex: 1; transition: 0.3s; }
         .nav-item.active { color: #fff; }
@@ -26,7 +26,7 @@
         .nav-item-center .nav-icon { margin-bottom: 0; }
         .nav-item-center span { display: none; }
 
-        /* General Components */
+        /* General Styles */
         .card { background: #1c1c1e; padding: 20px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .admin-card { background: #1a1a1a; border: 2px solid #ffcc00; display: none; box-shadow: 0 0 15px rgba(255, 204, 0, 0.3); }
         .admin-title { color: #ffcc00; font-weight: bold; font-size: 1.2rem; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
@@ -130,32 +130,42 @@
         .rank-tourneys { font-size: 0.7rem; color: #aaa; letter-spacing: 0.5px; }
         .rank-1 .rank-tourneys { color: #ffcccc; }
 
-        /* Tournament Drag/Swipe UI (Absolute Positioned for perfect bracket lines) */
+        /* 🌟 Perfect BWF Tournament Bracket CSS */
         .tourney-header { text-align: center; margin-bottom: 20px; }
         .tourney-header h2 { margin:0; font-size: 1.3rem; letter-spacing: 1px; color: #fff; }
         .tourney-header p { margin: 0; color: #888; font-size: 0.8rem; text-transform: uppercase; }
         
-        .bracket-scroll-area { width: 100%; overflow-x: auto; padding-bottom: 20px; -webkit-overflow-scrolling: touch; }
+        .bracket-scroll-area { width: 100%; overflow-x: auto; padding-bottom: 40px; -webkit-overflow-scrolling: touch; }
         .bracket-scroll-area::-webkit-scrollbar { height: 6px; }
         .bracket-scroll-area::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 3px; }
         
-        .match-card-tourney { background: #1a1a1c; border-radius: 12px; overflow: hidden; border-left: 4px solid transparent; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 2; box-sizing: border-box; }
-        .match-card-tourney.active-match { border-left-color: #ff3b30; cursor: pointer; }
-        .match-card-tourney:hover { background: #222; }
+        .tourney-layout { display: flex; gap: 0; min-width: max-content; padding: 20px; }
+        .tourney-col { display: flex; flex-direction: column; justify-content: space-around; width: 280px; flex-shrink: 0; position: relative; }
+        .tourney-col-title { text-align: center; color: #888; font-weight: bold; margin-bottom: 20px; font-size: 1rem; letter-spacing: 1px; }
         
-        .player-row-t { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #2a2a2c; height: 43px; box-sizing: border-box; }
+        /* The invisible wrapper that creates the perfect lines */
+        .tourney-match-wrapper { position: relative; display: flex; flex-direction: column; justify-content: center; flex: 1; padding: 10px 25px 10px 25px; }
+        
+        /* Bracket Connector Lines */
+        .tourney-col:not(:last-child) .tourney-match-wrapper:nth-child(odd)::after { content: ''; position: absolute; right: 0; top: 50%; height: 50%; width: 25px; border-top: 2px solid #444; border-right: 2px solid #444; border-top-right-radius: 6px; }
+        .tourney-col:not(:last-child) .tourney-match-wrapper:nth-child(even)::after { content: ''; position: absolute; right: 0; bottom: 50%; height: 50%; width: 25px; border-bottom: 2px solid #444; border-right: 2px solid #444; border-bottom-right-radius: 6px; }
+        .tourney-col:not(:first-child) .tourney-match-wrapper::before { content: ''; position: absolute; left: 0; top: 50%; width: 25px; border-top: 2px solid #444; }
+
+        .tourney-card { background: #1a1a1c; border-radius: 10px; position: relative; z-index: 2; border: 1px solid #2a2a2c; border-left: 4px solid #1a1a1c; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .tourney-card.active-match { border-left-color: #ff3b30; }
+        
+        /* 🌟 Admin Edit Button inside the card */
+        .tourney-edit-btn { position: absolute; right: 10px; top: -12px; background: #ff3b30; color: #fff; font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.5); z-index: 10; border: 1px solid #fff; }
+        
+        .player-row-t { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #2a2a2c; }
         .player-row-t:last-child { border-bottom: none; }
-        .player-info-t { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #aaa; white-space: nowrap; overflow: hidden; }
+        .player-info-t { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; color: #aaa; }
         .winner .player-info-t { color: #fff; font-weight: bold; }
         .win-dot { width: 8px; height: 8px; background-color: #4caf50; border-radius: 50%; display: inline-block; opacity: 0; }
         .winner .win-dot { opacity: 1; }
-        .scores-t { display: flex; gap: 8px; font-weight: bold; color: #888; }
+        .scores-t { display: flex; gap: 10px; font-weight: bold; color: #888; }
         .winner .scores-t { color: #ff3b30; }
-        .score-item-t { width: 18px; text-align: right; }
-        
-        /* Edit icon for Admin */
-        .edit-badge { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); font-size: 1.2rem; color: #fff; background: rgba(255, 59, 48, 0.8); border-radius: 50%; width: 28px; height: 28px; display: flex; justify-content: center; align-items: center; z-index: 10; opacity: 0.4; }
-        .match-card-tourney:hover .edit-badge { opacity: 1; }
+        .score-item-t { width: 20px; text-align: right; }
 
         .admin-setup-box { background: #1c1c1e; padding: 20px; border-radius: 12px; border: 1px solid #ffcc00; text-align:center; margin-top: 20px;}
         .player-checkbox-list { max-height: 200px; overflow-y: auto; background: #000; padding: 10px; border-radius: 8px; border: 1px solid #3a3a3c; text-align: left; }
@@ -260,17 +270,19 @@
 
     <!-- TAB 3: TOURNAMENT -->
     <div id="tab-tournament" class="tab-content" style="padding: 0;">
+        
+        <!-- Only shown if NO tournament is active -->
         <div id="tourneyEmptyState" class="empty-state">
             <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 14a4 4 0 0 0 6 6l1.5-1.5a10 10 0 0 0 9.5-2.5l-4-4-4 4"/>
-                <path d="M8.5 8.5L20 10l-4-4-4 4"/>
-                <path d="M14 4L11.5 8.5"/>
-                <path d="M6 16l4 4"/>
+                <path d="M4 14l6 6l9-9c1.4-1.4 1.8-3.4 1-5l-1.5 1.5l-2-2L18 4c-1.6-.8-3.6-.4-5 1z"/>
+                <path d="M7 11l6 6"/>
+                <path d="M10 8l6 6"/>
             </svg>
             <h3>No Live Tournament</h3>
             <p>There are no ongoing matches at the moment. Please check back later.</p>
         </div>
 
+        <!-- Only shown to Admin when NO tournament is active -->
         <div id="tourneySetupState" class="admin-setup-box" style="display: none; margin: 20px;">
             <h3 style="margin-top:0; color:#ffcc00;">CREATE TOURNAMENT</h3>
             <p style="font-size:0.8rem; color:#aaa; margin-bottom:15px;">Select 2 to 16 players. The system will auto-fill BYE for remaining slots.</p>
@@ -278,6 +290,7 @@
             <button class="btn-primary" onclick="generateTournament()">GENERATE BRACKET</button>
         </div>
 
+        <!-- Shown to EVERYONE when tournament IS active -->
         <div id="tourneyActiveState" style="display: none;">
             <div class="tourney-header" style="padding-top:20px;">
                 <h2>TOURNAMENT</h2>
@@ -285,7 +298,9 @@
             </div>
             
             <div class="bracket-scroll-area">
-                <div id="bracketBoard" style="position:relative;"></div>
+                <div class="tourney-layout" id="bracketBoard">
+                    <!-- Flex columns will be injected here -->
+                </div>
             </div>
 
             <div id="endTourneyContainer" style="display:none; padding: 0 20px;">
@@ -304,12 +319,9 @@
         </div>
         <div class="nav-item-center" id="nav-tournament" onclick="switchTab('tournament')">
             <div class="nav-icon">
-                <!-- Perfect Shuttlecock Match -->
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 14a4 4 0 0 0 6 6l1.5-1.5a10 10 0 0 0 9.5-2.5l-4-4-4 4"/>
-                  <path d="M8.5 8.5L20 10l-4-4-4 4"/>
-                  <path d="M14 4L11.5 8.5"/>
-                  <path d="M6 16l4 4"/>
+                <!-- 🌟 Flawless Vector Shuttlecock Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18.8 3.5a1.8 1.8 0 0 0-2.3.4l-3 3.5a13 13 0 0 0-6.8-1c-1.8.3-3.6 1.4-4.8 3a1 1 0 0 0 .5 1.5l3.8 2-2 2a2.6 2.6 0 0 0 3.7 3.7l2-2 2 3.8a1 1 0 0 0 1.5.5c1.6-1.2 2.7-3 3-4.8a13 13 0 0 0-1-6.8l3.5-3a1.8 1.8 0 0 0 .4-2.3z"/>
                 </svg>
             </div>
             <span>Live Scoring</span>
@@ -361,7 +373,7 @@
                 <span id="scoreP2Name" style="color:#fff; font-weight:bold; width: 40%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">P2</span>
                 <input type="number" id="tg1p2" min="0" max="30"><input type="number" id="tg2p2" min="0" max="30"><input type="number" id="tg3p2" min="0" max="30">
             </div>
-            <button class="action-btn" onclick="submitTourneyScore()">SAVE & ADVANCE</button>
+            <button class="action-btn" onclick="submitTourneyScore()">SAVE SCORE</button>
         </div>
     </div>
 
@@ -448,7 +460,6 @@
         function mergeMatches() {
             allSingles = rawMatches.filter(m => m.matchType !== 'doubles').sort((a, b) => new Date(a.date) - new Date(b.date));
             allDoubles = [...rawMatches.filter(m => m.matchType === 'doubles'), ...rawDoublesMatches].sort((a, b) => new Date(a.date) - new Date(b.date));
-            let d = new Date(); document.getElementById('rankingUpdateTime').innerText = `BWF Style • Updated Live`;
             window.renderRanking(); window.calculateH2H();
         }
 
@@ -876,55 +887,43 @@
 
         window.closeProfile = function() { document.getElementById('profileModal').style.display = 'none'; };
 
-        // 🌟 TOURNAMENT LOGIC (BWF Horizontal Tree Layout)
+        // 🌟 BWF STYLE BRACKET RENDER LOGIC
         window.renderTournamentBracket = function() {
             if (!tournament) return;
-            const container = document.getElementById('bracketScrollContainer');
+            const container = document.getElementById('bracketBoard');
+            let boardHtml = "";
             
-            const cardW = 260; const cardH = 86; const gapX = 40; const colW = cardW + gapX;
-            const yStarts = { 'R16': [0, 100, 200, 300, 400, 500, 600, 700], 'QF': [50, 250, 450, 650], 'SF': [150, 550], 'Final': [350] };
-            
-            let boardHtml = `<div style="position:relative; width:${4 * colW}px; height: 800px; padding: 10px 20px;">`;
-            
-            roundsOrder.forEach((roundName, colIdx) => {
+            roundsOrder.forEach((roundName) => {
                 let matches = tournament[roundName];
-                if (!matches) return;
+                if (!matches || matches.length === 0) return;
                 
-                // Draw Round Title Above Column
-                let x = colIdx * colW;
-                boardHtml += `<div style="position:absolute; left:${x}px; top: -10px; width:${cardW}px; text-align:center; color:#888; font-weight:bold; letter-spacing:1px; font-size:0.9rem;">${roundName}</div>`;
-
-                matches.forEach((m, rowIdx) => {
-                    let y = yStarts[roundName][rowIdx] + 25; // +25px offset to clear round titles
+                boardHtml += `<div class="tourney-col"><div class="tourney-col-title">${roundName}</div>`;
+                            
+                matches.forEach((m, idx) => {
                     let p1 = m.p1 || { name: 'TBD', flag: '❓' }; let p2 = m.p2 || { name: 'TBD', flag: '❓' };
                     let w1Class = m.winner === 1 ? 'winner' : ''; let w2Class = m.winner === 2 ? 'winner' : '';
                     let canEdit = (isAdmin && p1.name !== 'TBD' && p2.name !== 'TBD' && p1.name !== 'BYE' && p2.name !== 'BYE');
                     let isActive = (!m.winner && canEdit) ? 'active-match' : '';
-                    let clickEvt = canEdit ? `onclick="openTourneyScoreModal('${roundName}', ${rowIdx})"` : '';
-                    let editBadge = canEdit ? `<div class="edit-badge">✏️</div>` : '';
+                    let clickEvt = canEdit ? `onclick="openTourneyScoreModal('${roundName}', ${idx})"` : '';
+                    let editBadge = canEdit ? `<div class="tourney-edit-btn">✏️ EDIT</div>` : '';
                     
                     boardHtml += `
-                    <div class="match-card-tourney ${isActive}" ${clickEvt} style="position:absolute; left:${x}px; top:${y}px; width:${cardW}px; height:${cardH}px;">
-                        ${editBadge}
-                        <div class="player-row-t ${w1Class}"><div class="player-info-t"><span class="player-flag">${p1.flag}</span> <span class="player-name">${p1.name}</span></div><div class="scores-t"><span class="win-dot"></span> <span class="score-item-t">${m.scores.g1[0]}</span><span class="score-item-t">${m.scores.g2[0]}</span><span class="score-item-t">${m.scores.g3[0]}</span></div></div>
-                        <div class="player-row-t ${w2Class}"><div class="player-info-t"><span class="player-flag">${p2.flag}</span> <span class="player-name">${p2.name}</span></div><div class="scores-t"><span class="win-dot"></span> <span class="score-item-t">${m.scores.g1[1]}</span><span class="score-item-t">${m.scores.g2[1]}</span><span class="score-item-t">${m.scores.g3[1]}</span></div></div>
+                    <div class="tourney-match-wrapper">
+                        <div class="tourney-card ${isActive}" ${clickEvt}>
+                            ${editBadge}
+                            <div class="player-row-t ${w1Class}">
+                                <div class="player-info-t"><span class="player-flag">${p1.flag}</span> <span class="player-name">${p1.name}</span></div>
+                                <div class="scores-t"><span class="win-dot"></span> <span class="score-item-t">${m.scores.g1[0]}</span><span class="score-item-t">${m.scores.g2[0]}</span><span class="score-item-t">${m.scores.g3[0]}</span></div>
+                            </div>
+                            <div class="player-row-t ${w2Class}">
+                                <div class="player-info-t"><span class="player-flag">${p2.flag}</span> <span class="player-name">${p2.name}</span></div>
+                                <div class="scores-t"><span class="win-dot"></span> <span class="score-item-t">${m.scores.g1[1]}</span><span class="score-item-t">${m.scores.g2[1]}</span><span class="score-item-t">${m.scores.g3[1]}</span></div>
+                            </div>
+                        </div>
                     </div>`;
-                    
-                    // Draw Connecting Lines
-                    if (roundName !== 'Final') {
-                        let lineRightY = y + cardH / 2; let lineRightX = x + cardW;
-                        boardHtml += `<div style="position:absolute; left:${lineRightX}px; top:${lineRightY}px; width:${gapX/2}px; border-top:2px solid #3a3a3c;"></div>`;
-                        if (rowIdx % 2 === 0) {
-                            let nextY = yStarts[roundName][rowIdx + 1] + 25 + cardH / 2;
-                            let vertHeight = nextY - lineRightY;
-                            boardHtml += `<div style="position:absolute; left:${lineRightX + gapX/2}px; top:${lineRightY}px; height:${vertHeight}px; border-right:2px solid #3a3a3c;"></div>`;
-                            let midY = lineRightY + vertHeight / 2;
-                            boardHtml += `<div style="position:absolute; left:${lineRightX + gapX/2}px; top:${midY}px; width:${gapX/2}px; border-top:2px solid #3a3a3c;"></div>`;
-                        }
-                    }
                 });
+                boardHtml += `</div>`;
             });
-            boardHtml += `</div>`;
             container.innerHTML = boardHtml;
         };
 
