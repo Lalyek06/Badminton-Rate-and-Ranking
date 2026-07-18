@@ -130,7 +130,7 @@
         .rank-tourneys { font-size: 0.7rem; color: #aaa; letter-spacing: 0.5px; }
         .rank-1 .rank-tourneys { color: #ffcccc; }
 
-        /* Tournament Flexbox Layout (Bulletproof) */
+        /* 🌟 Bulletproof BWF Style Flex Bracket UI */
         .tourney-header { text-align: center; margin-bottom: 20px; }
         .tourney-header h2 { margin:0; font-size: 1.3rem; letter-spacing: 1px; color: #fff; }
         .tourney-header p { margin: 0; color: #888; font-size: 0.8rem; text-transform: uppercase; }
@@ -141,27 +141,27 @@
         
         .tourney-layout { display: flex; gap: 30px; padding: 20px 10px; min-width: max-content; align-items: stretch; }
         .tourney-col { display: flex; flex-direction: column; width: 260px; position: relative; }
-        .tourney-col-title { text-align: center; color: #888; font-weight: bold; margin-bottom: 10px; font-size: 1rem; letter-spacing: 1px; flex-shrink: 0; }
+        .tourney-col-title { text-align: center; color: #888; font-weight: bold; margin-bottom: 20px; font-size: 1rem; letter-spacing: 1px; flex-shrink: 0; }
         
-        .tourney-match-wrapper { position: relative; display: flex; flex-direction: column; justify-content: center; flex: 1; padding: 10px 0; }
+        .tourney-match-wrapper { position: relative; display: flex; flex-direction: column; justify-content: center; flex: 1; padding: 15px 0; }
         
-        /* Flawless Bracket Connector Lines */
+        /* Flawless Bracket Tree Lines via CSS Pseudo-elements */
         .tourney-col:not(:last-child) .tourney-match-wrapper:nth-child(odd)::after {
             content: ''; position: absolute; right: -15px; top: 50%; height: 50%; width: 15px;
-            border-top: 2px solid #3a3a3c; border-right: 2px solid #3a3a3c; border-top-right-radius: 4px; z-index: 1;
+            border-top: 2px solid #3a3a3c; border-right: 2px solid #3a3a3c; border-top-right-radius: 6px; z-index: 1;
         }
         .tourney-col:not(:last-child) .tourney-match-wrapper:nth-child(even)::after {
             content: ''; position: absolute; right: -15px; bottom: 50%; height: 50%; width: 15px;
-            border-bottom: 2px solid #3a3a3c; border-right: 2px solid #3a3a3c; border-bottom-right-radius: 4px; z-index: 1;
+            border-bottom: 2px solid #3a3a3c; border-right: 2px solid #3a3a3c; border-bottom-right-radius: 6px; z-index: 1;
         }
         .tourney-col:not(:first-child) .tourney-match-wrapper::before {
             content: ''; position: absolute; left: -15px; top: 50%; width: 15px; border-top: 2px solid #3a3a3c; z-index: 1;
         }
 
-        .tourney-card { background: #1a1a1c; border-radius: 10px; position: relative; z-index: 2; overflow: hidden; border-left: 4px solid transparent; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .tourney-card { background: #1a1a1c; border-radius: 12px; position: relative; z-index: 2; overflow: hidden; border-left: 4px solid transparent; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #2a2a2c; }
         .tourney-card.active-match { border-left-color: #ff3b30; }
         
-        /* 🌟 Explicit Update Score Button for Admin */
+        /* Admin score updater link button style */
         .admin-score-btn { background: #ff3b30; color: #fff; border: none; padding: 8px; width: 100%; font-size: 0.8rem; font-weight: bold; cursor: pointer; display: block; border-top: 1px solid #3a3a3c; letter-spacing: 1px; }
         .admin-score-btn:active { background: #d32f2f; }
         
@@ -230,7 +230,7 @@
             <div class="card" style="margin-top: 5px;">
                 <input type="text" id="playerName" placeholder="Enter player name">
                 <select id="playerCountry">
-                    <option value="🇲🇾">🇲🇾 Malaysia</option><option value="🇨🇳">🇨🇳 China</option><option value="🇮🇩">🇮🇩 Indonesia</option><option value="🇯🇵">🇯🇵 Japan</option><option value="🇰🇷">🇰🇷 South Korea</option><option value="🇹🇭">🇹🇭 Thailand</option><option value="🇹🇼">🇹🇼 Chinese Taipei</option><option value="🇩🇰">🇩🇰 Denmark</option><option value="🇸🇬">🇸🇬 Singapore</option><option value="🇬🇧">🇬🇧 UK</option><option value="🇺🇸">🇺🇸 USA</option><option value="🏳️">🏳️ Other</option>
+                    <option value="🇲🇾">🇲🇾 Malaysia</option><option value="🇨🇳">🇨🇳 China</option><option value="🇮🇩">🇮🇩 Indonesia</option><option value="🇯🇵">🇯🇵 Japan</option><option value="🇰🇷">🇰🇷 South Korea</option><option value="🇹🇭">🇹婚 Thailand</option><option value="🇹🇼">🇹🇼 Chinese Taipei</option><option value="🇩🇰">🇩🇰 Denmark</option><option value="🇸🇬">🇸🇬 Singapore</option><option value="🇬🇧">🇬🇧 UK</option><option value="🇺🇸">🇺🇸 USA</option><option value="🏳️">🏳️ Other</option>
                 </select>
                 <button class="action-btn" onclick="addPlayer()">SUBMIT PLAYER</button>
             </div>
@@ -279,7 +279,6 @@
     <!-- TAB 3: TOURNAMENT -->
     <div id="tab-tournament" class="tab-content" style="padding: 0;">
         
-        <!-- Only shown if NO tournament is active -->
         <div id="tourneyEmptyState" class="empty-state">
             <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 14l6 6l9-9c1.4-1.4 1.8-3.4 1-5l-1.5 1.5l-2-2L18 4c-1.6-.8-3.6-.4-5 1z"/>
@@ -290,7 +289,6 @@
             <p>There are no ongoing matches at the moment. Please check back later.</p>
         </div>
 
-        <!-- Only shown to Admin when NO tournament is active -->
         <div id="tourneySetupState" class="admin-setup-box" style="display: none; margin: 20px;">
             <h3 style="margin-top:0; color:#ffcc00;">CREATE TOURNAMENT</h3>
             <p style="font-size:0.8rem; color:#aaa; margin-bottom:15px;">Select 2 to 16 players. The system will auto-fill BYE for remaining slots.</p>
@@ -298,7 +296,6 @@
             <button class="btn-primary" onclick="generateTournament()">GENERATE BRACKET</button>
         </div>
 
-        <!-- Shown to EVERYONE when tournament IS active -->
         <div id="tourneyActiveState" style="display: none;">
             <div class="tourney-header" style="padding-top:20px;">
                 <h2>TOURNAMENT</h2>
@@ -327,13 +324,18 @@
         </div>
         <div class="nav-item-center" id="nav-tournament" onclick="switchTab('tournament')">
             <div class="nav-icon">
-                <!-- 🌟 Perfect Shuttlecock SVG matching your request -->
+                <!-- 🏸 Custom Badminton Racket Graphic matching requested template layout style -->
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <g transform="scale(-1, 1) translate(-24, 0)">
-                    <path d="M21.5 2.5a3 3 0 0 0-4.24 0l-3.54 3.54a11 11 0 0 0-3.18 5.66L7 15l-4.24 4.24a3 3 0 0 0 4.24 4.24L11.24 19l2.83-3.18a11 11 0 0 0 5.66-3.18l3.54-3.54a3 3 0 0 0 0-4.24Z" />
-                    <line x1="3" y1="21" x2="7" y2="17" />
-                    <line x1="17" y1="7" x2="21" y2="3" />
-                    <line x1="11" y1="11" x2="13" y2="13" />
+                  <g transform="rotate(-45 12 12)">
+                    <!-- Racket Head Frame -->
+                    <ellipse cx="12" cy="7" rx="5" ry="6" />
+                    <!-- Racket Shaft / Handle -->
+                    <line x1="12" y1="13" x2="12" y2="21" />
+                    <!-- Grip Bottom Cap -->
+                    <line x1="10" y1="21" x2="14" y2="21" />
+                    <!-- Basic Strings Simulation Lines -->
+                    <line x1="12" y1="1" x2="12" y2="13" stroke-width="1" opacity="0.3" />
+                    <line x1="7" y1="7" x2="17" y2="7" stroke-width="1" opacity="0.3" />
                   </g>
                 </svg>
             </div>
@@ -473,7 +475,6 @@
         function mergeMatches() {
             allSingles = rawMatches.filter(m => m.matchType !== 'doubles').sort((a, b) => new Date(a.date) - new Date(b.date));
             allDoubles = [...rawMatches.filter(m => m.matchType === 'doubles'), ...rawDoublesMatches].sort((a, b) => new Date(a.date) - new Date(b.date));
-            let d = new Date(); document.getElementById('rankingUpdateTime').innerText = `Updated Live`;
             window.renderRanking(); window.calculateH2H();
         }
 
@@ -901,7 +902,7 @@
 
         window.closeProfile = function() { document.getElementById('profileModal').style.display = 'none'; };
 
-        // 🌟 BWF STYLE BRACKET RENDER LOGIC (FLEXBOX - BULLETPROOF)
+        // 🌟 TOURNAMENT LOGIC (BWF Horizontal Tree Layout with Perfect Pseudo Lines)
         window.renderTournamentBracket = function() {
             if (!tournament) return;
             const container = document.getElementById('bracketBoard');
@@ -919,7 +920,7 @@
                     let canEdit = (isAdmin && p1.name !== 'TBD' && p2.name !== 'TBD' && p1.name !== 'BYE' && p2.name !== 'BYE');
                     let isActive = (!m.winner && canEdit) ? 'active-match' : '';
                     
-                    // 🌟 EXPLICIT EDIT BUTTON FOR ADMIN
+                    // Explicit Update Score Button for Admin
                     let editBtnHtml = canEdit ? `<button class="admin-score-btn" onclick="openTourneyScoreModal('${roundName}', ${idx})">✏️ UPDATE SCORE</button>` : '';
                     
                     boardHtml += `
