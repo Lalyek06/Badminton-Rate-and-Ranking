@@ -15,7 +15,7 @@
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Professional Bottom Navigation */
+        /* Navigation */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #0a0a0c; display: flex; justify-content: space-around; align-items: center; padding: 10px 0; border-top: 1px solid #1c1c1e; z-index: 999; padding-bottom: env(safe-area-inset-bottom); }
         .nav-item { color: #666; display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; font-weight: 600; cursor: pointer; flex: 1; transition: 0.3s; }
         .nav-item.active { color: #fff; }
@@ -26,7 +26,7 @@
         .nav-item-center .nav-icon { margin-bottom: 0; }
         .nav-item-center span { display: none; }
 
-        /* General Styles */
+        /* General Components */
         .card { background: #1c1c1e; padding: 20px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .admin-card { background: #1a1a1a; border: 2px solid #ffcc00; display: none; box-shadow: 0 0 15px rgba(255, 204, 0, 0.3); }
         .admin-title { color: #ffcc00; font-weight: bold; font-size: 1.2rem; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
@@ -130,7 +130,7 @@
         .rank-tourneys { font-size: 0.7rem; color: #aaa; letter-spacing: 0.5px; }
         .rank-1 .rank-tourneys { color: #ffcccc; }
 
-        /* 🌟 Perfect BWF Tournament Bracket CSS */
+        /* Tournament Flexbox Layout (Bulletproof) */
         .tourney-header { text-align: center; margin-bottom: 20px; }
         .tourney-header h2 { margin:0; font-size: 1.3rem; letter-spacing: 1px; color: #fff; }
         .tourney-header p { margin: 0; color: #888; font-size: 0.8rem; text-transform: uppercase; }
@@ -139,23 +139,31 @@
         .bracket-scroll-area::-webkit-scrollbar { height: 6px; }
         .bracket-scroll-area::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 3px; }
         
-        .tourney-layout { display: flex; gap: 0; min-width: max-content; padding: 20px; }
-        .tourney-col { display: flex; flex-direction: column; justify-content: space-around; width: 280px; flex-shrink: 0; position: relative; }
-        .tourney-col-title { text-align: center; color: #888; font-weight: bold; margin-bottom: 20px; font-size: 1rem; letter-spacing: 1px; }
+        .tourney-layout { display: flex; gap: 30px; padding: 20px 10px; min-width: max-content; align-items: stretch; }
+        .tourney-col { display: flex; flex-direction: column; width: 260px; position: relative; }
+        .tourney-col-title { text-align: center; color: #888; font-weight: bold; margin-bottom: 10px; font-size: 1rem; letter-spacing: 1px; flex-shrink: 0; }
         
-        /* The invisible wrapper that creates the perfect lines */
-        .tourney-match-wrapper { position: relative; display: flex; flex-direction: column; justify-content: center; flex: 1; padding: 10px 25px 10px 25px; }
+        .tourney-match-wrapper { position: relative; display: flex; flex-direction: column; justify-content: center; flex: 1; padding: 10px 0; }
         
-        /* Bracket Connector Lines */
-        .tourney-col:not(:last-child) .tourney-match-wrapper:nth-child(odd)::after { content: ''; position: absolute; right: 0; top: 50%; height: 50%; width: 25px; border-top: 2px solid #444; border-right: 2px solid #444; border-top-right-radius: 6px; }
-        .tourney-col:not(:last-child) .tourney-match-wrapper:nth-child(even)::after { content: ''; position: absolute; right: 0; bottom: 50%; height: 50%; width: 25px; border-bottom: 2px solid #444; border-right: 2px solid #444; border-bottom-right-radius: 6px; }
-        .tourney-col:not(:first-child) .tourney-match-wrapper::before { content: ''; position: absolute; left: 0; top: 50%; width: 25px; border-top: 2px solid #444; }
+        /* Flawless Bracket Connector Lines */
+        .tourney-col:not(:last-child) .tourney-match-wrapper:nth-child(odd)::after {
+            content: ''; position: absolute; right: -15px; top: 50%; height: 50%; width: 15px;
+            border-top: 2px solid #3a3a3c; border-right: 2px solid #3a3a3c; border-top-right-radius: 4px; z-index: 1;
+        }
+        .tourney-col:not(:last-child) .tourney-match-wrapper:nth-child(even)::after {
+            content: ''; position: absolute; right: -15px; bottom: 50%; height: 50%; width: 15px;
+            border-bottom: 2px solid #3a3a3c; border-right: 2px solid #3a3a3c; border-bottom-right-radius: 4px; z-index: 1;
+        }
+        .tourney-col:not(:first-child) .tourney-match-wrapper::before {
+            content: ''; position: absolute; left: -15px; top: 50%; width: 15px; border-top: 2px solid #3a3a3c; z-index: 1;
+        }
 
-        .tourney-card { background: #1a1a1c; border-radius: 10px; position: relative; z-index: 2; border: 1px solid #2a2a2c; border-left: 4px solid #1a1a1c; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .tourney-card { background: #1a1a1c; border-radius: 10px; position: relative; z-index: 2; overflow: hidden; border-left: 4px solid transparent; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         .tourney-card.active-match { border-left-color: #ff3b30; }
         
-        /* 🌟 Admin Edit Button inside the card */
-        .tourney-edit-btn { position: absolute; right: 10px; top: -12px; background: #ff3b30; color: #fff; font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.5); z-index: 10; border: 1px solid #fff; }
+        /* 🌟 Explicit Update Score Button for Admin */
+        .admin-score-btn { background: #ff3b30; color: #fff; border: none; padding: 8px; width: 100%; font-size: 0.8rem; font-weight: bold; cursor: pointer; display: block; border-top: 1px solid #3a3a3c; letter-spacing: 1px; }
+        .admin-score-btn:active { background: #d32f2f; }
         
         .player-row-t { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #2a2a2c; }
         .player-row-t:last-child { border-bottom: none; }
@@ -319,9 +327,14 @@
         </div>
         <div class="nav-item-center" id="nav-tournament" onclick="switchTab('tournament')">
             <div class="nav-icon">
-                <!-- 🌟 Flawless Vector Shuttlecock Icon -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18.8 3.5a1.8 1.8 0 0 0-2.3.4l-3 3.5a13 13 0 0 0-6.8-1c-1.8.3-3.6 1.4-4.8 3a1 1 0 0 0 .5 1.5l3.8 2-2 2a2.6 2.6 0 0 0 3.7 3.7l2-2 2 3.8a1 1 0 0 0 1.5.5c1.6-1.2 2.7-3 3-4.8a13 13 0 0 0-1-6.8l3.5-3a1.8 1.8 0 0 0 .4-2.3z"/>
+                <!-- 🌟 Perfect Shuttlecock SVG matching your request -->
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <g transform="scale(-1, 1) translate(-24, 0)">
+                    <path d="M21.5 2.5a3 3 0 0 0-4.24 0l-3.54 3.54a11 11 0 0 0-3.18 5.66L7 15l-4.24 4.24a3 3 0 0 0 4.24 4.24L11.24 19l2.83-3.18a11 11 0 0 0 5.66-3.18l3.54-3.54a3 3 0 0 0 0-4.24Z" />
+                    <line x1="3" y1="21" x2="7" y2="17" />
+                    <line x1="17" y1="7" x2="21" y2="3" />
+                    <line x1="11" y1="11" x2="13" y2="13" />
+                  </g>
                 </svg>
             </div>
             <span>Live Scoring</span>
@@ -373,7 +386,7 @@
                 <span id="scoreP2Name" style="color:#fff; font-weight:bold; width: 40%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">P2</span>
                 <input type="number" id="tg1p2" min="0" max="30"><input type="number" id="tg2p2" min="0" max="30"><input type="number" id="tg3p2" min="0" max="30">
             </div>
-            <button class="action-btn" onclick="submitTourneyScore()">SAVE SCORE</button>
+            <button class="action-btn" onclick="submitTourneyScore()">SAVE & ADVANCE</button>
         </div>
     </div>
 
@@ -460,6 +473,7 @@
         function mergeMatches() {
             allSingles = rawMatches.filter(m => m.matchType !== 'doubles').sort((a, b) => new Date(a.date) - new Date(b.date));
             allDoubles = [...rawMatches.filter(m => m.matchType === 'doubles'), ...rawDoublesMatches].sort((a, b) => new Date(a.date) - new Date(b.date));
+            let d = new Date(); document.getElementById('rankingUpdateTime').innerText = `Updated Live`;
             window.renderRanking(); window.calculateH2H();
         }
 
@@ -887,7 +901,7 @@
 
         window.closeProfile = function() { document.getElementById('profileModal').style.display = 'none'; };
 
-        // 🌟 BWF STYLE BRACKET RENDER LOGIC
+        // 🌟 BWF STYLE BRACKET RENDER LOGIC (FLEXBOX - BULLETPROOF)
         window.renderTournamentBracket = function() {
             if (!tournament) return;
             const container = document.getElementById('bracketBoard');
@@ -904,13 +918,13 @@
                     let w1Class = m.winner === 1 ? 'winner' : ''; let w2Class = m.winner === 2 ? 'winner' : '';
                     let canEdit = (isAdmin && p1.name !== 'TBD' && p2.name !== 'TBD' && p1.name !== 'BYE' && p2.name !== 'BYE');
                     let isActive = (!m.winner && canEdit) ? 'active-match' : '';
-                    let clickEvt = canEdit ? `onclick="openTourneyScoreModal('${roundName}', ${idx})"` : '';
-                    let editBadge = canEdit ? `<div class="tourney-edit-btn">✏️ EDIT</div>` : '';
+                    
+                    // 🌟 EXPLICIT EDIT BUTTON FOR ADMIN
+                    let editBtnHtml = canEdit ? `<button class="admin-score-btn" onclick="openTourneyScoreModal('${roundName}', ${idx})">✏️ UPDATE SCORE</button>` : '';
                     
                     boardHtml += `
                     <div class="tourney-match-wrapper">
-                        <div class="tourney-card ${isActive}" ${clickEvt}>
-                            ${editBadge}
+                        <div class="tourney-card ${isActive}">
                             <div class="player-row-t ${w1Class}">
                                 <div class="player-info-t"><span class="player-flag">${p1.flag}</span> <span class="player-name">${p1.name}</span></div>
                                 <div class="scores-t"><span class="win-dot"></span> <span class="score-item-t">${m.scores.g1[0]}</span><span class="score-item-t">${m.scores.g2[0]}</span><span class="score-item-t">${m.scores.g3[0]}</span></div>
@@ -919,6 +933,7 @@
                                 <div class="player-info-t"><span class="player-flag">${p2.flag}</span> <span class="player-name">${p2.name}</span></div>
                                 <div class="scores-t"><span class="win-dot"></span> <span class="score-item-t">${m.scores.g1[1]}</span><span class="score-item-t">${m.scores.g2[1]}</span><span class="score-item-t">${m.scores.g3[1]}</span></div>
                             </div>
+                            ${editBtnHtml}
                         </div>
                     </div>`;
                 });
