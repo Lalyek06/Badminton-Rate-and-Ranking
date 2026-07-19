@@ -47,7 +47,7 @@
         .mode-toggle button { flex: 1; padding: 10px; background: transparent; color: #aaa; border: none; cursor: pointer; font-weight: bold; font-size: 0.95rem; margin: 0; border-radius: 0; transition: 0.3s; }
         .mode-toggle button.active { background: #ff3b30; color: #fff; }
         .doubles-select-group { display: flex; gap: 10px; }
-        .doubles-select-group select { flex: 1; }
+        .doubles-select-group select, .doubles-select-group input { flex: 1; }
 
         .score-row { display: flex; justify-content: space-between; gap: 5px; margin: 15px 0; }
         .score-box { background: #2c2c2e; border-radius: 8px; padding: 10px 5px; flex: 1; text-align: center; border: 1px solid #3a3a3c; }
@@ -201,14 +201,14 @@
                 </div>
                 
                 <label id="lblMatchA" style="color:#aaa; font-size:0.8rem;">Player A:</label>
-                <div id="singlesAGroup"><select id="p1a"></select></div>
-                <div id="doublesAGroup" class="doubles-select-group" style="display:none;"><select id="p1a_1"></select><select id="p1a_2"></select></div>
+                <div id="singlesAGroup"><input type="text" id="p1a" list="playersDatalist" placeholder="Search Player A..."></div>
+                <div id="doublesAGroup" class="doubles-select-group" style="display:none;"><input type="text" id="p1a_1" list="playersDatalist" placeholder="Search Player A1..."><input type="text" id="p1a_2" list="playersDatalist" placeholder="Search Player A2..."></div>
 
                 <div class="vs-text">VS</div>
 
                 <label id="lblMatchB" style="color:#aaa; font-size:0.8rem;">Player B:</label>
-                <div id="singlesBGroup"><select id="p1b"></select></div>
-                <div id="doublesBGroup" class="doubles-select-group" style="display:none;"><select id="p1b_1"></select><select id="p1b_2"></select></div>
+                <div id="singlesBGroup"><input type="text" id="p1b" list="playersDatalist" placeholder="Search Player B..."></div>
+                <div id="doublesBGroup" class="doubles-select-group" style="display:none;"><input type="text" id="p1b_1" list="playersDatalist" placeholder="Search Player B1..."><input type="text" id="p1b_2" list="playersDatalist" placeholder="Search Player B2..."></div>
 
                 <div class="score-row">
                     <div class="score-box"><label>GAME 1</label><div class="score-inputs"><input type="number" id="g1a" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"> <span class="score-dash">-</span> <input type="number" id="g1b" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"></div></div>
@@ -238,14 +238,16 @@
                 <button id="btnH2HDoubles" onclick="setH2HMode('doubles')">Doubles</button>
             </div>
             <div id="h2hSinglesGroup">
-                <select id="queryP1" onchange="calculateH2H()" style="margin-bottom: 5px;"></select><div class="vs-text" style="font-size: 1rem; color: #888;">VS</div><select id="queryP2" onchange="calculateH2H()"></select>
+                <input type="text" id="queryP1" list="playersDatalist" onchange="calculateH2H()" placeholder="Search Player A..." style="margin-bottom: 5px;">
+                <div class="vs-text" style="font-size: 1rem; color: #888; margin: 5px 0;">VS</div>
+                <input type="text" id="queryP2" list="playersDatalist" onchange="calculateH2H()" placeholder="Search Player B...">
             </div>
             <div id="h2hDoublesGroup" style="display:none;">
                 <div style="font-size:0.8rem; color:#ffcc00; font-weight:bold; margin-bottom:5px;">TEAM A</div>
-                <div class="doubles-select-group"><select id="queryT1P1" onchange="calculateH2H()"></select><select id="queryT1P2" onchange="calculateH2H()"></select></div>
-                <div class="vs-text" style="font-size: 1rem; color: #888;">VS</div>
+                <div class="doubles-select-group"><input type="text" id="queryT1P1" list="playersDatalist" onchange="calculateH2H()" placeholder="Search Player A1..."><input type="text" id="queryT1P2" list="playersDatalist" onchange="calculateH2H()" placeholder="Search Player A2..."></div>
+                <div class="vs-text" style="font-size: 1rem; color: #888; margin: 5px 0;">VS</div>
                 <div style="font-size:0.8rem; color:#0a84ff; font-weight:bold; margin-bottom:5px;">TEAM B</div>
-                <div class="doubles-select-group"><select id="queryT2P1" onchange="calculateH2H()"></select><select id="queryT2P2" onchange="calculateH2H()"></select></div>
+                <div class="doubles-select-group"><input type="text" id="queryT2P1" list="playersDatalist" onchange="calculateH2H()" placeholder="Search Player B1..."><input type="text" id="queryT2P2" list="playersDatalist" onchange="calculateH2H()" placeholder="Search Player B2..."></div>
             </div>
             <div id="h2hResult"><div style="text-align:center; color:#888; margin-top:20px;">Please select players to analyze</div></div>
         </div>
@@ -381,6 +383,9 @@
             <button class="action-btn" onclick="submitTourneyScore()">SAVE & ADVANCE</button>
         </div>
     </div>
+    
+    <!-- 🌟 Datalist for Searchable Players -->
+    <datalist id="playersDatalist"></datalist>
 
     <script>
         var acc = document.getElementsByClassName("accordion");
@@ -423,7 +428,7 @@
         let players = []; let rawMatches = [], rawDoublesMatches = [];
         let allSingles = [], allDoubles = [];
         let pendingSingles = [], pendingDoubles = []; let pendingPlayers = []; 
-        let tourneyHistory = []; // <-- 新增的独立锦标赛历史数据库数组
+        let tourneyHistory = []; 
         let rankingChartInstance = null; window.teamAChartInst = null; window.teamBChartInst = null; window.profPieChartInst = null;
         let isAdmin = false; 
         
@@ -466,7 +471,6 @@
             document.getElementById('playerCheckboxes').innerHTML = cbHtml;
         });
 
-        // 监听并拉取历史记录
         onSnapshot(collection(db, "tournaments_history"), (snapshot) => { 
             tourneyHistory = snapshot.docs.map(doc => doc.data()); 
         });
@@ -582,27 +586,33 @@
         };
 
         window.updateDropdowns = function() {
-            const dropdowns = ['p1a', 'p1b', 'queryP1', 'queryP2', 'p1a_1', 'p1a_2', 'p1b_1', 'p1b_2', 'queryT1P1', 'queryT1P2', 'queryT2P1', 'queryT2P2'];
-            dropdowns.forEach(id => {
-                const el = document.getElementById(id); if (!el) return; const currentVal = el.value; el.innerHTML = '';
-                players.forEach(p => { const opt = document.createElement('option'); opt.value = p.name; opt.innerText = `${p.flag} ${p.name}`; el.appendChild(opt); });
-                if (players.some(p => p.name === currentVal)) el.value = currentVal;
+            const dl = document.getElementById('playersDatalist');
+            if (!dl) return;
+            dl.innerHTML = '';
+            players.forEach(p => { 
+                const opt = document.createElement('option'); 
+                opt.value = p.name; 
+                opt.textContent = `${p.flag} ${p.name}`;
+                dl.appendChild(opt); 
             });
         };
 
         window.recordMatch = async function() {
             let isDoubles = window.currentMatchMode === 'doubles';
             let teamA = [], teamB = [];
+            const validNames = players.map(p => p.name);
             
             if (isDoubles) {
-                teamA = [document.getElementById('p1a_1').value, document.getElementById('p1a_2').value];
-                teamB = [document.getElementById('p1b_1').value, document.getElementById('p1b_2').value];
+                teamA = [document.getElementById('p1a_1').value.trim(), document.getElementById('p1a_2').value.trim()];
+                teamB = [document.getElementById('p1b_1').value.trim(), document.getElementById('p1b_2').value.trim()];
                 if (!teamA[0] || !teamA[1] || !teamB[0] || !teamB[1]) return alert('Select players.');
+                if (!validNames.includes(teamA[0]) || !validNames.includes(teamA[1]) || !validNames.includes(teamB[0]) || !validNames.includes(teamB[1])) return alert('Invalid player name. Please select from the list.');
                 if (new Set([...teamA, ...teamB]).size !== 4) return alert('Cannot select same player!');
             } else {
-                teamA = [document.getElementById('p1a').value];
-                teamB = [document.getElementById('p1b').value];
+                teamA = [document.getElementById('p1a').value.trim()];
+                teamB = [document.getElementById('p1b').value.trim()];
                 if (!teamA[0] || !teamB[0]) return alert('Select players.');
+                if (!validNames.includes(teamA[0]) || !validNames.includes(teamB[0])) return alert('Invalid player name. Please select from the list.');
                 if (teamA[0] === teamB[0]) return alert('Cannot play self.');
             }
 
@@ -664,7 +674,10 @@
                 if(isAdmin) { await addDoc(collection(db, isDoubles ? "matches_doubles" : "matches"), matchData); alert('Saved!'); } 
                 else { await addDoc(collection(db, isDoubles ? "pending_doubles_matches" : "pending_matches"), matchData); alert('Submitted for approval.'); }
                 
-                ['g1a','g1b','g2a','g2b','g3a','g3b'].forEach(id => document.getElementById(id).value = ''); 
+                ['g1a','g1b','g2a','g2b','g3a','g3b', 'p1a', 'p1b', 'p1a_1', 'p1a_2', 'p1b_1', 'p1b_2'].forEach(id => {
+                    let el = document.getElementById(id);
+                    if(el) el.value = '';
+                }); 
                 document.getElementById('recordAccordion').click();
             } catch (e) { alert("Error: " + e); }
         };
@@ -680,9 +693,16 @@
 
         window.calculateH2H = function() {
             const resBox = document.getElementById('h2hResult');
+            const validNames = players.map(p => p.name);
+            
             if (window.currentH2HMode === 'singles') {
-                const p1Name = document.getElementById('queryP1').value; const p2Name = document.getElementById('queryP2').value;
-                if (!p1Name || !p2Name || p1Name === p2Name) { resBox.innerHTML = `<div style="text-align:center; color:#888; margin-top:20px;">Please select two different players</div>`; return; }
+                const p1Name = document.getElementById('queryP1').value.trim(); 
+                const p2Name = document.getElementById('queryP2').value.trim();
+                if (!p1Name || !p2Name || p1Name === p2Name || !validNames.includes(p1Name) || !validNames.includes(p2Name)) { 
+                    resBox.innerHTML = `<div style="text-align:center; color:#888; margin-top:20px;">Please select two different valid players</div>`; 
+                    return; 
+                }
+                
                 let p1Wins = 0, p1Losses = 0, p2Wins = 0, p2Losses = 0;
                 allSingles.forEach(m => { if (m.winner === p1Name) p1Wins++; if (m.loser === p1Name) p1Losses++; if (m.winner === p2Name) p2Wins++; if (m.loser === p2Name) p2Losses++; });
                 let p1Total = p1Wins + p1Losses; let p2Total = p2Wins + p2Losses; let totalCareer = p1Total + p2Total;
@@ -703,9 +723,13 @@
                 } else { html += `<div style="text-align:center; color:#888; padding: 20px 0;">No history between players.</div>`; }
                 resBox.innerHTML = html;
             } else if (window.currentH2HMode === 'doubles') {
-                const t1p1 = document.getElementById('queryT1P1').value; const t1p2 = document.getElementById('queryT1P2').value;
-                const t2p1 = document.getElementById('queryT2P1').value; const t2p2 = document.getElementById('queryT2P2').value;
+                const t1p1 = document.getElementById('queryT1P1').value.trim(); const t1p2 = document.getElementById('queryT1P2').value.trim();
+                const t2p1 = document.getElementById('queryT2P1').value.trim(); const t2p2 = document.getElementById('queryT2P2').value.trim();
                 if (!t1p1 || !t1p2 || !t2p1 || !t2p2) return;
+                if (!validNames.includes(t1p1) || !validNames.includes(t1p2) || !validNames.includes(t2p1) || !validNames.includes(t2p2)) {
+                    resBox.innerHTML = `<div style="text-align:center; color:#ff3b30; margin-top:20px; font-weight:bold;">Error: Please select valid players!</div>`; 
+                    return;
+                }
                 if (new Set([t1p1, t1p2, t2p1, t2p2]).size !== 4) { resBox.innerHTML = `<div style="text-align:center; color:#ff3b30; margin-top:20px; font-weight:bold;">Error: Select 4 different players!</div>`; return; }
 
                 let doublesH2HMatches = allDoubles.filter(m => ((m.winners.includes(t1p1) && m.winners.includes(t1p2) && m.losers.includes(t2p1) && m.losers.includes(t2p2)) || (m.losers.includes(t1p1) && m.losers.includes(t1p2) && m.winners.includes(t2p1) && m.winners.includes(t2p2)))).sort((a, b) => new Date(b.date) - new Date(a.date));
