@@ -882,19 +882,24 @@
             document.getElementById('rankHeaderPlayer').innerText = window.currentRankMode === 'singles' ? 'SEED / PLAYER' : 'SEED / TEAM';
 
             const getPrevMatches = (matchesArray) => {
-                if (!matchesArray || matchesArray.length <= 1) return [];
+                if (!matchesArray || matchesArray.length === 0) return [];
                 let sorted = [...matchesArray].sort((a,b) => new Date(a.date) - new Date(b.date));
-                let today = new Date().toDateString();
+                
+                // 获取数据库中最新一场比赛所在的完整日期
                 let lastMatchDate = new Date(sorted[sorted.length - 1].date).toDateString();
                 
-                if (lastMatchDate === today) {
-                    let prev = sorted.filter(m => new Date(m.date).toDateString() !== today);
-                    if (prev.length > 0) return prev;
-                }
-                return sorted.slice(0, -1);
+                // 排除掉“最后一个赛事日”的比赛，剩下的就是上一个历史阶段的排名快照
+                let prev = sorted.filter(m => new Date(m.date).toDateString() !== lastMatchDate);
+                
+                // 如果存在之前的赛事日，直接用它来计算趋势
+                if (prev.length > 0) return prev;
+                
+                // 如果系统只有唯一的一天记录，则默认全员 NEW
+                return [];
             };
 
             if (window.currentRankMode === 'singles') {
+                // Current Stats
                 let stats = players.map(p => ({ name: p.name, flag: p.flag, wins: 0, losses: 0, total: 0, rate: 0, hasPlayed: false }));
                 allSingles.forEach(m => {
                     let wPlayer = stats.find(s => s.name === m.winner); let lPlayer = stats.find(s => s.name === m.loser);
@@ -906,6 +911,7 @@
                 activeStats.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
                 activeStats.forEach((s, i) => s.rank = i + 1);
 
+                // Previous Stats 
                 let prevStats = players.map(p => ({ name: p.name, wins: 0, losses: 0, total: 0, rate: 0, hasPlayed: false }));
                 let prevMatches = getPrevMatches(allSingles);
                 prevMatches.forEach(m => {
@@ -950,6 +956,7 @@
             } else {
                 const getPairKey = (n1, n2) => [n1, n2].sort().join(' | ');
                 
+                // Current Stats
                 let pairStats = {};
                 allDoubles.forEach(m => {
                     if (m.winners && m.winners.length === 2) {
@@ -966,6 +973,7 @@
                 statsArray.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
                 statsArray.forEach((s, i) => s.rank = i + 1);
 
+                // Previous Stats
                 let prevPairStats = {};
                 let prevMatches = getPrevMatches(allDoubles);
                 prevMatches.forEach(m => {
