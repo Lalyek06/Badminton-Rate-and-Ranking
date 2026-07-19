@@ -172,8 +172,8 @@
         .trend-new { color: #ffcc00; font-size: 0.6rem; letter-spacing: 0.5px;}
         
         .rank-1 .rank-num { background: #fff; color: #d30000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-        .rank-1 .trend-up { color: #a8ffb2; }    /* Contrast friendly green on red */
-        .rank-1 .trend-down { color: #ffb3b3; }  /* Contrast friendly pink/red */
+        .rank-1 .trend-up { color: #a8ffb2; }    
+        .rank-1 .trend-down { color: #ffb3b3; }  
         .rank-1 .trend-flat { color: #ffcccc; }
         .rank-1 .trend-new { color: #fff; }
 
@@ -239,6 +239,9 @@
 
         .score-input-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .score-input-row input { width: 50px; background: transparent; border: none; border-bottom: 2px solid #ff3b30; color: #fff; font-size: 1.2rem; text-align: center; font-weight: bold; outline: none; }
+        
+        /* Tournament Name Input Style */
+        #tourneyNameInput { background: #000; border: 1px solid #3a3a3c; text-align: center; font-weight: bold; margin-bottom: 15px; }
     </style>
 </head>
 <body ontouchstart=""> 
@@ -359,6 +362,7 @@
         <div id="tourneySetupState" class="admin-setup-box" style="display: none; margin: 20px;">
             <h3 style="margin-top:0; color:#ffcc00;">CREATE TOURNAMENT</h3>
             <p style="font-size:0.8rem; color:#aaa; margin-bottom:15px;">Select 2 to 16 players. The system will auto-fill BYE for remaining slots.</p>
+            <input type="text" id="tourneyNameInput" placeholder="Tournament Name (e.g. 2024 Pro Cup)">
             <div class="player-checkbox-list" id="playerCheckboxes">
                 <div class="skeleton skeleton-text"></div>
                 <div class="skeleton skeleton-text" style="width:40%"></div>
@@ -369,7 +373,7 @@
 
         <div id="tourneyActiveState" style="display: none;">
             <div class="tourney-header" style="padding-top:20px;">
-                <h2>TOURNAMENT</h2>
+                <h2 id="activeTourneyNameDisplay">TOURNAMENT</h2>
                 <p>MAIN DRAW (SWIPE ❯)</p>
             </div>
             
@@ -914,6 +918,7 @@
                     let initial = s.name.charAt(0).toUpperCase();
                     let delay = Math.min(index * 0.05, 0.5); 
                     
+                    // 👉 FIXED HERE: moved onclick to the root element so the whole card is clickable
                     let html = `<div class="${cls} ripple" style="animation-delay: ${delay}s" onclick="openProfile('${s.name.replace(/'/g, "\\'")}')">
                                     <div class="rank-position">
                                         <div class="rank-num">${rank}</div>
@@ -980,6 +985,7 @@
                     let rank = s.rank; let isRank1 = rank === 1; let cls = isRank1 ? "rank-item rank-1" : "rank-item";
                     let delay = Math.min(index * 0.05, 0.5); 
                     
+                    // 👉 FIXED HERE: moved onclick to the root element so the whole card is clickable
                     let html = `<div class="${cls} ripple" style="animation-delay: ${delay}s" onclick="openTeamProfile('${s.p1.replace(/'/g, "\\'")}', '${s.p2.replace(/'/g, "\\'")}')">
                                     <div class="rank-position">
                                         <div class="rank-num">${rank}</div>
@@ -1323,7 +1329,8 @@
             if(!confirm("Clear Tournament? This will save the participants to history.")) return;
             try { 
                 if(tournament && tournament.participants) {
-                    await addDoc(collection(db, "tournaments_history"), { date: new Date().toISOString(), participants: tournament.participants });
+                    let tName = document.getElementById('activeTourneyNameDisplay') ? document.getElementById('activeTourneyNameDisplay').innerText : "TOURNAMENT";
+                    await addDoc(collection(db, "tournaments_history"), { name: tName, date: new Date().toISOString(), participants: tournament.participants });
                 }
                 await deleteDoc(doc(db, "tournaments", "active")); 
             } catch(e) { alert("Error: " + e); }
