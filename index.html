@@ -162,9 +162,22 @@
         .rank-item.rank-1 { background: linear-gradient(135deg, #ff1a1a, #990000); border-radius: 12px; border-bottom: none; margin-bottom: 15px; padding: 15px 10px; box-shadow: 0 4px 15px rgba(255,26,26,0.3); }
         .rank-item.rank-1:active { transform: scale(0.97); }
         
-        .rank-num { width: 32px; height: 32px; border-radius: 50%; background: #1c1c1e; color: #fff; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.95rem; margin-right: 15px; flex-shrink: 0; }
+        /* 🌟 Upgraded Trend CSS */
+        .rank-position { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-right: 15px; flex-shrink: 0; width: 36px; pointer-events: none; }
+        .rank-num { width: 32px; height: 32px; border-radius: 50%; background: #1c1c1e; color: #fff; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.95rem; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .rank-trend { font-size: 0.65rem; font-weight: bold; margin-top: 4px; display: flex; align-items: center; gap: 2px; }
+        .trend-up { color: #4caf50; }
+        .trend-down { color: #ff3b30; }
+        .trend-flat { color: #888; }
+        .trend-new { color: #ffcc00; font-size: 0.6rem; letter-spacing: 0.5px;}
+        
         .rank-1 .rank-num { background: #fff; color: #d30000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-        .rank-avatar { width: 48px; height: 48px; border-radius: 50%; background: #2c2c2e; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; font-weight: bold; color: #fff; margin-right: 15px; position: relative; flex-shrink: 0; border: 2px solid #3a3a3c; }
+        .rank-1 .trend-up { color: #a8ffb2; }    /* Contrast friendly green on red */
+        .rank-1 .trend-down { color: #ffb3b3; }  /* Contrast friendly pink/red */
+        .rank-1 .trend-flat { color: #ffcccc; }
+        .rank-1 .trend-new { color: #fff; }
+
+        .rank-avatar { width: 48px; height: 48px; border-radius: 50%; background: #2c2c2e; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; font-weight: bold; color: #fff; margin-right: 15px; position: relative; flex-shrink: 0; border: 2px solid #3a3a3c; pointer-events: none; }
         .rank-1 .rank-avatar { border-color: rgba(255,255,255,0.3); background: rgba(0,0,0,0.2); }
         .rank-flag { position: absolute; bottom: -4px; right: -4px; font-size: 1rem; background: #000; border-radius: 50%; padding: 2px; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
         .rank-1 .rank-flag { background: #990000; } 
@@ -374,7 +387,6 @@
 
     <!-- Bottom Navigation Bar -->
     <div class="bottom-nav">
-        <!-- 🌟 HOME TAB -->
         <div class="nav-item active ripple" id="nav-home" onclick="switchTab('home')">
             <div class="nav-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24">
@@ -390,7 +402,6 @@
             <span>Home</span>
         </div>
         
-        <!-- 🌟 TOURNAMENT TAB (Center) -->
         <div class="nav-item-center ripple" id="nav-tournament" onclick="switchTab('tournament')">
             <div class="nav-icon">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -406,7 +417,6 @@
             <span>Live Scoring</span>
         </div>
         
-        <!-- 🌟 RANKINGS TAB -->
         <div class="nav-item ripple" id="nav-rankings" onclick="switchTab('rankings')">
             <div class="nav-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24">
@@ -713,7 +723,6 @@
                 if (teamA[0] === teamB[0]) return alert('Cannot play self.');
             }
 
-            // Read scores
             let rawScores = [
                 { a: document.getElementById('g1a').value.trim(), b: document.getElementById('g1b').value.trim() },
                 { a: document.getElementById('g2a').value.trim(), b: document.getElementById('g2b').value.trim() },
@@ -747,7 +756,6 @@
 
             let matchWinner = aWins > bWins ? 'A' : 'B';
             
-            // Reconstruct scores for DB ({w, l}) - DB expects w to be Match Winner's score
             let dbScores = rawScores.map(s => {
                 if (matchWinner === 'A') return { w: s.a, l: s.b };
                 else return { w: s.b, l: s.a };
@@ -866,6 +874,7 @@
             document.getElementById('rankHeaderPlayer').innerText = window.currentRankMode === 'singles' ? 'SEED / PLAYER' : 'SEED / TEAM';
 
             if (window.currentRankMode === 'singles') {
+                // Current Stats
                 let stats = players.map(p => ({ name: p.name, flag: p.flag, wins: 0, losses: 0, total: 0, rate: 0, hasPlayed: false }));
                 allSingles.forEach(m => {
                     let wPlayer = stats.find(s => s.name === m.winner); let lPlayer = stats.find(s => s.name === m.loser);
@@ -873,19 +882,54 @@
                     if (lPlayer) { lPlayer.losses++; lPlayer.total++; lPlayer.hasPlayed = true; }
                 });
                 stats.forEach(s => { s.rate = s.total > 0 ? parseFloat(((s.wins / s.total) * 100).toFixed(1)) : 0; });
-                stats.sort((a, b) => { if (!a.hasPlayed && b.hasPlayed) return 1; if (!b.hasPlayed && a.hasPlayed) return -1; return b.rate - a.rate || b.wins - a.wins || a.losses - b.losses; });
+                let activeStats = stats.filter(s => s.hasPlayed);
+                activeStats.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
+                activeStats.forEach((s, i) => s.rank = i + 1);
+
+                // Previous Stats (Exclude the very last match)
+                let prevStats = players.map(p => ({ name: p.name, wins: 0, losses: 0, total: 0, rate: 0, hasPlayed: false }));
+                allSingles.slice(0, -1).forEach(m => {
+                    let wPlayer = prevStats.find(s => s.name === m.winner); let lPlayer = prevStats.find(s => s.name === m.loser);
+                    if (wPlayer) { wPlayer.wins++; wPlayer.total++; wPlayer.hasPlayed = true; }
+                    if (lPlayer) { lPlayer.losses++; lPlayer.total++; lPlayer.hasPlayed = true; }
+                });
+                prevStats.forEach(s => { s.rate = s.total > 0 ? parseFloat(((s.wins / s.total) * 100).toFixed(1)) : 0; });
+                let prevActive = prevStats.filter(s => s.hasPlayed);
+                prevActive.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
+                prevActive.forEach((s, i) => s.rank = i + 1);
                 
-                stats.forEach((s, index) => {
-                    if(!s.hasPlayed) return;
-                    let rank = index + 1; let isRank1 = rank === 1; let cls = isRank1 ? "rank-item rank-1" : "rank-item";
+                activeStats.forEach((s, index) => {
+                    let prev = prevActive.find(p => p.name === s.name);
+                    let trendHtml = '';
+                    if (!prev) {
+                        trendHtml = `<div class="rank-trend trend-new">NEW</div>`;
+                    } else {
+                        let diff = prev.rank - s.rank;
+                        if (diff > 0) trendHtml = `<div class="rank-trend trend-up">▲${diff}</div>`;
+                        else if (diff < 0) trendHtml = `<div class="rank-trend trend-down">▼${Math.abs(diff)}</div>`;
+                        else trendHtml = `<div class="rank-trend trend-flat">-</div>`;
+                    }
+
+                    let rank = s.rank; let isRank1 = rank === 1; let cls = isRank1 ? "rank-item rank-1" : "rank-item";
                     let initial = s.name.charAt(0).toUpperCase();
                     let delay = Math.min(index * 0.05, 0.5); 
                     
-                    let html = `<div class="${cls} ripple" style="animation-delay: ${delay}s" onclick="openProfile('${s.name.replace(/'/g, "\\'")}')"><div class="rank-num">${rank}</div><div class="rank-avatar">${initial}<div class="rank-flag">${s.flag}</div></div><div class="rank-info"><div class="rank-name">${s.name}</div><div class="rank-sub">MS • Played: ${s.total}</div></div><div class="rank-stats"><div class="rank-points">${s.total > 0 ? s.rate + '%' : '-'}</div><div class="rank-tourneys">${s.wins}W / ${s.losses}L</div></div></div>`;
+                    let html = `<div class="${cls} ripple" style="animation-delay: ${delay}s" onclick="openProfile('${s.name.replace(/'/g, "\\'")}')">
+                                    <div class="rank-position">
+                                        <div class="rank-num">${rank}</div>
+                                        ${trendHtml}
+                                    </div>
+                                    <div class="rank-avatar">${initial}<div class="rank-flag">${s.flag}</div></div>
+                                    <div class="rank-info"><div class="rank-name">${s.name}</div><div class="rank-sub">MS • Played: ${s.total}</div></div>
+                                    <div class="rank-stats"><div class="rank-points">${s.total > 0 ? s.rate + '%' : '-'}</div><div class="rank-tourneys">${s.wins}W / ${s.losses}L</div></div>
+                                </div>`;
                     container.innerHTML += html;
                 });
             } else {
-                let pairStats = {}; const getPairKey = (n1, n2) => [n1, n2].sort().join(' | ');
+                const getPairKey = (n1, n2) => [n1, n2].sort().join(' | ');
+                
+                // Current Stats
+                let pairStats = {};
                 allDoubles.forEach(m => {
                     if (m.winners && m.winners.length === 2) {
                         let key = getPairKey(m.winners[0], m.winners[1]); if (!pairStats[key]) pairStats[key] = { p1: m.winners[0], p2: m.winners[1], wins: 0, losses: 0, total: 0 };
@@ -899,15 +943,52 @@
                 let statsArray = Object.values(pairStats);
                 statsArray.forEach(s => { s.rate = parseFloat(((s.wins / s.total) * 100).toFixed(1)); });
                 statsArray.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
+                statsArray.forEach((s, i) => s.rank = i + 1);
+
+                // Previous Stats
+                let prevPairStats = {};
+                allDoubles.slice(0, -1).forEach(m => {
+                    if (m.winners && m.winners.length === 2) {
+                        let key = getPairKey(m.winners[0], m.winners[1]); if (!prevPairStats[key]) prevPairStats[key] = { p1: m.winners[0], p2: m.winners[1], wins: 0, losses: 0, total: 0 };
+                        prevPairStats[key].wins++; prevPairStats[key].total++;
+                    }
+                    if (m.losers && m.losers.length === 2) {
+                        let key = getPairKey(m.losers[0], m.losers[1]); if (!prevPairStats[key]) prevPairStats[key] = { p1: m.losers[0], p2: m.losers[1], wins: 0, losses: 0, total: 0 };
+                        prevPairStats[key].losses++; prevPairStats[key].total++;
+                    }
+                });
+                let prevStatsArray = Object.values(prevPairStats);
+                prevStatsArray.forEach(s => { s.rate = parseFloat(((s.wins / s.total) * 100).toFixed(1)); });
+                prevStatsArray.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
+                prevStatsArray.forEach((s, i) => s.rank = i + 1);
                 
                 if (statsArray.length === 0) { container.innerHTML = `<div style="text-align:center; color:#888; padding:20px;">No records yet</div>`; return; }
                 
                 statsArray.forEach((s, index) => {
+                    let prev = prevStatsArray.find(p => p.p1 === s.p1 && p.p2 === s.p2);
+                    let trendHtml = '';
+                    if (!prev) {
+                        trendHtml = `<div class="rank-trend trend-new">NEW</div>`;
+                    } else {
+                        let diff = prev.rank - s.rank;
+                        if (diff > 0) trendHtml = `<div class="rank-trend trend-up">▲${diff}</div>`;
+                        else if (diff < 0) trendHtml = `<div class="rank-trend trend-down">▼${Math.abs(diff)}</div>`;
+                        else trendHtml = `<div class="rank-trend trend-flat">-</div>`;
+                    }
+
                     let p1Obj = players.find(p => p.name === s.p1) || { flag: '🏳️' }; let p2Obj = players.find(p => p.name === s.p2) || { flag: '🏳️' };
-                    let rank = index + 1; let isRank1 = rank === 1; let cls = isRank1 ? "rank-item rank-1" : "rank-item";
+                    let rank = s.rank; let isRank1 = rank === 1; let cls = isRank1 ? "rank-item rank-1" : "rank-item";
                     let delay = Math.min(index * 0.05, 0.5); 
                     
-                    let html = `<div class="${cls} ripple" style="animation-delay: ${delay}s" onclick="openTeamProfile('${s.p1.replace(/'/g, "\\'")}', '${s.p2.replace(/'/g, "\\'")}')"><div class="rank-num">${rank}</div><div class="rank-avatar" style="font-size:1rem; flex-direction:column; justify-content:center; gap:2px;"><div style="font-size:0.7rem; line-height:1;">${p1Obj.flag}</div><div style="font-size:0.7rem; line-height:1;">${p2Obj.flag}</div><div class="rank-flag" style="font-size:0.8rem;">👥</div></div><div class="rank-info"><div class="rank-name">${s.p1}<br><span style="color:#aaa; font-size:0.85rem; font-weight:normal;">& ${s.p2}</span></div><div class="rank-sub" style="margin-top:2px;">MD • Played: ${s.total}</div></div><div class="rank-stats"><div class="rank-points">${s.rate}%</div><div class="rank-tourneys">${s.wins}W / ${s.losses}L</div></div></div>`;
+                    let html = `<div class="${cls} ripple" style="animation-delay: ${delay}s" onclick="openTeamProfile('${s.p1.replace(/'/g, "\\'")}', '${s.p2.replace(/'/g, "\\'")}')">
+                                    <div class="rank-position">
+                                        <div class="rank-num">${rank}</div>
+                                        ${trendHtml}
+                                    </div>
+                                    <div class="rank-avatar" style="font-size:1rem; flex-direction:column; justify-content:center; gap:2px;"><div style="font-size:0.7rem; line-height:1;">${p1Obj.flag}</div><div style="font-size:0.7rem; line-height:1;">${p2Obj.flag}</div><div class="rank-flag" style="font-size:0.8rem;">👥</div></div>
+                                    <div class="rank-info"><div class="rank-name">${s.p1}<br><span style="color:#aaa; font-size:0.85rem; font-weight:normal;">& ${s.p2}</span></div><div class="rank-sub" style="margin-top:2px;">MD • Played: ${s.total}</div></div>
+                                    <div class="rank-stats"><div class="rank-points">${s.rate}%</div><div class="rank-tourneys">${s.wins}W / ${s.losses}L</div></div>
+                                </div>`;
                     container.innerHTML += html;
                 });
             }
