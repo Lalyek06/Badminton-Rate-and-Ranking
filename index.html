@@ -602,7 +602,6 @@
             if (docSnap.exists()) {
                 tournament = docSnap.data();
                 
-                // Set Header dynamically
                 let displayTitle = document.getElementById('activeTourneyNameDisplay');
                 if(displayTitle) displayTitle.innerText = tournament.name || "TOURNAMENT";
 
@@ -882,8 +881,20 @@
             const container = document.getElementById('rankingListContainer'); container.innerHTML = '';
             document.getElementById('rankHeaderPlayer').innerText = window.currentRankMode === 'singles' ? 'SEED / PLAYER' : 'SEED / TEAM';
 
+            const getPrevMatches = (matchesArray) => {
+                if (!matchesArray || matchesArray.length <= 1) return [];
+                let sorted = [...matchesArray].sort((a,b) => new Date(a.date) - new Date(b.date));
+                let today = new Date().toDateString();
+                let lastMatchDate = new Date(sorted[sorted.length - 1].date).toDateString();
+                
+                if (lastMatchDate === today) {
+                    let prev = sorted.filter(m => new Date(m.date).toDateString() !== today);
+                    if (prev.length > 0) return prev;
+                }
+                return sorted.slice(0, -1);
+            };
+
             if (window.currentRankMode === 'singles') {
-                // Current Stats
                 let stats = players.map(p => ({ name: p.name, flag: p.flag, wins: 0, losses: 0, total: 0, rate: 0, hasPlayed: false }));
                 allSingles.forEach(m => {
                     let wPlayer = stats.find(s => s.name === m.winner); let lPlayer = stats.find(s => s.name === m.loser);
@@ -895,9 +906,9 @@
                 activeStats.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
                 activeStats.forEach((s, i) => s.rank = i + 1);
 
-                // Previous Stats (Exclude the very last match)
                 let prevStats = players.map(p => ({ name: p.name, wins: 0, losses: 0, total: 0, rate: 0, hasPlayed: false }));
-                allSingles.slice(0, -1).forEach(m => {
+                let prevMatches = getPrevMatches(allSingles);
+                prevMatches.forEach(m => {
                     let wPlayer = prevStats.find(s => s.name === m.winner); let lPlayer = prevStats.find(s => s.name === m.loser);
                     if (wPlayer) { wPlayer.wins++; wPlayer.total++; wPlayer.hasPlayed = true; }
                     if (lPlayer) { lPlayer.losses++; lPlayer.total++; lPlayer.hasPlayed = true; }
@@ -907,6 +918,8 @@
                 prevActive.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
                 prevActive.forEach((s, i) => s.rank = i + 1);
                 
+                if (activeStats.length === 0) { container.innerHTML = `<div style="text-align:center; color:#888; padding:20px;">No records yet</div>`; return; }
+
                 activeStats.forEach((s, index) => {
                     let prev = prevActive.find(p => p.name === s.name);
                     let trendHtml = '';
@@ -937,7 +950,6 @@
             } else {
                 const getPairKey = (n1, n2) => [n1, n2].sort().join(' | ');
                 
-                // Current Stats
                 let pairStats = {};
                 allDoubles.forEach(m => {
                     if (m.winners && m.winners.length === 2) {
@@ -954,9 +966,9 @@
                 statsArray.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
                 statsArray.forEach((s, i) => s.rank = i + 1);
 
-                // Previous Stats
                 let prevPairStats = {};
-                allDoubles.slice(0, -1).forEach(m => {
+                let prevMatches = getPrevMatches(allDoubles);
+                prevMatches.forEach(m => {
                     if (m.winners && m.winners.length === 2) {
                         let key = getPairKey(m.winners[0], m.winners[1]); if (!prevPairStats[key]) prevPairStats[key] = { p1: m.winners[0], p2: m.winners[1], wins: 0, losses: 0, total: 0 };
                         prevPairStats[key].wins++; prevPairStats[key].total++;
