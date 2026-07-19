@@ -30,7 +30,7 @@
         .skeleton-avatar { height: 48px; width: 48px; border-radius: 50%; }
 
         /* 🌟 3. Ripple Effect & Scale Interactions */
-        .ripple { position: relative; overflow: hidden; }
+        .ripple { position: relative; overflow: hidden; cursor: pointer; }
         .ripple-effect { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.25); transform: scale(0); animation: ripple-anim 0.6s ease-out; pointer-events: none; }
         @keyframes ripple-anim { to { transform: scale(4); opacity: 0; } }
 
@@ -40,7 +40,6 @@
         .nav-item { color: #666; display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; font-weight: 600; cursor: pointer; flex: 1; transition: transform 0.2s, color 0.3s; padding: 5px 0; }
         .nav-item:active { transform: scale(0.92); }
         
-        /* 🌟 底部导航栏活动状态：变红并切换实心图标 */
         .nav-item.active { color: #ff3b30; } 
         .nav-item .fill-path { display: none; }
         .nav-item.active .fill-path { display: block; }
@@ -116,8 +115,9 @@
         .bwf-score-white { color: #ffffff; }
         .bwf-footer { border-top: 1px solid #3a3a3c; padding: 8px 15px; font-size: 0.75rem; color: #aaa; display: flex; justify-content: space-between; text-transform: uppercase; }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.3s; }
-        .modal.show { display: flex; opacity: 1; }
+        /* 🌟 Improved Smooth Modal with Flex + Visibility Animation */
+        .modal { display: flex; visibility: hidden; opacity: 0; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; transition: opacity 0.3s, visibility 0.3s; }
+        .modal.show { visibility: visible; opacity: 1; }
         .modal-content { background: #1c1c1e; padding: 25px; border-radius: 15px; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto; position: relative; transform: translateY(30px) scale(0.95); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .modal.show .modal-content { transform: translateY(0) scale(1); }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.8rem; color: #aaa; cursor: pointer; z-index: 2000; transition: color 0.2s, transform 0.2s; }
@@ -164,15 +164,15 @@
         
         .rank-num { width: 32px; height: 32px; border-radius: 50%; background: #1c1c1e; color: #fff; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.95rem; margin-right: 15px; flex-shrink: 0; }
         .rank-1 .rank-num { background: #fff; color: #d30000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-        .rank-avatar { width: 48px; height: 48px; border-radius: 50%; background: #2c2c2e; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; font-weight: bold; color: #fff; margin-right: 15px; position: relative; flex-shrink: 0; border: 2px solid #3a3a3c; cursor: pointer; }
+        .rank-avatar { width: 48px; height: 48px; border-radius: 50%; background: #2c2c2e; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; font-weight: bold; color: #fff; margin-right: 15px; position: relative; flex-shrink: 0; border: 2px solid #3a3a3c; }
         .rank-1 .rank-avatar { border-color: rgba(255,255,255,0.3); background: rgba(0,0,0,0.2); }
         .rank-flag { position: absolute; bottom: -4px; right: -4px; font-size: 1rem; background: #000; border-radius: 50%; padding: 2px; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
         .rank-1 .rank-flag { background: #990000; } 
-        .rank-info { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; cursor: pointer; pointer-events: none; }
+        .rank-info { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; pointer-events: none; }
         .rank-name { font-weight: bold; font-size: 0.95rem; color: #fff; margin-bottom: 2px; letter-spacing: 0.3px; line-height: 1.2; text-transform: uppercase; }
         .rank-sub { font-size: 0.75rem; color: #aaa; }
         .rank-1 .rank-sub { color: #ffcccc; }
-        .rank-stats { text-align: right; display: flex; flex-direction: column; justify-content: center; cursor: pointer; pointer-events: none; }
+        .rank-stats { text-align: right; display: flex; flex-direction: column; justify-content: center; pointer-events: none; }
         .rank-points { font-weight: bold; font-size: 1.15rem; color: #fff; margin-bottom: 2px; }
         .rank-tourneys { font-size: 0.7rem; color: #aaa; letter-spacing: 0.5px; }
         .rank-1 .rank-tourneys { color: #ffcccc; }
@@ -228,7 +228,7 @@
         .score-input-row input { width: 50px; background: transparent; border: none; border-bottom: 2px solid #ff3b30; color: #fff; font-size: 1.2rem; text-align: center; font-weight: bold; outline: none; }
     </style>
 </head>
-<body ontouchstart=""> <!-- 开启移动端 :active 快速响应 -->
+<body ontouchstart=""> 
 
     <!-- Header -->
     <h1 onclick="adminLogin()">PRO STATS <span style="font-size:0.8rem; color:#4caf50;" id="adminSyncStatus"></span></h1>
@@ -378,12 +378,10 @@
         <div class="nav-item active ripple" id="nav-home" onclick="switchTab('home')">
             <div class="nav-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24">
-                    <!-- Outlined (Inactive) -->
                     <g class="stroke-path" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
                     </g>
-                    <!-- Solid (Active) -->
                     <g class="fill-path" fill="currentColor">
                         <path d="M12 3L3 10h3v10h5v-6h2v6h5V10h3L12 3z"/>
                     </g>
@@ -412,12 +410,10 @@
         <div class="nav-item ripple" id="nav-rankings" onclick="switchTab('rankings')">
             <div class="nav-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24">
-                    <!-- Outlined (Inactive) -->
                     <g class="stroke-path" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="8" r="7"></circle>
                         <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
                     </g>
-                    <!-- Solid (Active) -->
                     <g class="fill-path" fill="currentColor">
                         <path d="M12 15c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-3.79 1.11L7 23l5-3 5 3-1.21-6.89c-1.42.74-3.08 1.14-4.79 1.14-1.71 0-3.37-.4-4.79-1.14z"/>
                     </g>
@@ -470,11 +466,9 @@
         </div>
     </div>
     
-    <!-- Datalist for Searchable Players -->
     <datalist id="playersDatalist"></datalist>
 
     <script>
-        // JS based Ripple Effect Logic
         document.addEventListener('mousedown', function (e) {
             let target = e.target.closest('.ripple');
             if (!target) return;
@@ -501,7 +495,6 @@
 
         window.switchTab = function(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            // Trigger reflow to restart CSS animation smoothly
             void document.getElementById('tab-' + tabName).offsetWidth; 
             document.getElementById('tab-' + tabName).classList.add('active');
             
@@ -886,8 +879,9 @@
                     if(!s.hasPlayed) return;
                     let rank = index + 1; let isRank1 = rank === 1; let cls = isRank1 ? "rank-item rank-1" : "rank-item";
                     let initial = s.name.charAt(0).toUpperCase();
-                    let delay = Math.min(index * 0.05, 0.5); // Stagger pop-in effect
-                    let html = `<div class="${cls} ripple" style="animation-delay: ${delay}s"><div class="rank-num">${rank}</div><div class="rank-avatar" onclick="openProfile('${s.name}')">${initial}<div class="rank-flag">${s.flag}</div></div><div class="rank-info" onclick="openProfile('${s.name}')"><div class="rank-name">${s.name}</div><div class="rank-sub">MS • Played: ${s.total}</div></div><div class="rank-stats" onclick="openProfile('${s.name}')"><div class="rank-points">${s.total > 0 ? s.rate + '%' : '-'}</div><div class="rank-tourneys">${s.wins}W / ${s.losses}L</div></div></div>`;
+                    let delay = Math.min(index * 0.05, 0.5); 
+                    
+                    let html = `<div class="${cls} ripple" style="animation-delay: ${delay}s" onclick="openProfile('${s.name.replace(/'/g, "\\'")}')"><div class="rank-num">${rank}</div><div class="rank-avatar">${initial}<div class="rank-flag">${s.flag}</div></div><div class="rank-info"><div class="rank-name">${s.name}</div><div class="rank-sub">MS • Played: ${s.total}</div></div><div class="rank-stats"><div class="rank-points">${s.total > 0 ? s.rate + '%' : '-'}</div><div class="rank-tourneys">${s.wins}W / ${s.losses}L</div></div></div>`;
                     container.innerHTML += html;
                 });
             } else {
@@ -911,8 +905,9 @@
                 statsArray.forEach((s, index) => {
                     let p1Obj = players.find(p => p.name === s.p1) || { flag: '🏳️' }; let p2Obj = players.find(p => p.name === s.p2) || { flag: '🏳️' };
                     let rank = index + 1; let isRank1 = rank === 1; let cls = isRank1 ? "rank-item rank-1" : "rank-item";
-                    let delay = Math.min(index * 0.05, 0.5); // Stagger pop-in effect
-                    let html = `<div class="${cls} ripple" style="animation-delay: ${delay}s"><div class="rank-num">${rank}</div><div class="rank-avatar" onclick="openTeamProfile('${s.p1}', '${s.p2}')" style="font-size:1rem; flex-direction:column; justify-content:center; gap:2px;"><div style="font-size:0.7rem; line-height:1;">${p1Obj.flag}</div><div style="font-size:0.7rem; line-height:1;">${p2Obj.flag}</div><div class="rank-flag" style="font-size:0.8rem;">👥</div></div><div class="rank-info" onclick="openTeamProfile('${s.p1}', '${s.p2}')"><div class="rank-name">${s.p1}<br><span style="color:#aaa; font-size:0.85rem; font-weight:normal;">& ${s.p2}</span></div><div class="rank-sub" style="margin-top:2px;">MD • Played: ${s.total}</div></div><div class="rank-stats" onclick="openTeamProfile('${s.p1}', '${s.p2}')"><div class="rank-points">${s.rate}%</div><div class="rank-tourneys">${s.wins}W / ${s.losses}L</div></div></div>`;
+                    let delay = Math.min(index * 0.05, 0.5); 
+                    
+                    let html = `<div class="${cls} ripple" style="animation-delay: ${delay}s" onclick="openTeamProfile('${s.p1.replace(/'/g, "\\'")}', '${s.p2.replace(/'/g, "\\'")}')"><div class="rank-num">${rank}</div><div class="rank-avatar" style="font-size:1rem; flex-direction:column; justify-content:center; gap:2px;"><div style="font-size:0.7rem; line-height:1;">${p1Obj.flag}</div><div style="font-size:0.7rem; line-height:1;">${p2Obj.flag}</div><div class="rank-flag" style="font-size:0.8rem;">👥</div></div><div class="rank-info"><div class="rank-name">${s.p1}<br><span style="color:#aaa; font-size:0.85rem; font-weight:normal;">& ${s.p2}</span></div><div class="rank-sub" style="margin-top:2px;">MD • Played: ${s.total}</div></div><div class="rank-stats"><div class="rank-points">${s.rate}%</div><div class="rank-tourneys">${s.wins}W / ${s.losses}L</div></div></div>`;
                     container.innerHTML += html;
                 });
             }
@@ -1104,7 +1099,6 @@
             const container = document.getElementById('bracketBoard');
             let boardHtml = "";
             
-            // Helper function to color the specific score red if it's strictly higher than the opponent's
             const getScClass = (val, opp) => {
                 let v = parseInt(val), o = parseInt(opp);
                 return (!isNaN(v) && !isNaN(o) && v > o) ? "score-red" : "score-white";
