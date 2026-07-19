@@ -11,17 +11,38 @@
         h1 { color: #ff3b30; text-align: center; margin-bottom: 25px; margin-top: 10px; letter-spacing: 1px; cursor: pointer; user-select: none; font-size: 1.6rem; }
         h2 { color: #fff; font-size: 1.2rem; margin-bottom: 15px; margin-top: 0; }
         
-        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* 🌟 1. App-like Tab Switch Animation */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: slideFadeUp 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        @keyframes slideFadeUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* 🌟 2. Loading Skeleton Animations */
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .skeleton { background: linear-gradient(90deg, #1c1c1e 25%, #2c2c2e 50%, #1c1c1e 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+        .skeleton-card { height: 75px; width: 100%; margin-bottom: 12px; border-radius: 12px; }
+        .skeleton-text { height: 16px; width: 60%; margin: 8px 0; border-radius: 4px; }
+        .skeleton-avatar { height: 48px; width: 48px; border-radius: 50%; }
+
+        /* 🌟 3. Ripple Effect & Scale Interactions */
+        .ripple { position: relative; overflow: hidden; }
+        .ripple-effect { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.25); transform: scale(0); animation: ripple-anim 0.6s ease-out; pointer-events: none; }
+        @keyframes ripple-anim { to { transform: scale(4); opacity: 0; } }
 
         /* Navigation */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #0a0a0c; display: flex; justify-content: space-around; align-items: center; padding: 10px 0; border-top: 1px solid #1c1c1e; z-index: 999; padding-bottom: env(safe-area-inset-bottom); }
-        .nav-item { color: #666; display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; font-weight: 600; cursor: pointer; flex: 1; transition: 0.3s; }
+        .nav-item { color: #666; display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; font-weight: 600; cursor: pointer; flex: 1; transition: transform 0.2s, color 0.3s; padding: 5px 0; }
+        .nav-item:active { transform: scale(0.92); }
         .nav-item.active { color: #fff; }
         .nav-icon { margin-bottom: 4px; display: flex; justify-content: center; align-items: center; }
         
-        .nav-item-center { position: relative; top: -20px; background: #ff3b30; width: 56px; height: 56px; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; box-shadow: 0 4px 15px rgba(255,59,48,0.4); border: 6px solid #050505; transition: 0.3s; cursor: pointer; }
+        .nav-item-center { position: relative; top: -20px; background: #ff3b30; width: 56px; height: 56px; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; box-shadow: 0 4px 15px rgba(255,59,48,0.4); border: 6px solid #050505; transition: 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); cursor: pointer; }
+        .nav-item-center:active { transform: scale(0.9); box-shadow: 0 2px 10px rgba(255,59,48,0.5); }
         .nav-item-center.active { transform: scale(1.05); box-shadow: 0 4px 20px rgba(255,59,48,0.7); }
         .nav-item-center .nav-icon { margin-bottom: 0; }
         .nav-item-center span { display: none; }
@@ -34,14 +55,19 @@
         
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; box-sizing: border-box; font-size: 1rem; }
         input[type="number"] { padding: 8px; }
-        input, select { background: #2c2c2e; color: #fff; }
+        input, select { background: #2c2c2e; color: #fff; transition: background 0.3s; }
+        input:focus, select:focus { background: #3a3a3c; outline: none; }
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
-        button.action-btn { background: #ff3b30; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 15px; }
         
-        .accordion { background-color: #1c1c1e; color: #ff3b30; cursor: pointer; padding: 15px 20px; width: 100%; border: 1px solid #3a3a3c; text-align: left; outline: none; font-size: 1.1rem; font-weight: bold; transition: 0.3s; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        button.action-btn { background: #ff3b30; color: white; font-weight: bold; cursor: pointer; transition: transform 0.1s, background 0.2s; margin-top: 15px; }
+        button.action-btn:active { transform: scale(0.96); background: #d32f2f; }
+        
+        .accordion { background-color: #1c1c1e; color: #ff3b30; cursor: pointer; padding: 15px 20px; width: 100%; border: 1px solid #3a3a3c; text-align: left; outline: none; font-size: 1.1rem; font-weight: bold; transition: transform 0.1s, border-color 0.3s; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .accordion:active { transform: scale(0.98); }
         .accordion:after { content: '▼'; font-size: 0.9rem; color: #aaa; transition: 0.3s; }
-        .accordion.active:after { content: '▲'; color: #ff3b30; }
-        .panel { padding: 0 10px; background-color: transparent; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; margin-bottom: 10px; }
+        .accordion.active:after { content: '▲'; color: #ff3b30; transform: rotate(180deg); }
+        .panel { padding: 0 10px; background-color: transparent; max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0, 1, 0, 1); margin-bottom: 10px; }
+        .accordion.active + .panel { transition: max-height 0.4s ease-in-out; }
         
         .mode-toggle { display: flex; background: #2c2c2e; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
         .mode-toggle button { flex: 1; padding: 10px; background: transparent; color: #aaa; border: none; cursor: pointer; font-weight: bold; font-size: 0.95rem; margin: 0; border-radius: 0; transition: 0.3s; }
@@ -50,25 +76,28 @@
         .doubles-select-group select, .doubles-select-group input { flex: 1; }
 
         .score-row { display: flex; justify-content: space-between; gap: 5px; margin: 15px 0; }
-        .score-box { background: #2c2c2e; border-radius: 8px; padding: 10px 5px; flex: 1; text-align: center; border: 1px solid #3a3a3c; }
+        .score-box { background: #2c2c2e; border-radius: 8px; padding: 10px 5px; flex: 1; text-align: center; border: 1px solid #3a3a3c; transition: transform 0.2s; }
+        .score-box:focus-within { transform: translateY(-3px); border-color: #555; }
         .score-box label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 5px; font-weight: bold; }
         .score-inputs { display: flex; justify-content: center; align-items: center; gap: 2px; }
-        .score-inputs input { width: 40px; text-align: center; font-size: 1rem; font-weight: bold; background: transparent; border-bottom: 2px solid #ff3b30; border-radius: 0; padding: 5px 0; margin: 0; }
+        .score-inputs input { width: 40px; text-align: center; font-size: 1rem; font-weight: bold; background: transparent; border-bottom: 2px solid #ff3b30; border-radius: 0; padding: 5px 0; margin: 0; transition: border-color 0.3s; }
+        .score-inputs input:focus { border-color: #fff; }
         .vs-text { font-size: 1.3rem; font-weight: bold; color: #ff3b30; text-align: center; margin: 15px 0; }
 
         .h2h-top-bar { display: flex; height: 8px; background: #3a3a3c; border-radius: 4px; overflow: hidden; margin-bottom: 25px; margin-top: 10px; }
-        .h2h-top-bar .p1-bar { background: #ffcc00; height: 100%; transition: width 0.5s ease; }
-        .h2h-top-bar .p2-bar { background: #0a84ff; height: 100%; transition: width 0.5s ease; }
+        .h2h-top-bar .p1-bar { background: #ffcc00; height: 100%; transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .h2h-top-bar .p2-bar { background: #0a84ff; height: 100%; transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
         
         .career-title { font-size: 1rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-        .career-stats-box { background: #2c2c2e; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); margin-bottom: 25px; }
+        .career-stats-box { background: #2c2c2e; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); margin-bottom: 25px; animation: slideFadeUp 0.4s ease-out forwards; }
         .stat-flex { display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 8px; }
         .stat-center { font-size: 0.75rem; color: #aaa; text-transform: uppercase; font-weight: normal; letter-spacing: 0.5px; }
         .career-bar-container { width: 100%; height: 6px; background: #1c1c1e; border-radius: 3px; margin: 15px 0; display: flex; overflow: hidden; }
-        .career-bar-container .p1-bar { background: #ffcc00; height: 100%; }
-        .career-bar-container .p2-bar { background: #0a84ff; height: 100%; }
+        .career-bar-container .p1-bar { background: #ffcc00; height: 100%; transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .career-bar-container .p2-bar { background: #0a84ff; height: 100%; transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1); }
         
-        .bwf-card { background: #2c2c2e; border-radius: 10px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .bwf-card { background: #2c2c2e; border-radius: 10px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: transform 0.2s, background 0.2s; }
+        .bwf-card:active { transform: scale(0.97); background: #333; }
         .bwf-header { background: #3a3a3c; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
         .bwf-body { padding: 12px 15px; }
         .bwf-player { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -80,9 +109,12 @@
         .bwf-score-white { color: #ffffff; }
         .bwf-footer { border-top: 1px solid #3a3a3c; padding: 8px 15px; font-size: 0.75rem; color: #aaa; display: flex; justify-content: space-between; text-transform: uppercase; }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: #1c1c1e; padding: 25px; border-radius: 15px; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto; position: relative; }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.8rem; color: #aaa; cursor: pointer; z-index: 2000;}
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.3s; }
+        .modal.show { display: flex; opacity: 1; }
+        .modal-content { background: #1c1c1e; padding: 25px; border-radius: 15px; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto; position: relative; transform: translateY(30px) scale(0.95); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .modal.show .modal-content { transform: translateY(0) scale(1); }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.8rem; color: #aaa; cursor: pointer; z-index: 2000; transition: color 0.2s, transform 0.2s; }
+        .close-btn:active { transform: scale(0.8); color: #fff; }
         .profile-header { text-align: center; font-size: 1.4rem; margin-bottom: 20px; font-weight: bold; color: #fff; }
         
         .results-summary-card { background: #fff; border-radius: 12px; overflow: hidden; margin-bottom: 25px; box-shadow: 0 6px 15px rgba(0,0,0,0.5); }
@@ -111,21 +143,29 @@
         .ranking-pills button { background: #2c2c2e; color: #aaa; border-radius: 20px; padding: 8px 25px; font-size: 0.9rem; font-weight: bold; border: none; cursor: pointer; transition: 0.3s; width: auto; }
         .ranking-pills button.active { background: #ff3b30; color: #fff; box-shadow: 0 2px 8px rgba(255,59,48,0.4); }
         .ranking-labels { display: flex; justify-content: space-between; font-size: 0.65rem; color: #888; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; padding: 0 5px; letter-spacing: 0.5px; }
-        .rank-item { display: flex; align-items: center; padding: 12px 5px; border-bottom: 1px solid #1c1c1e; position: relative; }
+        
+        /* 🌟 Staggered Pop-In for Rank Items */
+        @keyframes popIn {
+            from { opacity: 0; transform: translateY(15px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .rank-item { display: flex; align-items: center; padding: 12px 5px; border-bottom: 1px solid #1c1c1e; position: relative; transition: transform 0.2s, background 0.2s; animation: popIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+        .rank-item:active { transform: scale(0.96); background-color: #1a1a1c; border-radius: 8px; }
         .rank-item:last-child { border-bottom: none; }
         .rank-item.rank-1 { background: linear-gradient(135deg, #ff1a1a, #990000); border-radius: 12px; border-bottom: none; margin-bottom: 15px; padding: 15px 10px; box-shadow: 0 4px 15px rgba(255,26,26,0.3); }
+        .rank-item.rank-1:active { transform: scale(0.97); }
+        
         .rank-num { width: 32px; height: 32px; border-radius: 50%; background: #1c1c1e; color: #fff; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.95rem; margin-right: 15px; flex-shrink: 0; }
         .rank-1 .rank-num { background: #fff; color: #d30000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
         .rank-avatar { width: 48px; height: 48px; border-radius: 50%; background: #2c2c2e; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; font-weight: bold; color: #fff; margin-right: 15px; position: relative; flex-shrink: 0; border: 2px solid #3a3a3c; cursor: pointer; }
         .rank-1 .rank-avatar { border-color: rgba(255,255,255,0.3); background: rgba(0,0,0,0.2); }
         .rank-flag { position: absolute; bottom: -4px; right: -4px; font-size: 1rem; background: #000; border-radius: 50%; padding: 2px; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
         .rank-1 .rank-flag { background: #990000; } 
-        .rank-info { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; cursor: pointer; }
+        .rank-info { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; cursor: pointer; pointer-events: none; /* Let parent handle click */ }
         .rank-name { font-weight: bold; font-size: 0.95rem; color: #fff; margin-bottom: 2px; letter-spacing: 0.3px; line-height: 1.2; text-transform: uppercase; }
-        .rank-name:hover { text-decoration: underline; }
         .rank-sub { font-size: 0.75rem; color: #aaa; }
         .rank-1 .rank-sub { color: #ffcccc; }
-        .rank-stats { text-align: right; display: flex; flex-direction: column; justify-content: center; cursor: pointer; }
+        .rank-stats { text-align: right; display: flex; flex-direction: column; justify-content: center; cursor: pointer; pointer-events: none; }
         .rank-points { font-weight: bold; font-size: 1.15rem; color: #fff; margin-bottom: 2px; }
         .rank-tourneys { font-size: 0.7rem; color: #aaa; letter-spacing: 0.5px; }
         .rank-1 .rank-tourneys { color: #ffcccc; }
@@ -150,9 +190,10 @@
         .tourney-col:not(:last-child) .tourney-match-wrapper:nth-child(even)::after { content: ''; position: absolute; right: -20px; top: 0; height: 50%; width: 20px; border-bottom: 2px solid #e5e5e5; border-right: 2px solid #e5e5e5; border-bottom-right-radius: 8px; z-index: 1; }
         .tourney-col:not(:first-child) .tourney-match-wrapper::before { content: ''; position: absolute; left: -20px; top: 50%; width: 20px; border-top: 2px solid #e5e5e5; z-index: 1; }
 
-        .tourney-card { background: #1a1a1c; border-radius: 12px; position: relative; z-index: 2; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #2a2a2c; }
+        .tourney-card { background: #1a1a1c; border-radius: 12px; position: relative; z-index: 2; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #2a2a2c; transition: transform 0.2s; }
+        .tourney-card:active { transform: scale(0.97); }
         
-        .admin-score-btn { background: #ff3b30; color: #fff; border: none; padding: 8px; width: 100%; font-size: 0.8rem; font-weight: bold; cursor: pointer; display: block; border-top: 1px solid #3a3a3c; letter-spacing: 1px; }
+        .admin-score-btn { background: #ff3b30; color: #fff; border: none; padding: 8px; width: 100%; font-size: 0.8rem; font-weight: bold; cursor: pointer; display: block; border-top: 1px solid #3a3a3c; letter-spacing: 1px; transition: background 0.2s; }
         .admin-score-btn:active { background: #d32f2f; }
         
         .player-row-t { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #2a2a2c; }
@@ -180,7 +221,7 @@
         .score-input-row input { width: 50px; background: transparent; border: none; border-bottom: 2px solid #ff3b30; color: #fff; font-size: 1.2rem; text-align: center; font-weight: bold; outline: none; }
     </style>
 </head>
-<body>
+<body ontouchstart=""> <!-- 开启移动端 :active 快速响应 -->
 
     <!-- Header -->
     <h1 onclick="adminLogin()">PRO STATS <span style="font-size:0.8rem; color:#4caf50;" id="adminSyncStatus"></span></h1>
@@ -189,15 +230,18 @@
     <div id="tab-home" class="tab-content active">
         <div class="card admin-card" id="adminPanel">
             <div class="admin-title">ADMIN INBOX</div>
-            <div id="pendingList"><p style='text-align:center; color:#aaa;'>Loading pending items...</p></div>
+            <div id="pendingList">
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+            </div>
         </div>
 
-        <button class="accordion" id="recordAccordion">RECORD MATCH</button>
+        <button class="accordion ripple" id="recordAccordion">RECORD MATCH</button>
         <div class="panel">
             <div class="card" style="margin-top: 5px;">
                 <div class="mode-toggle">
-                    <button id="btnSingles" class="active" onclick="setMatchMode('singles')">Singles</button>
-                    <button id="btnDoubles" onclick="setMatchMode('doubles')">Doubles</button>
+                    <button id="btnSingles" class="active ripple" onclick="setMatchMode('singles')">Singles</button>
+                    <button id="btnDoubles" class="ripple" onclick="setMatchMode('doubles')">Doubles</button>
                 </div>
                 
                 <label id="lblMatchA" style="color:#aaa; font-size:0.8rem;">Player A:</label>
@@ -216,26 +260,26 @@
                     <div class="score-box"><label>GAME 3</label><div class="score-inputs"><input type="number" id="g3a" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"> <span class="score-dash">-</span> <input type="number" id="g3b" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"></div></div>
                 </div>
                 
-                <button class="action-btn" onclick="recordMatch()">SUBMIT RESULT</button>
+                <button class="action-btn ripple" onclick="recordMatch()">SUBMIT RESULT</button>
             </div>
         </div>
 
-        <button class="accordion">ADD PLAYER</button>
+        <button class="accordion ripple">ADD PLAYER</button>
         <div class="panel">
             <div class="card" style="margin-top: 5px;">
                 <input type="text" id="playerName" placeholder="Enter player name">
                 <select id="playerCountry">
                     <option value="🇲🇾">🇲🇾 Malaysia</option><option value="🇨🇳">🇨🇳 China</option><option value="🇮🇩">🇮🇩 Indonesia</option><option value="🇯🇵">🇯🇵 Japan</option><option value="🇰🇷">🇰🇷 South Korea</option><option value="🇹🇭">🇹🇭 Thailand</option><option value="🇹🇼">🇹🇼 Chinese Taipei</option><option value="🇩🇰">🇩🇰 Denmark</option><option value="🇸🇬">🇸🇬 Singapore</option><option value="🇬🇧">🇬🇧 UK</option><option value="🇺🇸">🇺🇸 USA</option><option value="🏳️">🏳️ Other</option>
                 </select>
-                <button class="action-btn" onclick="addPlayer()">SUBMIT PLAYER</button>
+                <button class="action-btn ripple" onclick="addPlayer()">SUBMIT PLAYER</button>
             </div>
         </div>
 
         <div class="card">
             <h2>H2H STATISTICS</h2>
             <div class="mode-toggle" style="margin-top: 10px;">
-                <button id="btnH2HSingles" class="active" onclick="setH2HMode('singles')">Singles</button>
-                <button id="btnH2HDoubles" onclick="setH2HMode('doubles')">Doubles</button>
+                <button id="btnH2HSingles" class="active ripple" onclick="setH2HMode('singles')">Singles</button>
+                <button id="btnH2HDoubles" class="ripple" onclick="setH2HMode('doubles')">Doubles</button>
             </div>
             <div id="h2hSinglesGroup">
                 <input type="text" id="queryP1" list="playersDatalist" onchange="calculateH2H()" placeholder="Search Player A..." style="margin-bottom: 5px;">
@@ -260,8 +304,8 @@
             <div class="ranking-header-sub" id="rankingUpdateTime">Updated Live</div>
             
             <div class="ranking-pills">
-                <button id="btnRankSingles" class="active" onclick="setRankMode('singles')">MS</button>
-                <button id="btnRankDoubles" onclick="setRankMode('doubles')">MD</button>
+                <button id="btnRankSingles" class="active ripple" onclick="setRankMode('singles')">MS</button>
+                <button id="btnRankDoubles" class="ripple" onclick="setRankMode('doubles')">MD</button>
             </div>
 
             <div class="ranking-labels">
@@ -269,7 +313,13 @@
                 <span>WIN % / W-L</span>
             </div>
 
-            <div id="rankingListContainer"></div>
+            <div id="rankingListContainer">
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+            </div>
         </div>
     </div>
 
@@ -289,8 +339,12 @@
         <div id="tourneySetupState" class="admin-setup-box" style="display: none; margin: 20px;">
             <h3 style="margin-top:0; color:#ffcc00;">CREATE TOURNAMENT</h3>
             <p style="font-size:0.8rem; color:#aaa; margin-bottom:15px;">Select 2 to 16 players. The system will auto-fill BYE for remaining slots.</p>
-            <div class="player-checkbox-list" id="playerCheckboxes"><p style="color:#888;">Loading...</p></div>
-            <button class="btn-primary" onclick="generateTournament()">GENERATE BRACKET</button>
+            <div class="player-checkbox-list" id="playerCheckboxes">
+                <div class="skeleton skeleton-text"></div>
+                <div class="skeleton skeleton-text" style="width:40%"></div>
+                <div class="skeleton skeleton-text" style="width:70%"></div>
+            </div>
+            <button class="action-btn ripple" onclick="generateTournament()">GENERATE BRACKET</button>
         </div>
 
         <div id="tourneyActiveState" style="display: none;">
@@ -306,20 +360,20 @@
             </div>
 
             <div id="endTourneyContainer" style="display:none; padding: 0 20px;">
-                <button style="background:transparent; border:1px solid #ff3b30; color:#ff3b30; padding:12px; border-radius:8px; width:100%; font-weight:bold; cursor:pointer;" onclick="endTournament()">END & CLEAR TOURNAMENT</button>
+                <button class="ripple" style="background:transparent; border:1px solid #ff3b30; color:#ff3b30; padding:12px; border-radius:8px; width:100%; font-weight:bold; cursor:pointer;" onclick="endTournament()">END & CLEAR TOURNAMENT</button>
             </div>
         </div>
     </div>
 
     <!-- Bottom Navigation Bar -->
     <div class="bottom-nav">
-        <div class="nav-item active" id="nav-home" onclick="switchTab('home')">
+        <div class="nav-item active ripple" id="nav-home" onclick="switchTab('home')">
             <div class="nav-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
             </div>
             <span>Home</span>
         </div>
-        <div class="nav-item-center" id="nav-tournament" onclick="switchTab('tournament')">
+        <div class="nav-item-center ripple" id="nav-tournament" onclick="switchTab('tournament')">
             <div class="nav-icon">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <g transform="rotate(-45 12 12)">
@@ -333,7 +387,7 @@
             </div>
             <span>Live Scoring</span>
         </div>
-        <div class="nav-item" id="nav-rankings" onclick="switchTab('rankings')">
+        <div class="nav-item ripple" id="nav-rankings" onclick="switchTab('rankings')">
             <div class="nav-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
             </div>
@@ -380,14 +434,29 @@
                 <span id="scoreP2Name" style="color:#fff; font-weight:bold; width: 40%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">P2</span>
                 <input type="number" id="tg1p2" min="0" max="30"><input type="number" id="tg2p2" min="0" max="30"><input type="number" id="tg3p2" min="0" max="30">
             </div>
-            <button class="action-btn" onclick="submitTourneyScore()">SAVE & ADVANCE</button>
+            <button class="action-btn ripple" onclick="submitTourneyScore()">SAVE & ADVANCE</button>
         </div>
     </div>
     
-    <!-- 🌟 Datalist for Searchable Players -->
+    <!-- Datalist for Searchable Players -->
     <datalist id="playersDatalist"></datalist>
 
     <script>
+        // JS based Ripple Effect Logic
+        document.addEventListener('mousedown', function (e) {
+            let target = e.target.closest('.ripple');
+            if (!target) return;
+            let circle = document.createElement('span');
+            let diameter = Math.max(target.clientWidth, target.clientHeight);
+            let radius = diameter / 2;
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${e.clientX - target.getBoundingClientRect().left - radius}px`;
+            circle.style.top = `${e.clientY - target.getBoundingClientRect().top - radius}px`;
+            circle.classList.add('ripple-effect');
+            target.appendChild(circle);
+            setTimeout(() => circle.remove(), 600);
+        });
+
         var acc = document.getElementsByClassName("accordion");
         for (var i = 0; i < acc.length; i++) {
             acc[i].addEventListener("click", function() {
@@ -397,8 +466,11 @@
                 else { panel.style.maxHeight = panel.scrollHeight + "px"; }
             });
         }
+
         window.switchTab = function(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // Trigger reflow to restart CSS animation smoothly
+            void document.getElementById('tab-' + tabName).offsetWidth; 
             document.getElementById('tab-' + tabName).classList.add('active');
             
             document.querySelectorAll('.bottom-nav > div').forEach(el => el.classList.remove('active'));
@@ -551,13 +623,13 @@
                     let wText = m.matchType === 'doubles' ? `${m.winners[0]} & ${m.winners[1]}` : m.winner;
                     let lText = m.matchType === 'doubles' ? `${m.losers[0]} & ${m.losers[1]}` : m.loser;
                     let typeTag = m.matchType === 'doubles' ? `<span style="font-size:0.7rem; background:#4caf50; padding:2px 4px; border-radius:4px; margin-left:5px;">MD</span>` : '<span style="font-size:0.7rem; background:#ffcc00; color:#000; padding:2px 4px; border-radius:4px; margin-left:5px;">MS</span>';
-                    html += `<div style="background:#2c2c2e; padding:12px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;"><div><div style="font-size:0.75rem; color:#888; margin-bottom:4px;">${dateStr} ${typeTag}</div><div style="font-size:1rem;"><strong style="color:#ff3b30;">${wText}</strong> def. ${lText}${scoreStr}</div></div><div style="display:flex; gap:8px;"><button onclick="approveMatch('${m.id}', '${m._col}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">✅</button><button onclick="rejectMatch('${m.id}', '${m._col}')" style="background:#3a3a3c; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">❌</button></div></div>`;
+                    html += `<div class="bwf-card" style="margin-bottom:10px;"><div class="bwf-body" style="display:flex; justify-content:space-between; align-items:center; padding:12px;"><div><div style="font-size:0.75rem; color:#888; margin-bottom:4px;">${dateStr} ${typeTag}</div><div style="font-size:1rem;"><strong style="color:#ff3b30;">${wText}</strong> def. ${lText}${scoreStr}</div></div><div style="display:flex; gap:8px;"><button onclick="approveMatch('${m.id}', '${m._col}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem; transition:transform 0.2s;">✅</button><button onclick="rejectMatch('${m.id}', '${m._col}')" style="background:#3a3a3c; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem; transition:transform 0.2s;">❌</button></div></div></div>`;
                 });
             }
             html += `<div class="admin-section-title" style="margin-top:20px;">PENDING PLAYERS (${pendingPlayers.length})</div>`;
             if (pendingPlayers.length === 0) { html += "<p style='text-align:center; color:#555; font-size:0.85rem;'>No pending players.</p>"; } 
             else {
-                pendingPlayers.forEach(p => { html += `<div style="background:#2c2c2e; padding:12px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;"><div style="font-size:1rem;"><strong>${p.flag} ${p.name}</strong></div><div style="display:flex; gap:8px;"><button onclick="approvePlayer('${p.id}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">✅</button><button onclick="rejectPlayer('${p.id}')" style="background:#3a3a3c; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem;">❌</button></div></div>`; });
+                pendingPlayers.forEach(p => { html += `<div class="bwf-card" style="margin-bottom:10px;"><div class="bwf-body" style="display:flex; justify-content:space-between; align-items:center; padding:12px;"><div style="font-size:1rem;"><strong>${p.flag} ${p.name}</strong></div><div style="display:flex; gap:8px;"><button onclick="approvePlayer('${p.id}')" style="background:#4caf50; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem; transition:transform 0.2s;">✅</button><button onclick="rejectPlayer('${p.id}')" style="background:#3a3a3c; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:1.1rem; transition:transform 0.2s;">❌</button></div></div></div>`; });
             }
             panel.innerHTML = html;
         };
@@ -686,9 +758,9 @@
             if (window.teamAChartInst) window.teamAChartInst.destroy(); if (window.teamBChartInst) window.teamBChartInst.destroy();
             const ctxA = document.getElementById('teamAChart'); const ctxB = document.getElementById('teamBChart');
             let dataA = (aW === 0 && aL === 0) ? [1] : [aW, aL]; let colorA = (aW === 0 && aL === 0) ? ['#3a3a3c'] : ['#ffcc00', '#0a84ff'];
-            if (ctxA) { window.teamAChartInst = new Chart(ctxA, { type: 'pie', data: { datasets: [{ data: dataA, backgroundColor: colorA, borderWidth: 0 }] }, options: { plugins: { legend: { display: false } } } }); }
+            if (ctxA) { window.teamAChartInst = new Chart(ctxA, { type: 'pie', data: { datasets: [{ data: dataA, backgroundColor: colorA, borderWidth: 0 }] }, options: { plugins: { legend: { display: false } } }, animation: { animateScale: true } }); }
             let dataB = (bW === 0 && bL === 0) ? [1] : [bW, bL]; let colorB = (bW === 0 && bL === 0) ? ['#3a3a3c'] : ['#ffcc00', '#0a84ff'];
-            if (ctxB) { window.teamBChartInst = new Chart(ctxB, { type: 'pie', data: { datasets: [{ data: dataB, backgroundColor: colorB, borderWidth: 0 }] }, options: { plugins: { legend: { display: false } } } }); }
+            if (ctxB) { window.teamBChartInst = new Chart(ctxB, { type: 'pie', data: { datasets: [{ data: dataB, backgroundColor: colorB, borderWidth: 0 }] }, options: { plugins: { legend: { display: false } } }, animation: { animateScale: true } }); }
         };
 
         window.calculateH2H = function() {
@@ -699,7 +771,7 @@
                 const p1Name = document.getElementById('queryP1').value.trim(); 
                 const p2Name = document.getElementById('queryP2').value.trim();
                 if (!p1Name || !p2Name || p1Name === p2Name || !validNames.includes(p1Name) || !validNames.includes(p2Name)) { 
-                    resBox.innerHTML = `<div style="text-align:center; color:#888; margin-top:20px;">Please select two different valid players</div>`; 
+                    resBox.innerHTML = `<div style="text-align:center; color:#888; margin-top:20px; animation: fadeIn 0.3s;">Please select two different valid players</div>`; 
                     return; 
                 }
                 
@@ -711,7 +783,7 @@
                 const p1H2HWins = h2hMatches.filter(m => m.winner === p1Name).length; const p2H2HWins = h2hMatches.filter(m => m.winner === p2Name).length;
                 const totalH2H = h2hMatches.length; let p1H2HWidth = totalH2H > 0 ? (p1H2HWins / totalH2H) * 100 : 50; let p2H2HWidth = totalH2H > 0 ? (p2H2HWins / totalH2H) * 100 : 50;
 
-                let html = `<div class="career-title" style="color:#aaa; font-size:0.85rem; text-align:center;">SINGLES H2H (WINS)</div><div class="h2h-top-bar" style="margin-bottom:15px; margin-top:5px;"><div class="p1-bar" style="width: ${p1H2HWidth}%;"></div><div class="p2-bar" style="width: ${p2H2HWidth}%;"></div></div><div style="display:flex; justify-content:space-between; font-size:0.95rem; font-weight:bold; margin-bottom:20px;"><span style="color:#ffcc00">${p1Name}: ${p1H2HWins}</span><span style="color:#0a84ff">${p2H2HWins} :${p2Name}</span></div><div class="career-title">SINGLES CAREER STATS</div><div class="career-stats-box"><div class="stat-flex" style="font-size: 1.3rem;"><span style="color:#ffcc00">${p1Total}</span><span class="stat-center">MATCHES</span><span style="color:#0a84ff">${p2Total}</span></div><div class="career-bar-container"><div class="p1-bar" style="width: ${p1CareerWidth}%;"></div><div class="p2-bar" style="width: ${p2CareerWidth}%;"></div></div><div class="stat-flex" style="margin-top: 15px;"><span>${p1Wins}</span><span class="stat-center">Win</span><span>${p2Wins}</span></div><div class="stat-flex"><span>${p1Losses}</span><span class="stat-center">Loss</span><span>${p2Losses}</span></div></div>`;
+                let html = `<div style="animation: slideFadeUp 0.4s ease-out;"><div class="career-title" style="color:#aaa; font-size:0.85rem; text-align:center;">SINGLES H2H (WINS)</div><div class="h2h-top-bar" style="margin-bottom:15px; margin-top:5px;"><div class="p1-bar" style="width: ${p1H2HWidth}%;"></div><div class="p2-bar" style="width: ${p2H2HWidth}%;"></div></div><div style="display:flex; justify-content:space-between; font-size:0.95rem; font-weight:bold; margin-bottom:20px;"><span style="color:#ffcc00">${p1Name}: ${p1H2HWins}</span><span style="color:#0a84ff">${p2H2HWins} :${p2Name}</span></div><div class="career-title">SINGLES CAREER STATS</div><div class="career-stats-box"><div class="stat-flex" style="font-size: 1.3rem;"><span style="color:#ffcc00">${p1Total}</span><span class="stat-center">MATCHES</span><span style="color:#0a84ff">${p2Total}</span></div><div class="career-bar-container"><div class="p1-bar" style="width: ${p1CareerWidth}%;"></div><div class="p2-bar" style="width: ${p2CareerWidth}%;"></div></div><div class="stat-flex" style="margin-top: 15px;"><span>${p1Wins}</span><span class="stat-center">Win</span><span>${p2Wins}</span></div><div class="stat-flex"><span>${p1Losses}</span><span class="stat-center">Loss</span><span>${p2Losses}</span></div></div>`;
                 let allEncounters = h2hMatches.sort((a, b) => new Date(b.date) - new Date(a.date));
                 if (allEncounters.length > 0) {
                     html += `<div class="section-header"><span class="career-title" style="margin-bottom:0;">LAST ENCOUNTER</span></div>`;
@@ -721,16 +793,17 @@
                     let dateStr = new Date(lastMatch.date).toISOString().split('T')[0];
                     html += `<div class="bwf-card" style="margin-top: 0;"><div class="bwf-header"><span>FRIENDLY MATCH</span><span>Result</span></div><div class="bwf-body"><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;"><span>${wp.flag}</span> <strong>${lastMatch.winner}</strong></div><div class="bwf-scores">${wScoresHTML}</div></div><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;"><span>${lp.flag}</span> <span style="color:#aaa;">${lastMatch.loser}</span></div><div class="bwf-scores">${lScoresHTML}</div></div></div><div class="bwf-footer"><span>MS • DATE: ${dateStr}</span><span>-</span></div></div>`;
                 } else { html += `<div style="text-align:center; color:#888; padding: 20px 0;">No history between players.</div>`; }
+                html += `</div>`;
                 resBox.innerHTML = html;
             } else if (window.currentH2HMode === 'doubles') {
                 const t1p1 = document.getElementById('queryT1P1').value.trim(); const t1p2 = document.getElementById('queryT1P2').value.trim();
                 const t2p1 = document.getElementById('queryT2P1').value.trim(); const t2p2 = document.getElementById('queryT2P2').value.trim();
                 if (!t1p1 || !t1p2 || !t2p1 || !t2p2) return;
                 if (!validNames.includes(t1p1) || !validNames.includes(t1p2) || !validNames.includes(t2p1) || !validNames.includes(t2p2)) {
-                    resBox.innerHTML = `<div style="text-align:center; color:#ff3b30; margin-top:20px; font-weight:bold;">Error: Please select valid players!</div>`; 
+                    resBox.innerHTML = `<div style="text-align:center; color:#ff3b30; margin-top:20px; font-weight:bold; animation: fadeIn 0.3s;">Error: Please select valid players!</div>`; 
                     return;
                 }
-                if (new Set([t1p1, t1p2, t2p1, t2p2]).size !== 4) { resBox.innerHTML = `<div style="text-align:center; color:#ff3b30; margin-top:20px; font-weight:bold;">Error: Select 4 different players!</div>`; return; }
+                if (new Set([t1p1, t1p2, t2p1, t2p2]).size !== 4) { resBox.innerHTML = `<div style="text-align:center; color:#ff3b30; margin-top:20px; font-weight:bold; animation: fadeIn 0.3s;">Error: Select 4 different players!</div>`; return; }
 
                 let doublesH2HMatches = allDoubles.filter(m => ((m.winners.includes(t1p1) && m.winners.includes(t1p2) && m.losers.includes(t2p1) && m.losers.includes(t2p2)) || (m.losers.includes(t1p1) && m.losers.includes(t1p2) && m.winners.includes(t2p1) && m.winners.includes(t2p2)))).sort((a, b) => new Date(b.date) - new Date(a.date));
                 let t1Wins = doublesH2HMatches.filter(m => m.winners.includes(t1p1)).length; let t2Wins = doublesH2HMatches.filter(m => m.winners.includes(t2p1)).length;
@@ -744,7 +817,7 @@
                 let t2ChemWins = t2PartnerMatches.filter(m => m.winners.includes(t2p1)).length; let t2ChemLosses = t2PartnerMatches.filter(m => m.losers.includes(t2p1)).length;
                 let t2ChemTotal = t2PartnerMatches.length; let t2ChemRate = t2ChemTotal > 0 ? ((t2ChemWins / t2ChemTotal) * 100).toFixed(0) : 0;
 
-                let html = `<div class="career-title" style="color:#aaa; font-size:0.85rem; text-align:center;">TEAM H2H (WINS)</div><div class="h2h-top-bar" style="margin-bottom:15px; margin-top:5px;"><div class="p1-bar" style="width: ${t1Width}%;"></div><div class="p2-bar" style="width: ${t2Width}%;"></div></div><div style="display:flex; justify-content:space-between; font-size:1.1rem; font-weight:bold; margin-bottom:25px;"><span style="color:#ffcc00">TEAM A: ${t1Wins}</span><span style="color:#0a84ff">${t2Wins} :TEAM B</span></div>`;
+                let html = `<div style="animation: slideFadeUp 0.4s ease-out;"><div class="career-title" style="color:#aaa; font-size:0.85rem; text-align:center;">TEAM H2H (WINS)</div><div class="h2h-top-bar" style="margin-bottom:15px; margin-top:5px;"><div class="p1-bar" style="width: ${t1Width}%;"></div><div class="p2-bar" style="width: ${t2Width}%;"></div></div><div style="display:flex; justify-content:space-between; font-size:1.1rem; font-weight:bold; margin-bottom:25px;"><span style="color:#ffcc00">TEAM A: ${t1Wins}</span><span style="color:#0a84ff">${t2Wins} :TEAM B</span></div>`;
 
                 if (total > 0) {
                     html += `<div class="section-header"><span class="career-title" style="margin-bottom:0;">LAST ENCOUNTER</span></div>`;
@@ -757,7 +830,7 @@
                     html += `<div class="bwf-card" style="margin-bottom: 25px;"><div class="bwf-header"><span>FRIENDLY MATCH</span><span>Result</span></div><div class="bwf-body"><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${wNameDisplay}</div><div class="bwf-scores">${wScoresHTML}</div></div><div class="bwf-player"><div class="bwf-name" style="font-size:0.95rem;">${lNameDisplay}</div><div class="bwf-scores">${lScoresHTML}</div></div></div><div class="bwf-footer"><span>MD • DATE: ${dateStr}</span><span>-</span></div></div>`;
                 } else { html += `<div class="career-stats-box" style="text-align:center; padding: 20px 10px; margin-bottom: 25px;"><div style="color:#888; font-size:0.95rem;">No history between these teams.</div></div>`; }
 
-                html += `<div class="career-title" style="color:#ff3b30; margin-top:10px; text-align:center;">PARTNER CHEMISTRY</div><div style="display:flex; gap: 15px; margin-bottom: 20px;"><div class="career-stats-box" style="flex:1; padding: 15px 10px; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center;"><div style="font-size:0.8rem; color:#ffcc00; font-weight:bold; margin-bottom:15px;">TEAM A</div><div style="width: 100%; max-width: 120px; position:relative;"><canvas id="teamAChart"></canvas></div><div style="font-size:0.85rem; font-weight:bold; margin-top:15px; letter-spacing:1px;"><span style="color:#ffcc00">${t1ChemWins}W</span> - <span style="color:#0a84ff">${t1ChemLosses}L</span></div><div style="font-size:0.75rem; color:#aaa; margin-top:5px; font-weight:bold;">Rate: <span style="color:#fff">${t1ChemRate}%</span></div></div><div class="career-stats-box" style="flex:1; padding: 15px 10px; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center;"><div style="font-size:0.8rem; color:#0a84ff; font-weight:bold; margin-bottom:15px;">TEAM B</div><div style="width: 100%; max-width: 120px; position:relative;"><canvas id="teamBChart"></canvas></div><div style="font-size:0.85rem; font-weight:bold; margin-top:15px; letter-spacing:1px;"><span style="color:#ffcc00">${t2ChemWins}W</span> - <span style="color:#0a84ff">${t2ChemLosses}L</span></div><div style="font-size:0.75rem; color:#aaa; margin-top:5px; font-weight:bold;">Rate: <span style="color:#fff">${t2ChemRate}%</span></div></div></div>`;
+                html += `<div class="career-title" style="color:#ff3b30; margin-top:10px; text-align:center;">PARTNER CHEMISTRY</div><div style="display:flex; gap: 15px; margin-bottom: 20px;"><div class="career-stats-box" style="flex:1; padding: 15px 10px; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center;"><div style="font-size:0.8rem; color:#ffcc00; font-weight:bold; margin-bottom:15px;">TEAM A</div><div style="width: 100%; max-width: 120px; position:relative;"><canvas id="teamAChart"></canvas></div><div style="font-size:0.85rem; font-weight:bold; margin-top:15px; letter-spacing:1px;"><span style="color:#ffcc00">${t1ChemWins}W</span> - <span style="color:#0a84ff">${t1ChemLosses}L</span></div><div style="font-size:0.75rem; color:#aaa; margin-top:5px; font-weight:bold;">Rate: <span style="color:#fff">${t1ChemRate}%</span></div></div><div class="career-stats-box" style="flex:1; padding: 15px 10px; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center;"><div style="font-size:0.8rem; color:#0a84ff; font-weight:bold; margin-bottom:15px;">TEAM B</div><div style="width: 100%; max-width: 120px; position:relative;"><canvas id="teamBChart"></canvas></div><div style="font-size:0.85rem; font-weight:bold; margin-top:15px; letter-spacing:1px;"><span style="color:#ffcc00">${t2ChemWins}W</span> - <span style="color:#0a84ff">${t2ChemLosses}L</span></div><div style="font-size:0.75rem; color:#aaa; margin-top:5px; font-weight:bold;">Rate: <span style="color:#fff">${t2ChemRate}%</span></div></div></div></div>`;
                 resBox.innerHTML = html;
                 setTimeout(() => { window.drawChemistryCharts(t1ChemWins, t1ChemLosses, t2ChemWins, t2ChemLosses); }, 50);
             }
@@ -781,7 +854,8 @@
                     if(!s.hasPlayed) return;
                     let rank = index + 1; let isRank1 = rank === 1; let cls = isRank1 ? "rank-item rank-1" : "rank-item";
                     let initial = s.name.charAt(0).toUpperCase();
-                    let html = `<div class="${cls}"><div class="rank-num">${rank}</div><div class="rank-avatar" onclick="openProfile('${s.name}')">${initial}<div class="rank-flag">${s.flag}</div></div><div class="rank-info" onclick="openProfile('${s.name}')"><div class="rank-name">${s.name}</div><div class="rank-sub">MS • Played: ${s.total}</div></div><div class="rank-stats" onclick="openProfile('${s.name}')"><div class="rank-points">${s.total > 0 ? s.rate + '%' : '-'}</div><div class="rank-tourneys">${s.wins}W / ${s.losses}L</div></div></div>`;
+                    let delay = Math.min(index * 0.05, 0.5); // Stagger pop-in effect
+                    let html = `<div class="${cls} ripple" style="animation-delay: ${delay}s"><div class="rank-num">${rank}</div><div class="rank-avatar" onclick="openProfile('${s.name}')">${initial}<div class="rank-flag">${s.flag}</div></div><div class="rank-info" onclick="openProfile('${s.name}')"><div class="rank-name">${s.name}</div><div class="rank-sub">MS • Played: ${s.total}</div></div><div class="rank-stats" onclick="openProfile('${s.name}')"><div class="rank-points">${s.total > 0 ? s.rate + '%' : '-'}</div><div class="rank-tourneys">${s.wins}W / ${s.losses}L</div></div></div>`;
                     container.innerHTML += html;
                 });
             } else {
@@ -805,7 +879,8 @@
                 statsArray.forEach((s, index) => {
                     let p1Obj = players.find(p => p.name === s.p1) || { flag: '🏳️' }; let p2Obj = players.find(p => p.name === s.p2) || { flag: '🏳️' };
                     let rank = index + 1; let isRank1 = rank === 1; let cls = isRank1 ? "rank-item rank-1" : "rank-item";
-                    let html = `<div class="${cls}"><div class="rank-num">${rank}</div><div class="rank-avatar" onclick="openTeamProfile('${s.p1}', '${s.p2}')" style="font-size:1rem; flex-direction:column; justify-content:center; gap:2px;"><div style="font-size:0.7rem; line-height:1;">${p1Obj.flag}</div><div style="font-size:0.7rem; line-height:1;">${p2Obj.flag}</div><div class="rank-flag" style="font-size:0.8rem;">👥</div></div><div class="rank-info" onclick="openTeamProfile('${s.p1}', '${s.p2}')"><div class="rank-name">${s.p1}<br><span style="color:#aaa; font-size:0.85rem; font-weight:normal;">& ${s.p2}</span></div><div class="rank-sub" style="margin-top:2px;">MD • Played: ${s.total}</div></div><div class="rank-stats" onclick="openTeamProfile('${s.p1}', '${s.p2}')"><div class="rank-points">${s.rate}%</div><div class="rank-tourneys">${s.wins}W / ${s.losses}L</div></div></div>`;
+                    let delay = Math.min(index * 0.05, 0.5); // Stagger pop-in effect
+                    let html = `<div class="${cls} ripple" style="animation-delay: ${delay}s"><div class="rank-num">${rank}</div><div class="rank-avatar" onclick="openTeamProfile('${s.p1}', '${s.p2}')" style="font-size:1rem; flex-direction:column; justify-content:center; gap:2px;"><div style="font-size:0.7rem; line-height:1;">${p1Obj.flag}</div><div style="font-size:0.7rem; line-height:1;">${p2Obj.flag}</div><div class="rank-flag" style="font-size:0.8rem;">👥</div></div><div class="rank-info" onclick="openTeamProfile('${s.p1}', '${s.p2}')"><div class="rank-name">${s.p1}<br><span style="color:#aaa; font-size:0.85rem; font-weight:normal;">& ${s.p2}</span></div><div class="rank-sub" style="margin-top:2px;">MD • Played: ${s.total}</div></div><div class="rank-stats" onclick="openTeamProfile('${s.p1}', '${s.p2}')"><div class="rank-points">${s.rate}%</div><div class="rank-tourneys">${s.wins}W / ${s.losses}L</div></div></div>`;
                     container.innerHTML += html;
                 });
             }
@@ -856,7 +931,7 @@
             if (matchesToShow.length === 0) { listContainer.innerHTML = `<div style="text-align:center; color:#888; padding: 15px 0; font-size:0.9rem;">No matches found.</div>`; return; }
 
             let html = '';
-            matchesToShow.forEach(m => {
+            matchesToShow.forEach((m, index) => {
                 let isDouble = m.matchType === 'doubles'; let typeTag = isDouble ? 'MD' : 'MS';
                 let wp1, wp2, lp1, lp2, wNameDisplay, lNameDisplay;
                 if (isDouble) {
@@ -878,7 +953,8 @@
                     });
                 }
                 let dateObj = new Date(m.date); let dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
-                html += `<div class="bwf-card" style="margin-bottom: 10px;"><div class="bwf-body" style="padding: 10px 15px;"><div class="bwf-player" style="margin-bottom:8px;"><div class="bwf-name" style="font-size:0.9rem;">${wNameDisplay}</div><div class="bwf-scores">${wScoresHTML}</div></div><div class="bwf-player" style="margin-bottom:0;"><div class="bwf-name" style="font-size:0.9rem;">${lNameDisplay}</div><div class="bwf-scores">${lScoresHTML}</div></div></div><div class="bwf-footer" style="padding: 6px 15px;"><span>${typeTag} • ${dateStr}</span></div></div>`;
+                let delay = Math.min(index * 0.05, 0.5);
+                html += `<div class="bwf-card" style="margin-bottom: 10px; animation: popIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; animation-delay: ${delay}s"><div class="bwf-body" style="padding: 10px 15px;"><div class="bwf-player" style="margin-bottom:8px;"><div class="bwf-name" style="font-size:0.9rem;">${wNameDisplay}</div><div class="bwf-scores">${wScoresHTML}</div></div><div class="bwf-player" style="margin-bottom:0;"><div class="bwf-name" style="font-size:0.9rem;">${lNameDisplay}</div><div class="bwf-scores">${lScoresHTML}</div></div></div><div class="bwf-footer" style="padding: 6px 15px;"><span>${typeTag} • ${dateStr}</span></div></div>`;
             });
             listContainer.innerHTML = html;
         };
@@ -913,7 +989,6 @@
             let historyData = window.generateTeamHistoricalRanks(p1, p2); let teamRanks = historyData.map(h => h.rank); let teamLabels = historyData.map(h => 'M' + h.matchNum);
             let highestRank = teamRanks.length > 0 ? Math.min(...teamRanks) : "-"; 
             
-            // 计算 Tournaments Played
             let tPlayed = tourneyHistory.filter(t => t.participants && t.participants.includes(p1) && t.participants.includes(p2)).length;
             if (tournament && tournament.participants && tournament.participants.includes(p1) && tournament.participants.includes(p2)) {
                 tPlayed++; 
@@ -927,10 +1002,11 @@
             document.getElementById('profChemChartContainer').style.display = 'block';
             if (window.profPieChartInst) window.profPieChartInst.destroy();
             const pieCtx = document.getElementById('profChemPieCanvas').getContext('2d');
-            window.profPieChartInst = new Chart(pieCtx, { type: 'pie', data: { datasets: [{ data: (tWins===0&&tLosses===0)?[1]:[tWins, tLosses], backgroundColor: (tWins===0&&tLosses===0)?['#3a3a3c']:['#ffcc00', '#0a84ff'], borderWidth: 0 }] }, options: { plugins: { legend: { display: false } } } });
+            window.profPieChartInst = new Chart(pieCtx, { type: 'pie', data: { datasets: [{ data: (tWins===0&&tLosses===0)?[1]:[tWins, tLosses], backgroundColor: (tWins===0&&tLosses===0)?['#3a3a3c']:['#ffcc00', '#0a84ff'], borderWidth: 0 }] }, options: { plugins: { legend: { display: false } } }, animation: { animateScale: true } });
 
             document.getElementById('profileHistoryDate').value = ''; window.renderProfileHistory();
-            window.drawChart(teamRanks, teamLabels, true); document.getElementById('profileModal').style.display = 'flex';
+            window.drawChart(teamRanks, teamLabels, true); 
+            document.getElementById('profileModal').classList.add('show');
         };
 
         window.openProfile = function(playerName) {
@@ -962,7 +1038,6 @@
             
             let highestRank = playerRanks.length > 0 ? Math.min(...playerRanks) : "-"; 
             
-            // 计算 Tournaments Played
             let tPlayed = tourneyHistory.filter(t => t.participants && t.participants.includes(playerName)).length;
             if (tournament && tournament.participants && tournament.participants.includes(playerName)) {
                 tPlayed++; 
@@ -976,7 +1051,7 @@
             document.getElementById('profileHistoryDate').value = ''; window.renderProfileHistory();
             if (playerRanks.length === 0) { window.drawChart([players.length || 5], ['No Matches'], false); } 
             else { window.drawChart(playerRanks, playerLabels, false); }
-            document.getElementById('profileModal').style.display = 'flex';
+            document.getElementById('profileModal').classList.add('show');
         };
 
         window.drawChart = function(dataRanks, labels, isTeamMode) {
@@ -985,11 +1060,11 @@
             if (dataRanks.length === 0) { dataRanks = [computedMax]; labels = ['No Matches']; }
             rankingChartInstance = new Chart(ctx, {
                 type: 'line', data: { labels: labels, datasets: [{ label: 'Ranking', data: dataRanks, borderColor: '#ff3b30', borderWidth: 3, pointBackgroundColor: '#ff3b30', pointRadius: 3, fill: false, tension: 0.1 }] },
-                options: { responsive: true, scales: { y: { reverse: true, min: 1, max: computedMax, ticks: { stepSize: 1, color: '#aaa' }, grid: { color: '#3a3a3c' } }, x: { ticks: { color: '#aaa', maxTicksLimit: 8 }, grid: { display: false } } }, plugins: { legend: { display: false } } }
+                options: { responsive: true, scales: { y: { reverse: true, min: 1, max: computedMax, ticks: { stepSize: 1, color: '#aaa' }, grid: { color: '#3a3a3c' } }, x: { ticks: { color: '#aaa', maxTicksLimit: 8 }, grid: { display: false } } }, plugins: { legend: { display: false } }, animation: { y: { duration: 1000, easing: 'easeOutQuart' } } }
             });
         };
 
-        window.closeProfile = function() { document.getElementById('profileModal').style.display = 'none'; };
+        window.closeProfile = function() { document.getElementById('profileModal').classList.remove('show'); };
 
         // 🌟 TOURNAMENT LOGIC (BWF Horizontal Tree Layout with Perfect Pseudo Lines)
         window.renderTournamentBracket = function() {
@@ -1007,9 +1082,8 @@
                 let matches = tournament[roundName];
                 if (!matches || matches.length === 0) return;
                 
-                // Wrap the matches in an inner div (.tourney-col-matches) so the flex calculation ignores the title
                 boardHtml += `
-                <div class="tourney-col">
+                <div class="tourney-col" style="animation: popIn 0.5s ease backwards;">
                     <div class="tourney-col-title">${roundName}</div>
                     <div class="tourney-col-matches">`;
                             
@@ -1019,7 +1093,6 @@
                     let canEdit = (isAdmin && p1.name !== 'TBD' && p2.name !== 'TBD' && p1.name !== 'BYE' && p2.name !== 'BYE');
                     let isActive = (!m.winner && canEdit) ? 'active-match' : '';
                     
-                    // Determine which single specific score is higher
                     let c1_1 = getScClass(m.scores.g1[0], m.scores.g1[1]);
                     let c1_2 = getScClass(m.scores.g1[1], m.scores.g1[0]);
                     
@@ -1029,7 +1102,7 @@
                     let c3_1 = getScClass(m.scores.g3[0], m.scores.g3[1]);
                     let c3_2 = getScClass(m.scores.g3[1], m.scores.g3[0]);
 
-                    let editBtnHtml = canEdit ? `<button class="admin-score-btn" onclick="openTourneyScoreModal('${roundName}', ${idx})">✏️ UPDATE SCORE</button>` : '';
+                    let editBtnHtml = canEdit ? `<button class="admin-score-btn ripple" onclick="openTourneyScoreModal('${roundName}', ${idx})">✏️ UPDATE SCORE</button>` : '';
                     
                     boardHtml += `
                     <div class="tourney-match-wrapper">
@@ -1055,7 +1128,7 @@
                     </div>`;
                 });
                 
-                boardHtml += `</div></div>`; // Close matches & col container
+                boardHtml += `</div></div>`; 
             });
             container.innerHTML = boardHtml;
         };
@@ -1110,10 +1183,10 @@
             document.getElementById('tg1p1').value = m.scores.g1[0] || ''; document.getElementById('tg1p2').value = m.scores.g1[1] || '';
             document.getElementById('tg2p1').value = m.scores.g2[0] || ''; document.getElementById('tg2p2').value = m.scores.g2[1] || '';
             document.getElementById('tg3p1').value = m.scores.g3[0] || ''; document.getElementById('tg3p2').value = m.scores.g3[1] || '';
-            document.getElementById('tourneyScoreModal').style.display = 'flex';
+            document.getElementById('tourneyScoreModal').classList.add('show');
         };
 
-        window.closeTourneyScoreModal = function() { document.getElementById('tourneyScoreModal').style.display = 'none'; };
+        window.closeTourneyScoreModal = function() { document.getElementById('tourneyScoreModal').classList.remove('show'); };
 
         window.submitTourneyScore = async function() {
             if (!editingTourneyId) return;
