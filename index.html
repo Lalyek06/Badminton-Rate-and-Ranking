@@ -200,13 +200,13 @@
                     <button id="btnDoubles" onclick="setMatchMode('doubles')">Doubles</button>
                 </div>
                 
-                <label style="color:#aaa; font-size:0.8rem;">Player / Team A:</label>
+                <label id="lblMatchA" style="color:#aaa; font-size:0.8rem;">Player A:</label>
                 <div id="singlesAGroup"><select id="p1a"></select></div>
                 <div id="doublesAGroup" class="doubles-select-group" style="display:none;"><select id="p1a_1"></select><select id="p1a_2"></select></div>
 
                 <div class="vs-text">VS</div>
 
-                <label style="color:#aaa; font-size:0.8rem;">Player / Team B:</label>
+                <label id="lblMatchB" style="color:#aaa; font-size:0.8rem;">Player B:</label>
                 <div id="singlesBGroup"><select id="p1b"></select></div>
                 <div id="doublesBGroup" class="doubles-select-group" style="display:none;"><select id="p1b_1"></select><select id="p1b_2"></select></div>
 
@@ -439,6 +439,9 @@
             document.getElementById('btnSingles').classList.toggle('active', mode === 'singles'); document.getElementById('btnDoubles').classList.toggle('active', mode === 'doubles');
             document.getElementById('singlesAGroup').style.display = mode === 'singles' ? 'block' : 'none'; document.getElementById('doublesAGroup').style.display = mode === 'doubles' ? 'flex' : 'none';
             document.getElementById('singlesBGroup').style.display = mode === 'singles' ? 'block' : 'none'; document.getElementById('doublesBGroup').style.display = mode === 'doubles' ? 'flex' : 'none';
+            
+            document.getElementById('lblMatchA').innerText = mode === 'singles' ? 'Player A:' : 'Player / Team A:';
+            document.getElementById('lblMatchB').innerText = mode === 'singles' ? 'Player B:' : 'Player / Team B:';
         };
 
         window.setH2HMode = function(mode) {
