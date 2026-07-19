@@ -54,7 +54,7 @@
         .score-box label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 5px; font-weight: bold; }
         .score-inputs { display: flex; justify-content: center; align-items: center; gap: 2px; }
         .score-inputs input { width: 40px; text-align: center; font-size: 1rem; font-weight: bold; background: transparent; border-bottom: 2px solid #ff3b30; border-radius: 0; padding: 5px 0; margin: 0; }
-        .vs-text { font-size: 1.3rem; font-weight: bold; color: #ff3b30; text-align: center; margin: 5px 0; }
+        .vs-text { font-size: 1.3rem; font-weight: bold; color: #ff3b30; text-align: center; margin: 15px 0; }
 
         .h2h-top-bar { display: flex; height: 8px; background: #3a3a3c; border-radius: 4px; overflow: hidden; margin-bottom: 25px; margin-top: 10px; }
         .h2h-top-bar .p1-bar { background: #ffcc00; height: 100%; transition: width 0.5s ease; }
@@ -139,34 +139,19 @@
         .bracket-scroll-area::-webkit-scrollbar { height: 6px; }
         .bracket-scroll-area::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 3px; }
         
-        /* Layout logic updated to guarantee perfect connector alignment */
         .tourney-layout { display: flex; gap: 40px; padding: 20px 10px; min-width: max-content; align-items: stretch; }
         .tourney-col { display: flex; flex-direction: column; width: 260px; }
         
-        /* Titles are excluded from the main height distribution flex box */
         .tourney-col-title { height: 25px; text-align: center; color: #888; font-weight: bold; margin-bottom: 15px; font-size: 1rem; letter-spacing: 1px; flex-shrink: 0; }
-        
-        /* The container holding the matches will stretch to equal height across all rounds */
         .tourney-col-matches { flex: 1; display: flex; flex-direction: column; justify-content: space-around; position: relative; }
-        
         .tourney-match-wrapper { position: relative; display: flex; flex-direction: column; justify-content: center; flex: 1; padding: 5px 0; }
         
-        /* Perfect BWF Style Bracket Tree Lines */
-        .tourney-col:not(:last-child) .tourney-match-wrapper:nth-child(odd)::after {
-            content: ''; position: absolute; right: -20px; top: 50%; height: 50%; width: 20px;
-            border-top: 2px solid #e5e5e5; border-right: 2px solid #e5e5e5; border-top-right-radius: 8px; z-index: 1;
-        }
-        .tourney-col:not(:last-child) .tourney-match-wrapper:nth-child(even)::after {
-            content: ''; position: absolute; right: -20px; top: 0; height: 50%; width: 20px;
-            border-bottom: 2px solid #e5e5e5; border-right: 2px solid #e5e5e5; border-bottom-right-radius: 8px; z-index: 1;
-        }
-        .tourney-col:not(:first-child) .tourney-match-wrapper::before {
-            content: ''; position: absolute; left: -20px; top: 50%; width: 20px; border-top: 2px solid #e5e5e5; z-index: 1;
-        }
+        .tourney-col:not(:last-child) .tourney-match-wrapper:nth-child(odd)::after { content: ''; position: absolute; right: -20px; top: 50%; height: 50%; width: 20px; border-top: 2px solid #e5e5e5; border-right: 2px solid #e5e5e5; border-top-right-radius: 8px; z-index: 1; }
+        .tourney-col:not(:last-child) .tourney-match-wrapper:nth-child(even)::after { content: ''; position: absolute; right: -20px; top: 0; height: 50%; width: 20px; border-bottom: 2px solid #e5e5e5; border-right: 2px solid #e5e5e5; border-bottom-right-radius: 8px; z-index: 1; }
+        .tourney-col:not(:first-child) .tourney-match-wrapper::before { content: ''; position: absolute; left: -20px; top: 50%; width: 20px; border-top: 2px solid #e5e5e5; z-index: 1; }
 
         .tourney-card { background: #1a1a1c; border-radius: 12px; position: relative; z-index: 2; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #2a2a2c; }
         
-        /* Admin score updater link button style */
         .admin-score-btn { background: #ff3b30; color: #fff; border: none; padding: 8px; width: 100%; font-size: 0.8rem; font-weight: bold; cursor: pointer; display: block; border-top: 1px solid #3a3a3c; letter-spacing: 1px; }
         .admin-score-btn:active { background: #d32f2f; }
         
@@ -174,11 +159,9 @@
         .player-row-t:last-child { border-bottom: none; }
         .player-info-t { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; color: #fff; font-weight: bold; }
         
-        /* Winner dot matches BWF location (right after name) */
         .win-dot { width: 8px; height: 8px; background-color: #4caf50; border-radius: 50%; display: inline-block; opacity: 0; margin-left: 5px; }
         .winner .win-dot { opacity: 1; }
         
-        /* Dynamic specific score colors */
         .scores-t { display: flex; gap: 10px; font-weight: bold; font-size: 1rem;}
         .score-item-t { width: 22px; text-align: right; }
         .score-red { color: #ff3b30; }
@@ -216,20 +199,23 @@
                     <button id="btnSingles" class="active" onclick="setMatchMode('singles')">Singles</button>
                     <button id="btnDoubles" onclick="setMatchMode('doubles')">Doubles</button>
                 </div>
-                <label style="color:#aaa; font-size:0.8rem;">Winner(s):</label>
-                <div id="singlesWinnerGroup"><select id="matchWinner"></select></div>
-                <div id="doublesWinnerGroup" class="doubles-select-group" style="display:none;"><select id="matchWinner1"></select><select id="matchWinner2"></select></div>
+                
+                <label style="color:#aaa; font-size:0.8rem;">Player / Team A:</label>
+                <div id="singlesAGroup"><select id="p1a"></select></div>
+                <div id="doublesAGroup" class="doubles-select-group" style="display:none;"><select id="p1a_1"></select><select id="p1a_2"></select></div>
+
+                <div class="vs-text">VS</div>
+
+                <label style="color:#aaa; font-size:0.8rem;">Player / Team B:</label>
+                <div id="singlesBGroup"><select id="p1b"></select></div>
+                <div id="doublesBGroup" class="doubles-select-group" style="display:none;"><select id="p1b_1"></select><select id="p1b_2"></select></div>
 
                 <div class="score-row">
-                    <div class="score-box"><label>GAME 1</label><div class="score-inputs"><input type="number" id="g1w" placeholder="W" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"> <span class="score-dash">-</span> <input type="number" id="g1l" placeholder="L" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"></div></div>
-                    <div class="score-box"><label>GAME 2</label><div class="score-inputs"><input type="number" id="g2w" placeholder="W" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"> <span class="score-dash">-</span> <input type="number" id="g2l" placeholder="L" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"></div></div>
-                    <div class="score-box"><label>GAME 3</label><div class="score-inputs"><input type="number" id="g3w" placeholder="W" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"> <span class="score-dash">-</span> <input type="number" id="g3l" placeholder="L" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"></div></div>
+                    <div class="score-box"><label>GAME 1</label><div class="score-inputs"><input type="number" id="g1a" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"> <span class="score-dash">-</span> <input type="number" id="g1b" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"></div></div>
+                    <div class="score-box"><label>GAME 2</label><div class="score-inputs"><input type="number" id="g2a" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"> <span class="score-dash">-</span> <input type="number" id="g2b" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"></div></div>
+                    <div class="score-box"><label>GAME 3</label><div class="score-inputs"><input type="number" id="g3a" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"> <span class="score-dash">-</span> <input type="number" id="g3b" oninput="if(this.value>30)this.value=30;if(this.value<0)this.value=0;"></div></div>
                 </div>
                 
-                <div class="vs-text">VS</div>
-                <label style="color:#aaa; font-size:0.8rem;">Loser(s):</label>
-                <div id="singlesLoserGroup"><select id="matchLoser"></select></div>
-                <div id="doublesLoserGroup" class="doubles-select-group" style="display:none;"><select id="matchLoser1"></select><select id="matchLoser2"></select></div>
                 <button class="action-btn" onclick="recordMatch()">SUBMIT RESULT</button>
             </div>
         </div>
@@ -451,8 +437,8 @@
         window.setMatchMode = function(mode) {
             window.currentMatchMode = mode;
             document.getElementById('btnSingles').classList.toggle('active', mode === 'singles'); document.getElementById('btnDoubles').classList.toggle('active', mode === 'doubles');
-            document.getElementById('singlesWinnerGroup').style.display = mode === 'singles' ? 'block' : 'none'; document.getElementById('doublesWinnerGroup').style.display = mode === 'doubles' ? 'flex' : 'none';
-            document.getElementById('singlesLoserGroup').style.display = mode === 'singles' ? 'block' : 'none'; document.getElementById('doublesLoserGroup').style.display = mode === 'doubles' ? 'flex' : 'none';
+            document.getElementById('singlesAGroup').style.display = mode === 'singles' ? 'block' : 'none'; document.getElementById('doublesAGroup').style.display = mode === 'doubles' ? 'flex' : 'none';
+            document.getElementById('singlesBGroup').style.display = mode === 'singles' ? 'block' : 'none'; document.getElementById('doublesBGroup').style.display = mode === 'doubles' ? 'flex' : 'none';
         };
 
         window.setH2HMode = function(mode) {
@@ -593,7 +579,7 @@
         };
 
         window.updateDropdowns = function() {
-            const dropdowns = ['matchWinner', 'matchLoser', 'queryP1', 'queryP2', 'matchWinner1', 'matchWinner2', 'matchLoser1', 'matchLoser2', 'queryT1P1', 'queryT1P2', 'queryT2P1', 'queryT2P2'];
+            const dropdowns = ['p1a', 'p1b', 'queryP1', 'queryP2', 'p1a_1', 'p1a_2', 'p1b_1', 'p1b_2', 'queryT1P1', 'queryT1P2', 'queryT2P1', 'queryT2P2'];
             dropdowns.forEach(id => {
                 const el = document.getElementById(id); if (!el) return; const currentVal = el.value; el.innerHTML = '';
                 players.forEach(p => { const opt = document.createElement('option'); opt.value = p.name; opt.innerText = `${p.flag} ${p.name}`; el.appendChild(opt); });
@@ -603,31 +589,80 @@
 
         window.recordMatch = async function() {
             let isDoubles = window.currentMatchMode === 'doubles';
-            let matchData = { scores: [ { w: document.getElementById('g1w').value, l: document.getElementById('g1l').value }, { w: document.getElementById('g2w').value, l: document.getElementById('g2l').value }, { w: document.getElementById('g3w').value, l: document.getElementById('g3l').value } ], date: new Date().toISOString(), matchType: isDoubles ? 'doubles' : 'singles' };
+            let teamA = [], teamB = [];
+            
             if (isDoubles) {
-                let w1 = document.getElementById('matchWinner1').value, w2 = document.getElementById('matchWinner2').value; let l1 = document.getElementById('matchLoser1').value, l2 = document.getElementById('matchLoser2').value;
-                if (!w1 || !w2 || !l1 || !l2) return alert('Select players.'); if (new Set([w1, w2, l1, l2]).size !== 4) return alert('Cannot select same player!');
-                matchData.winners = [w1, w2]; matchData.losers = [l1, l2];
+                teamA = [document.getElementById('p1a_1').value, document.getElementById('p1a_2').value];
+                teamB = [document.getElementById('p1b_1').value, document.getElementById('p1b_2').value];
+                if (!teamA[0] || !teamA[1] || !teamB[0] || !teamB[1]) return alert('Select players.');
+                if (new Set([...teamA, ...teamB]).size !== 4) return alert('Cannot select same player!');
             } else {
-                let w = document.getElementById('matchWinner').value, l = document.getElementById('matchLoser').value;
-                if (!w || !l) return alert('Select players.'); if (w === l) return alert('Cannot play self.');
-                matchData.winner = w; matchData.loser = l;
+                teamA = [document.getElementById('p1a').value];
+                teamB = [document.getElementById('p1b').value];
+                if (!teamA[0] || !teamB[0]) return alert('Select players.');
+                if (teamA[0] === teamB[0]) return alert('Cannot play self.');
             }
 
+            // Read scores
+            let rawScores = [
+                { a: document.getElementById('g1a').value.trim(), b: document.getElementById('g1b').value.trim() },
+                { a: document.getElementById('g2a').value.trim(), b: document.getElementById('g2b').value.trim() },
+                { a: document.getElementById('g3a').value.trim(), b: document.getElementById('g3b').value.trim() }
+            ];
+
+            let aWins = 0, bWins = 0;
             let invalidScore = false, hasValidGame = false, missingPair = false;
-            matchData.scores.forEach(s => {
-                let wStr = s.w.trim(), lStr = s.l.trim();
-                if (wStr !== "" || lStr !== "") {
-                    if (wStr === "" || lStr === "") missingPair = true; 
-                    else { hasValidGame = true; let wVal = parseInt(wStr), lVal = parseInt(lStr); if (wVal < 0 || wVal > 30 || lVal < 0 || lVal > 30) invalidScore = true; }
+
+            rawScores.forEach(s => {
+                if (s.a !== "" || s.b !== "") {
+                    if (s.a === "" || s.b === "") {
+                        missingPair = true;
+                    } else {
+                        hasValidGame = true;
+                        let aVal = parseInt(s.a), bVal = parseInt(s.b);
+                        if (aVal < 0 || aVal > 30 || bVal < 0 || bVal > 30 || aVal === bVal) {
+                            invalidScore = true;
+                        } else {
+                            if (aVal > bVal) aWins++;
+                            else if (bVal > aVal) bWins++;
+                        }
+                    }
                 }
             });
-            if (missingPair) return alert('Complete BOTH scores.'); if (!hasValidGame) return alert('Enter at least one score.'); if (invalidScore) return alert('Score 0-30 only.');
+
+            if (missingPair) return alert('Complete BOTH scores for a game.'); 
+            if (!hasValidGame) return alert('Enter at least one score.'); 
+            if (invalidScore) return alert('Score 0-30 only, and no draws allowed in a game.');
+            if (aWins === bWins) return alert('Match must have a clear winner (e.g. 2-0 or 2-1).');
+
+            let matchWinner = aWins > bWins ? 'A' : 'B';
             
+            // Reconstruct scores for DB ({w, l}) - DB expects w to be Match Winner's score
+            let dbScores = rawScores.map(s => {
+                if (matchWinner === 'A') return { w: s.a, l: s.b };
+                else return { w: s.b, l: s.a };
+            });
+
+            let matchData = { 
+                scores: dbScores, 
+                date: new Date().toISOString(), 
+                matchType: isDoubles ? 'doubles' : 'singles' 
+            };
+
+            if (isDoubles) {
+                matchData.winners = matchWinner === 'A' ? teamA : teamB;
+                matchData.losers = matchWinner === 'A' ? teamB : teamA;
+            } else {
+                matchData.winner = matchWinner === 'A' ? teamA[0] : teamB[0];
+                matchData.loser = matchWinner === 'A' ? teamB[0] : teamA[0];
+            }
+
             try {
                 if(isAdmin) { await addDoc(collection(db, isDoubles ? "matches_doubles" : "matches"), matchData); alert('Saved!'); } 
                 else { await addDoc(collection(db, isDoubles ? "pending_doubles_matches" : "pending_matches"), matchData); alert('Submitted for approval.'); }
-                ['g1w','g1l','g2w','g2l','g3w','g3l'].forEach(id => document.getElementById(id).value = ''); document.getElementById('recordAccordion').click();
+                
+                ['g1a','g1b','g2a','g2b','g3a','g3b'].forEach(id => document.getElementById(id).value = ''); 
+                document.getElementById('recordAccordion').click();
             } catch (e) { alert("Error: " + e); }
         };
 
