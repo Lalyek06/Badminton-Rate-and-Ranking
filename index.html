@@ -156,7 +156,7 @@
             from { opacity: 0; transform: translateY(15px) scale(0.95); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .rank-item { display: flex; align-items: center; padding: 12px 5px; border-bottom: 1px solid #1c1c1e; position: relative; transition: transform 0.2s, background 0.2s; animation: popIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+        .rank-item { display: flex; align-items: center; padding: 12px 5px; border-bottom: 1px solid #1c1c1e; position: relative; transition: transform 0.2s, background 0.2s; animation: popIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; cursor: pointer; }
         .rank-item:active { transform: scale(0.96); background-color: #1a1a1c; border-radius: 8px; }
         .rank-item:last-child { border-bottom: none; }
         .rank-item.rank-1 { background: linear-gradient(135deg, #ff1a1a, #990000); border-radius: 12px; border-bottom: none; margin-bottom: 15px; padding: 15px 10px; box-shadow: 0 4px 15px rgba(255,26,26,0.3); }
@@ -601,6 +601,11 @@
         onSnapshot(doc(db, "tournaments", "active"), (docSnap) => {
             if (docSnap.exists()) {
                 tournament = docSnap.data();
+                
+                // Set Header dynamically
+                let displayTitle = document.getElementById('activeTourneyNameDisplay');
+                if(displayTitle) displayTitle.innerText = tournament.name || "TOURNAMENT";
+
                 document.getElementById('tourneyEmptyState').style.display = 'none';
                 document.getElementById('tourneySetupState').style.display = 'none';
                 document.getElementById('tourneyActiveState').style.display = 'block';
@@ -918,7 +923,6 @@
                     let initial = s.name.charAt(0).toUpperCase();
                     let delay = Math.min(index * 0.05, 0.5); 
                     
-                    // 👉 FIXED HERE: moved onclick to the root element so the whole card is clickable
                     let html = `<div class="${cls} ripple" style="animation-delay: ${delay}s" onclick="openProfile('${s.name.replace(/'/g, "\\'")}')">
                                     <div class="rank-position">
                                         <div class="rank-num">${rank}</div>
@@ -985,7 +989,6 @@
                     let rank = s.rank; let isRank1 = rank === 1; let cls = isRank1 ? "rank-item rank-1" : "rank-item";
                     let delay = Math.min(index * 0.05, 0.5); 
                     
-                    // 👉 FIXED HERE: moved onclick to the root element so the whole card is clickable
                     let html = `<div class="${cls} ripple" style="animation-delay: ${delay}s" onclick="openTeamProfile('${s.p1.replace(/'/g, "\\'")}', '${s.p2.replace(/'/g, "\\'")}')">
                                     <div class="rank-position">
                                         <div class="rank-num">${rank}</div>
@@ -1259,7 +1262,9 @@
             while (selected.length < 16) { selected.push({ name: "BYE", flag: "➖" }); }
             selected = selected.sort(() => Math.random() - 0.5);
 
-            let newTournament = { R16: [], QF: [], SF: [], Final: [], participants: realPlayers };
+            let tName = document.getElementById('tourneyNameInput').value.trim() || "TOURNAMENT";
+
+            let newTournament = { name: tName, R16: [], QF: [], SF: [], Final: [], participants: realPlayers };
             for (let i = 0; i < 8; i++) { newTournament.R16.push({ id: `R16_${i}`, p1: selected[i*2], p2: selected[i*2+1], scores: { g1:['',''], g2:['',''], g3:['',''] }, winner: null }); }
             for(let i=0; i<4; i++) newTournament.QF.push({ id:`QF_${i}`, p1:null, p2:null, scores:{g1:['',''],g2:['',''],g3:['','']}, winner:null });
             for(let i=0; i<2; i++) newTournament.SF.push({ id:`SF_${i}`, p1:null, p2:null, scores:{g1:['',''],g2:['',''],g3:['','']}, winner:null });
@@ -1329,7 +1334,7 @@
             if(!confirm("Clear Tournament? This will save the participants to history.")) return;
             try { 
                 if(tournament && tournament.participants) {
-                    let tName = document.getElementById('activeTourneyNameDisplay') ? document.getElementById('activeTourneyNameDisplay').innerText : "TOURNAMENT";
+                    let tName = tournament.name || "TOURNAMENT";
                     await addDoc(collection(db, "tournaments_history"), { name: tName, date: new Date().toISOString(), participants: tournament.participants });
                 }
                 await deleteDoc(doc(db, "tournaments", "active")); 
