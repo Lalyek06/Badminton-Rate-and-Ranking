@@ -318,6 +318,15 @@
             </div>
             <div id="h2hResult"><div style="text-align:center; color:#888; margin-top:20px;">Please select players to analyze</div></div>
         </div>
+        
+        <!-- 🌟 TODAY'S MATCHES SECTION -->
+        <div class="card" id="todayMatchesCard">
+            <h2>TODAY'S MATCHES</h2>
+            <div id="todayMatchesList">
+                <div style="text-align:center; color:#888; padding: 10px 0;">Loading...</div>
+            </div>
+        </div>
+        
     </div>
 
     <!-- TAB 2: RANKINGS -->
@@ -573,9 +582,56 @@
             window.renderRanking(); 
         };
 
+        // 🌟 RENDER TODAY'S MATCHES FUNCTION 🌟
+        window.renderTodayMatches = function() {
+            const listContainer = document.getElementById('todayMatchesList');
+            if (!listContainer) return;
+            
+            let todayStr = new Date().toDateString();
+            let todaysMatches = [...allSingles, ...allDoubles].filter(m => {
+                return new Date(m.date).toDateString() === todayStr;
+            }).sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            if (todaysMatches.length === 0) { 
+                listContainer.innerHTML = `<div style="text-align:center; color:#888; padding: 15px 0; font-size:0.9rem;">No matches recorded today.</div>`; 
+                return; 
+            }
+
+            let html = '';
+            todaysMatches.forEach((m, index) => {
+                let isDouble = m.matchType === 'doubles'; let typeTag = isDouble ? 'MD' : 'MS';
+                let wp1, wp2, lp1, lp2, wNameDisplay, lNameDisplay;
+                
+                if (isDouble) {
+                    wp1 = players.find(p => p.name === m.winners[0]) || { flag: '🏳️' }; wp2 = players.find(p => p.name === m.winners[1]) || { flag: '🏳️' };
+                    lp1 = players.find(p => p.name === m.losers[0]) || { flag: '🏳️' }; lp2 = players.find(p => p.name === m.losers[1]) || { flag: '🏳️' };
+                    wNameDisplay = `<span>${wp1.flag}${wp2.flag}</span> <strong>${m.winners[0]} / ${m.winners[1]}</strong>`; lNameDisplay = `<span>${lp1.flag}${lp2.flag}</span> <span style="color:#aaa;">${m.losers[0]} / ${m.losers[1]}</span>`;
+                } else {
+                    wp1 = players.find(p => p.name === m.winner) || { flag: '🏳️' }; lp1 = players.find(p => p.name === m.loser) || { flag: '🏳️' };
+                    wNameDisplay = `<span>${wp1.flag}</span> <strong>${m.winner}</strong>`; lNameDisplay = `<span>${lp1.flag}</span> <span style="color:#aaa;">${m.loser}</span>`;
+                }
+
+                let wScoresHTML = ''; let lScoresHTML = '';
+                if (m.scores && m.scores.length > 0) {
+                    m.scores.forEach(s => {
+                        if (s.w !== "" && s.l !== "") {
+                            let wVal = parseInt(s.w), lVal = parseInt(s.l); let wClass = wVal > lVal ? 'bwf-score-red' : 'bwf-score-white'; let lClass = lVal > wVal ? 'bwf-score-red' : 'bwf-score-white';
+                            wScoresHTML += `<div class="bwf-score-item ${wClass}">${s.w}</div>`; lScoresHTML += `<div class="bwf-score-item ${lClass}">${s.l}</div>`;
+                        }
+                    });
+                }
+                
+                let timeStr = new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                let delay = Math.min(index * 0.05, 0.5);
+                html += `<div class="bwf-card" style="margin-bottom: 10px; animation: popIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; animation-delay: ${delay}s"><div class="bwf-body" style="padding: 10px 15px;"><div class="bwf-player" style="margin-bottom:8px;"><div class="bwf-name" style="font-size:0.9rem;">${wNameDisplay}</div><div class="bwf-scores">${wScoresHTML}</div></div><div class="bwf-player" style="margin-bottom:0;"><div class="bwf-name" style="font-size:0.9rem;">${lNameDisplay}</div><div class="bwf-scores">${lScoresHTML}</div></div></div><div class="bwf-footer" style="padding: 6px 15px;"><span>${typeTag} • TODAY ${timeStr}</span></div></div>`;
+            });
+            listContainer.innerHTML = html;
+        };
+
         onSnapshot(collection(db, "players"), (snapshot) => {
             players = snapshot.docs.map(doc => doc.data());
             window.updateDropdowns(); window.renderRanking();
+            if (typeof window.renderTodayMatches === "function") window.renderTodayMatches();
             
             let cbHtml = "";
             players.forEach((p) => { cbHtml += `<label><input type="checkbox" class="player-cb" value="${p.name}" data-flag="${p.flag}"> ${p.flag} ${p.name}</label>`; });
@@ -589,7 +645,9 @@
         function mergeMatches() {
             allSingles = rawMatches.filter(m => m.matchType !== 'doubles').sort((a, b) => new Date(a.date) - new Date(b.date));
             allDoubles = [...rawMatches.filter(m => m.matchType === 'doubles'), ...rawDoublesMatches].sort((a, b) => new Date(a.date) - new Date(b.date));
-            window.renderRanking(); window.calculateH2H();
+            window.renderRanking(); 
+            window.calculateH2H();
+            window.renderTodayMatches();
         }
 
         onSnapshot(collection(db, "matches"), (snapshot) => { rawMatches = snapshot.docs.map(doc => doc.data()); mergeMatches(); });
@@ -602,7 +660,6 @@
             if (docSnap.exists()) {
                 tournament = docSnap.data();
                 
-                // Set Header dynamically
                 let displayTitle = document.getElementById('activeTourneyNameDisplay');
                 if(displayTitle) displayTitle.innerText = tournament.name || "TOURNAMENT";
 
@@ -882,8 +939,20 @@
             const container = document.getElementById('rankingListContainer'); container.innerHTML = '';
             document.getElementById('rankHeaderPlayer').innerText = window.currentRankMode === 'singles' ? 'SEED / PLAYER' : 'SEED / TEAM';
 
+            const getPrevMatches = (matchesArray) => {
+                if (!matchesArray || matchesArray.length === 0) return [];
+                let sorted = [...matchesArray].sort((a,b) => new Date(a.date) - new Date(b.date));
+                
+                let lastMatchDate = new Date(sorted[sorted.length - 1].date).toDateString();
+                
+                let prev = sorted.filter(m => new Date(m.date).toDateString() !== lastMatchDate);
+                
+                if (prev.length > 0) return prev;
+                
+                return [];
+            };
+
             if (window.currentRankMode === 'singles') {
-                // Current Stats
                 let stats = players.map(p => ({ name: p.name, flag: p.flag, wins: 0, losses: 0, total: 0, rate: 0, hasPlayed: false }));
                 allSingles.forEach(m => {
                     let wPlayer = stats.find(s => s.name === m.winner); let lPlayer = stats.find(s => s.name === m.loser);
@@ -895,9 +964,9 @@
                 activeStats.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
                 activeStats.forEach((s, i) => s.rank = i + 1);
 
-                // Previous Stats (Exclude the very last match)
                 let prevStats = players.map(p => ({ name: p.name, wins: 0, losses: 0, total: 0, rate: 0, hasPlayed: false }));
-                allSingles.slice(0, -1).forEach(m => {
+                let prevMatches = getPrevMatches(allSingles);
+                prevMatches.forEach(m => {
                     let wPlayer = prevStats.find(s => s.name === m.winner); let lPlayer = prevStats.find(s => s.name === m.loser);
                     if (wPlayer) { wPlayer.wins++; wPlayer.total++; wPlayer.hasPlayed = true; }
                     if (lPlayer) { lPlayer.losses++; lPlayer.total++; lPlayer.hasPlayed = true; }
@@ -907,6 +976,8 @@
                 prevActive.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
                 prevActive.forEach((s, i) => s.rank = i + 1);
                 
+                if (activeStats.length === 0) { container.innerHTML = `<div style="text-align:center; color:#888; padding:20px;">No records yet</div>`; return; }
+
                 activeStats.forEach((s, index) => {
                     let prev = prevActive.find(p => p.name === s.name);
                     let trendHtml = '';
@@ -937,7 +1008,6 @@
             } else {
                 const getPairKey = (n1, n2) => [n1, n2].sort().join(' | ');
                 
-                // Current Stats
                 let pairStats = {};
                 allDoubles.forEach(m => {
                     if (m.winners && m.winners.length === 2) {
@@ -954,9 +1024,9 @@
                 statsArray.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
                 statsArray.forEach((s, i) => s.rank = i + 1);
 
-                // Previous Stats
                 let prevPairStats = {};
-                allDoubles.slice(0, -1).forEach(m => {
+                let prevMatches = getPrevMatches(allDoubles);
+                prevMatches.forEach(m => {
                     if (m.winners && m.winners.length === 2) {
                         let key = getPairKey(m.winners[0], m.winners[1]); if (!prevPairStats[key]) prevPairStats[key] = { p1: m.winners[0], p2: m.winners[1], wins: 0, losses: 0, total: 0 };
                         prevPairStats[key].wins++; prevPairStats[key].total++;
