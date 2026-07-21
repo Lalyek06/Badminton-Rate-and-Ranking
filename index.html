@@ -522,7 +522,11 @@
             });
         }
 
-        window.switchTab = function(tabName) {
+        // 🌟 全新的路由控制核心（处理刷新和页面渲染）
+        function renderTab(tabName) {
+            const validTabs = ['home', 'tournament', 'rankings'];
+            if (!validTabs.includes(tabName)) tabName = 'home';
+
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             void document.getElementById('tab-' + tabName).offsetWidth; 
             document.getElementById('tab-' + tabName).classList.add('active');
@@ -531,6 +535,23 @@
             document.getElementById('nav-' + tabName).classList.add('active');
             window.scrollTo(0, 0);
         }
+
+        // 🌟 当用户点击底部导航栏时，改变网址的 Hash 产生浏览历史记录
+        window.switchTab = function(tabName) {
+            window.location.hash = tabName;
+        };
+
+        // 🌟 监听手机返回键/侧滑返回，以及 Hash 的变化
+        window.addEventListener('hashchange', function() {
+            let tab = window.location.hash.replace('#', '') || 'home';
+            renderTab(tab);
+        });
+
+        // 🌟 页面刷新/初次加载时，读取当前网址的 Hash，停留在该页面
+        window.addEventListener('DOMContentLoaded', function() {
+            let currentTab = window.location.hash.replace('#', '') || 'home';
+            renderTab(currentTab);
+        });
     </script>
 
     <script>
@@ -967,7 +988,7 @@
                 activeStats.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
                 activeStats.forEach((s, i) => s.rank = i + 1);
 
-                // Previous Stats (Just drop the very last match)
+                // Previous Stats (Exclude the very last match)
                 let prevStats = players.map(p => ({ name: p.name, wins: 0, losses: 0, total: 0, rate: 0, hasPlayed: false }));
                 allSingles.slice(0, -1).forEach(m => {
                     let wPlayer = prevStats.find(s => s.name === m.winner); let lPlayer = prevStats.find(s => s.name === m.loser);
