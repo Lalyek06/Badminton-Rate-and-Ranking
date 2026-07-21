@@ -598,7 +598,6 @@
             window.renderRanking(); 
         };
 
-        // 🌟 RENDER TODAY'S MATCHES FUNCTION 🌟
         window.renderTodayMatches = function() {
             const listContainer = document.getElementById('todayMatchesList');
             if (!listContainer) return;
@@ -968,7 +967,7 @@
                 activeStats.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
                 activeStats.forEach((s, i) => s.rank = i + 1);
 
-                // Previous Stats (Exclude the very last match)
+                // Previous Stats (Just drop the very last match)
                 let prevStats = players.map(p => ({ name: p.name, wins: 0, losses: 0, total: 0, rate: 0, hasPlayed: false }));
                 allSingles.slice(0, -1).forEach(m => {
                     let wPlayer = prevStats.find(s => s.name === m.winner); let lPlayer = prevStats.find(s => s.name === m.loser);
@@ -1029,7 +1028,7 @@
                 statsArray.sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.losses - b.losses);
                 statsArray.forEach((s, i) => s.rank = i + 1);
 
-                // Previous Stats
+                // Previous Stats (Just drop the very last match)
                 let prevPairStats = {};
                 allDoubles.slice(0, -1).forEach(m => {
                     if (m.winners && m.winners.length === 2) {
